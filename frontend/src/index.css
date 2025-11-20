@@ -1,0 +1,866 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-neutral-200;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-900;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Scrollbar personnalisée */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-neutral-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-neutral-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-400;
+  }
+
+  /* Focus visible pour l'accessibilité */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  }
+}
+
+@layer components {
+  /* Button Styles - Design Premium */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
+           focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed
+           transform active:scale-[0.98] whitespace-nowrap;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-md
+           hover:shadow-lg hover:from-primary-700 hover:to-primary-800
+           focus:ring-primary-500 border-0;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25), 0 2px 4px -2px rgba(37, 99, 235, 0.25);
+  }
+  
+  .btn-primary:hover {
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4), 0 4px 6px -4px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-secondary {
+    @apply bg-white text-neutral-700 border-2 border-neutral-300 shadow-sm
+           hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-md
+           focus:ring-neutral-500;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-neutral-700 hover:bg-neutral-100 focus:ring-neutral-500 border-0;
+  }
+
+  .btn-success {
+    @apply bg-gradient-to-r from-success-600 to-success-700 text-white shadow-md
+           hover:shadow-lg hover:from-success-700 hover:to-success-800
+           focus:ring-success-500 border-0;
+    box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.25), 0 2px 4px -2px rgba(34, 197, 94, 0.25);
+  }
+  
+  .btn-success:hover {
+    box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.4), 0 4px 6px -4px rgba(34, 197, 94, 0.4);
+  }
+
+  .btn-danger {
+    @apply bg-gradient-to-r from-error-600 to-error-700 text-white shadow-md
+           hover:shadow-lg hover:from-error-700 hover:to-error-800
+           focus:ring-error-500 border-0;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.25), 0 2px 4px -2px rgba(239, 68, 68, 0.25);
+  }
+  
+  .btn-danger:hover {
+    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.4), 0 4px 6px -4px rgba(239, 68, 68, 0.4);
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-xs;
+  }
+
+  .btn-md {
+    @apply px-6 py-3 text-sm;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-base;
+  }
+
+  /* Input Styles - Design Premium */
+  .input {
+    @apply w-full px-4 py-3 text-sm border-2 border-neutral-300 rounded-xl 
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 
+           transition-all duration-200 bg-white placeholder:text-neutral-400
+           disabled:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .input-error {
+    @apply border-error-500 focus:ring-error-500 focus:border-error-500;
+  }
+
+  .input-success {
+    @apply border-success-500 focus:ring-success-500 focus:border-success-500;
+  }
+
+  /* Card Styles - Design Premium */
+  .card {
+    @apply bg-white rounded-2xl shadow-soft border border-neutral-100/50
+           transition-all duration-300 backdrop-blur-sm;
+  }
+
+  .card-hover {
+    @apply card hover:shadow-medium hover:-translate-y-1 hover:border-neutral-200;
+  }
+
+  .card-interactive {
+    @apply card cursor-pointer hover:shadow-large hover:-translate-y-2 
+           hover:border-primary-200 active:scale-[0.98] transition-all duration-300;
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 via-accent-600 to-primary-600 
+           bg-clip-text text-transparent bg-[length:200%_auto] animate-shimmer;
+  }
+
+  .gradient-text-static {
+    @apply bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent;
+  }
+
+  /* Section Container */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Badge Styles */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold
+           transition-all duration-200;
+  }
+
+  .badge-primary {
+    @apply bg-primary-100 text-primary-700 border border-primary-200;
+  }
+
+  .badge-success {
+    @apply bg-success-100 text-success-700 border border-success-200;
+  }
+
+  .badge-warning {
+    @apply bg-warning-100 text-warning-700 border border-warning-200;
+  }
+
+  .badge-error {
+    @apply bg-error-100 text-error-700 border border-error-200;
+  }
+
+  .badge-neutral {
+    @apply bg-neutral-100 text-neutral-700 border border-neutral-200;
+  }
+
+  /* Table Styles */
+  .table-container {
+    @apply overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm;
+  }
+
+  .table {
+    @apply w-full divide-y divide-neutral-200;
+  }
+
+  .table-header {
+    @apply bg-gradient-to-r from-neutral-50 to-neutral-100/50;
+  }
+
+  .table-header-cell {
+    @apply px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider;
+  }
+
+  .table-body-cell {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-neutral-900;
+  }
+
+  .table-row {
+    @apply transition-colors duration-150 hover:bg-neutral-50/50;
+  }
+
+  /* Modal Styles */
+  .modal-overlay {
+    @apply fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 
+           flex items-center justify-center p-4 animate-fade-in;
+  }
+
+  .modal-content {
+    @apply bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] 
+           overflow-y-auto animate-scale-in border border-neutral-100;
+  }
+
+  /* Form Styles */
+  .form-group {
+    @apply space-y-2;
+  }
+
+  .form-label {
+    @apply block text-sm font-semibold text-neutral-700;
+  }
+
+  .form-error {
+    @apply text-sm text-error-600 mt-1.5 flex items-center gap-1.5;
+  }
+
+  .form-helper {
+    @apply text-sm text-neutral-500 mt-1.5;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+  }
+
+  .glass-strong {
+    @apply bg-white/95 backdrop-blur-2xl border border-white/40;
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  .shadow-glow-lg {
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+  }
+
+  /* Loading skeleton */
+  .skeleton {
+    @apply animate-pulse bg-neutral-200 rounded;
+  }
+
+  /* Safe area for mobile */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Animations partagées */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes animate-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  .animate-shimmer {
+    animation: animate-shimmer 3s linear infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
+  }
+
+  /* ============================================
+     TESTIMONIAL CAROUSEL - DESIGN ÉLÉGANT & STABLE
+     Design inspiré de Stripe, Airbnb et Apple
+     ============================================ */
+
+  /* Container avec perspective subtile */
+  .testimonial-3d-container {
+    perspective: 1000px;
+    perspective-origin: center center;
+  }
+
+  /* Variante 1 : Carousel Horizontal Continu */
+  .testimonial-carousel-horizontal {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: 4rem 0;
+    margin: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(249, 250, 251, 0.3) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+
+  .testimonial-fade-left,
+  .testimonial-fade-right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 180px;
+    z-index: 20;
+    pointer-events: none;
+  }
+
+  .testimonial-fade-left {
+    left: 0;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 0.9) 40%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+
+  .testimonial-fade-right {
+    right: 0;
+    background: linear-gradient(
+      to left,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 0.9) 40%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+
+  .testimonial-scroll-container {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    overflow: hidden;
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 10%,
+      black 90%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 10%,
+      black 90%,
+      transparent 100%
+    );
+  }
+
+  .testimonial-scroll-container.paused .testimonial-scroll-track {
+    animation-play-state: paused;
+  }
+
+  .testimonial-scroll-track {
+    display: flex;
+    gap: 1.5rem;
+    width: fit-content;
+    padding: 0 4rem;
+    flex-shrink: 0;
+    will-change: transform;
+  }
+
+  .testimonial-track-1 {
+    animation: testimonial-scroll-horizontal 50s linear infinite;
+  }
+
+  .testimonial-track-2 {
+    animation: testimonial-scroll-horizontal 50s linear infinite;
+    animation-delay: -25s;
+  }
+
+  @keyframes testimonial-scroll-horizontal {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(calc(-50% - 0.75rem));
+    }
+  }
+
+  /* Variante 2 : 3 Colonnes Défilantes */
+  .testimonial-carousel-columns {
+    position: relative;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding: 4rem 1.5rem;
+    margin: 3rem 0;
+    overflow: hidden;
+    min-height: 600px;
+  }
+
+  .testimonial-column {
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 12%,
+      black 88%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      black 12%,
+      black 88%,
+      transparent 100%
+    );
+  }
+
+  .testimonial-column.paused .testimonial-column-track {
+    animation-play-state: paused;
+  }
+
+  .testimonial-column-track {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    will-change: transform;
+  }
+
+  .testimonial-column-1 .testimonial-column-track {
+    animation: testimonial-scroll-down 35s linear infinite;
+  }
+
+  .testimonial-column-2 .testimonial-column-track {
+    animation: testimonial-scroll-up 40s linear infinite;
+  }
+
+  .testimonial-column-3 .testimonial-column-track {
+    animation: testimonial-scroll-down 45s linear infinite;
+  }
+
+  .testimonial-column-reverse {
+    animation-direction: reverse;
+  }
+
+  @keyframes testimonial-scroll-down {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(calc(-50% - 0.625rem));
+    }
+  }
+
+  @keyframes testimonial-scroll-up {
+    0% {
+      transform: translateY(calc(-50% - 0.625rem));
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  /* Carte d'avis - Design Épuré & Élégant */
+  .testimonial-card {
+    width: 420px;
+    min-height: 300px;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.06),
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      0 0 0 1px rgba(0, 0, 0, 0.02);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    flex-shrink: 0;
+    transform: 
+      rotateX(var(--rotate-x, 0deg)) 
+      rotateY(var(--rotate-y, 0deg));
+    --rotate-x: 0deg;
+    --rotate-y: 0deg;
+  }
+
+  /* Gradient de fond subtil */
+  .testimonial-card-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.05) 0%,
+      rgba(139, 92, 246, 0.03) 50%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .testimonial-card:hover .testimonial-card-gradient {
+    opacity: 1;
+  }
+
+  /* Bordure élégante au survol */
+  .testimonial-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    padding: 1px;
+    background: linear-gradient(135deg, 
+      rgba(59, 130, 246, 0.2) 0%,
+      rgba(139, 92, 246, 0.2) 100%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .testimonial-card:hover::before {
+    opacity: 1;
+  }
+
+  .testimonial-card-compact {
+    width: 100%;
+    min-height: 280px;
+    padding: 1.75rem;
+  }
+
+  /* Effet de brillance élégant */
+  .testimonial-card-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 100%
+    );
+    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .testimonial-card:hover .testimonial-card-shine {
+    left: 100%;
+  }
+
+  .testimonial-card:hover {
+    transform: 
+      rotateX(var(--rotate-x, 0deg)) 
+      rotateY(var(--rotate-y, 0deg))
+      translateY(-6px);
+    box-shadow: 
+      0 16px 40px rgba(0, 0, 0, 0.1),
+      0 6px 20px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(59, 130, 246, 0.12),
+      0 0 0 0 rgba(59, 130, 246, 0.05);
+  }
+
+  /* Header avec avatar élégant */
+  .testimonial-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .testimonial-avatar {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+  }
+
+  .testimonial-avatar-glow {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    opacity: 0.15;
+    filter: blur(10px);
+    transition: opacity 0.4s ease;
+  }
+
+  .testimonial-card:hover .testimonial-avatar-glow {
+    opacity: 0.25;
+  }
+
+  .testimonial-avatar-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+      0 4px 16px rgba(59, 130, 246, 0.25),
+      0 0 0 3px rgba(255, 255, 255, 1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .testimonial-card:hover .testimonial-avatar-inner {
+    transform: scale(1.05);
+    box-shadow: 
+      0 6px 20px rgba(59, 130, 246, 0.35),
+      0 0 0 3px rgba(255, 255, 255, 1);
+  }
+
+  .testimonial-avatar-text {
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+  }
+
+  .testimonial-card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .testimonial-card-name {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 0.125rem 0;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+    transition: color 0.3s ease;
+  }
+
+  .testimonial-card:hover .testimonial-card-name {
+    color: #1e40af;
+  }
+
+  .testimonial-card-location {
+    font-size: 0.8125rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+
+  /* Note en étoiles élégante */
+  .testimonial-card-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .testimonial-star {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.3s ease;
+  }
+
+  .testimonial-star-filled {
+    color: #fbbf24;
+    fill: currentColor;
+  }
+
+  .testimonial-star-empty {
+    color: #e5e7eb;
+  }
+
+  .testimonial-card:hover .testimonial-star-filled {
+    transform: scale(1.1);
+  }
+
+  /* Contenu du témoignage élégant */
+  .testimonial-card-content {
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: #4b5563;
+    margin: 0 0 1.25rem 0;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    position: relative;
+    z-index: 2;
+    font-weight: 400;
+    transition: color 0.3s ease;
+  }
+
+  .testimonial-card:hover .testimonial-card-content {
+    color: #374151;
+  }
+
+  .testimonial-card-compact .testimonial-card-content {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  /* Footer avec date élégant */
+  .testimonial-card-footer {
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+    position: relative;
+    z-index: 2;
+  }
+
+  .testimonial-card-date {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 500;
+  }
+
+  .testimonial-card:hover .testimonial-card-footer {
+    border-top-color: #e5e7eb;
+  }
+
+  /* Responsive */
+  @media (max-width: 1280px) {
+    .testimonial-card {
+      width: 380px;
+      min-height: 280px;
+      padding: 1.75rem;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .testimonial-carousel-columns {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      padding: 3rem 1rem;
+      min-height: auto;
+    }
+
+    .testimonial-column {
+      height: 500px;
+    }
+
+    .testimonial-card {
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .testimonial-fade-left,
+    .testimonial-fade-right {
+      width: 80px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .testimonial-carousel-horizontal {
+      padding: 3rem 0;
+      margin: 0;
+    }
+
+    .testimonial-card {
+      width: 320px;
+      min-height: 280px;
+      padding: 1.5rem;
+    }
+
+    .testimonial-card-compact {
+      min-height: 260px;
+      padding: 1.5rem;
+    }
+
+    .testimonial-scroll-track {
+      gap: 1.25rem;
+      padding: 0 1.5rem;
+    }
+
+    .testimonial-fade-left,
+    .testimonial-fade-right {
+      width: 60px;
+    }
+
+    .testimonial-carousel-columns {
+      padding: 2rem 1rem;
+    }
+
+    .testimonial-column {
+      height: 450px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .testimonial-card {
+      width: 300px;
+      min-height: 260px;
+      padding: 1.25rem;
+    }
+
+    .testimonial-card-compact {
+      min-height: 240px;
+      padding: 1.25rem;
+    }
+
+    .testimonial-avatar {
+      width: 44px;
+      height: 44px;
+    }
+
+    .testimonial-avatar-text {
+      font-size: 1.125rem;
+    }
+
+    .testimonial-card-name {
+      font-size: 0.9375rem;
+    }
+
+    .testimonial-card-content {
+      font-size: 0.875rem;
+    }
+
+    .testimonial-fade-left,
+    .testimonial-fade-right {
+      width: 40px;
+    }
+  }
+}
