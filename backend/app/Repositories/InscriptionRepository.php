@@ -12,11 +12,18 @@ class InscriptionRepository
         return Inscription::with(['user', 'country', 'documents.validator'])->find($id);
     }
 
-    public function getByUser(int $userId): Collection
+    public function getByUser(int $userId, bool $minimal = false): Collection
     {
-        return Inscription::where('user_id', $userId)
-            ->with(['country', 'documents.validator'])
-            ->get();
+        $query = Inscription::where('user_id', $userId);
+        
+        if ($minimal) {
+            // Charger seulement les données minimales nécessaires
+            $query->with(['country:id,name']);
+        } else {
+            $query->with(['country', 'documents.validator']);
+        }
+        
+        return $query->get();
     }
 
     public function getAll(array $filters = []): Collection

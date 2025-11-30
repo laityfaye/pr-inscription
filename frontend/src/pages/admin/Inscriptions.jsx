@@ -523,9 +523,9 @@ const AdminInscriptions = () => {
                           <div className="flex items-center gap-2">
                             <FiFile className="w-4 h-4 text-neutral-400" />
                             <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-neutral-900">
+                            <span className="text-sm font-semibold text-neutral-900">
                                 {inscription.documents?.length || 0} document(s)
-                              </span>
+                            </span>
                               {inscription.documents?.some(doc => doc.status === 'pending') && (
                                 <span className="text-xs text-yellow-600 font-medium">
                                   {inscription.documents.filter(doc => doc.status === 'pending').length} en attente
@@ -652,9 +652,9 @@ const AdminInscriptions = () => {
                           Documents fournis
                         </h3>
                         <div className="flex items-center gap-4 mt-2">
-                          <p className="text-sm text-neutral-500">
-                            {inscriptionDetails.documents?.length || 0} document(s) disponible(s)
-                          </p>
+                        <p className="text-sm text-neutral-500">
+                          {inscriptionDetails.documents?.length || 0} document(s) disponible(s)
+                        </p>
                           {inscriptionDetails.documents && inscriptionDetails.documents.length > 0 && (
                             <div className="flex items-center gap-3 text-xs">
                               <span className="flex items-center gap-1">
@@ -700,22 +700,22 @@ const AdminInscriptions = () => {
                             className="p-4"
                           >
                             <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4 flex-1 min-w-0">
-                                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center flex-shrink-0 shadow-md">
-                                    <FiFile className="w-6 h-6 text-white" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4 flex-1 min-w-0">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                                  <FiFile className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">
-                                      <p className="font-semibold text-neutral-900 truncate">{document.name}</p>
+                                  <p className="font-semibold text-neutral-900 truncate">{document.name}</p>
                                       {getDocumentStatusBadge(document.status || 'pending')}
                                     </div>
                                     <p className="text-sm text-neutral-500">
                                       {getDocumentTypeLabel(document.type)} •{' '}
-                                      {document.size
-                                        ? (document.size / 1024).toFixed(2) + ' KB'
-                                        : 'Taille inconnue'}
-                                    </p>
+                                    {document.size
+                                      ? (document.size / 1024).toFixed(2) + ' KB'
+                                      : 'Taille inconnue'}
+                                  </p>
                                     {document.validated_at && (
                                       <p className="text-xs text-neutral-400 mt-1">
                                         Validé le:{' '}
@@ -729,11 +729,11 @@ const AdminInscriptions = () => {
                                         {document.validator && ` par ${document.validator.name}`}
                                       </p>
                                     )}
-                                  </div>
                                 </div>
+                              </div>
                                 <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="primary"
+                              <Button
+                                variant="primary"
                                     size="sm"
                                     onClick={() => handleViewDocument(document)}
                                     icon={FiEye}
@@ -742,12 +742,12 @@ const AdminInscriptions = () => {
                                   </Button>
                                   <Button
                                     variant="secondary"
-                                    size="sm"
-                                    onClick={() => handleDownloadDocument(document)}
-                                    icon={FiDownload}
-                                  >
-                                    Télécharger
-                                  </Button>
+                                size="sm"
+                                onClick={() => handleDownloadDocument(document)}
+                                icon={FiDownload}
+                              >
+                                Télécharger
+                              </Button>
                                 </div>
                               </div>
                               {document.status === 'rejected' && document.rejection_reason && (

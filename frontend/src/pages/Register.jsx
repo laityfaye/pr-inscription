@@ -170,30 +170,6 @@ const Register = () => {
                   Format: +221 XX XXX XX XX
                 </p>
               </div>
-
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pays visé
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <FiGlobe className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <select
-                    className="input pl-12"
-                    value={formData.target_country}
-                    onChange={(e) => setFormData({ ...formData, target_country: e.target.value })}
-                  >
-                    <option value="">Sélectionner un pays</option>
-                    {countries.map((country) => (
-                      <option key={country.id} value={country.name}>
-                        {country.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
               <Input
                 type="password"
                 label="Mot de passe"

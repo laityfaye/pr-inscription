@@ -12,12 +12,17 @@ class WorkPermitApplicationRepository
         return WorkPermitApplication::with(['user', 'country', 'documents.validator'])->find($id);
     }
 
-    public function getByUser(int $userId): Collection
+    public function getByUser(int $userId, bool $minimal = false): Collection
     {
-        return WorkPermitApplication::where('user_id', $userId)
-            ->with(['country', 'documents.validator'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = WorkPermitApplication::where('user_id', $userId);
+        
+        if ($minimal) {
+            $query->with(['country:id,name']);
+        } else {
+            $query->with(['country', 'documents.validator']);
+        }
+        
+        return $query->orderBy('created_at', 'desc')->get();
     }
 
     public function getAll(array $filters = []): Collection

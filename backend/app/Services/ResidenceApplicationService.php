@@ -30,9 +30,9 @@ class ResidenceApplicationService
         return $this->repository->update($application, $data);
     }
 
-    public function getUserApplications(int $userId)
+    public function getUserApplications(int $userId, bool $minimal = false)
     {
-        return $this->repository->getByUser($userId);
+        return $this->repository->getByUser($userId, $minimal);
     }
 
     public function getAllApplications(array $filters = [])

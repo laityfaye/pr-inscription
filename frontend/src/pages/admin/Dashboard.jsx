@@ -4,6 +4,7 @@ import Layout from '../../components/Layout'
 import Card from '../../components/ui/Card'
 import api from '../../services/api'
 import { FiUsers, FiFileText, FiMessageSquare, FiStar, FiArrowRight, FiClock, FiCheckCircle, FiGlobe, FiUpload, FiBriefcase, FiHome, FiSettings, FiBell } from 'react-icons/fi'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -16,6 +17,12 @@ const AdminDashboard = () => {
     documents: 0,
     pendingDocuments: 0,
   })
+  const [chartData, setChartData] = useState({
+    countriesCount: 0,
+    newsCount: 0,
+    workPermitCountriesCount: 0,
+    inscriptionsByCountry: [],
+  })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -25,25 +32,72 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       setLoading(true)
-      const [usersRes, inscriptionsRes, reviewsRes, workPermitRes, residenceRes, documentsRes] = await Promise.all([
+      const [usersRes, inscriptionsRes, reviewsRes, workPermitRes, residenceRes, documentsRes, countriesRes, newsRes, workPermitCountriesRes] = await Promise.all([
         api.get('/users'),
         api.get('/inscriptions'),
-        api.get('/reviews?all=true'),
+        api.get('/reviews/all'),
         api.get('/work-permit-applications').catch(() => ({ data: [] })),
         api.get('/residence-applications').catch(() => ({ data: [] })),
         api.get('/documents').catch(() => ({ data: [] })),
+        api.get('/countries/all?all=true').catch(() => ({ data: [] })),
+        api.get('/news?all=true').catch(() => ({ data: [] })),
+        api.get('/work-permit-countries').catch(() => ({ data: [] })),
       ])
-      const inscriptions = inscriptionsRes.data
+      const inscriptions = inscriptionsRes.data || []
       const documents = documentsRes.data || []
+      const reviews = reviewsRes.data || []
+      const countries = countriesRes.data || []
+      const news = newsRes.data || []
+      const workPermitCountries = workPermitCountriesRes.data || []
+      
+      // Calculer les préinscriptions par pays avec le nombre de clients uniques
+      const countryStats = {}
+      inscriptions.forEach((inscription) => {
+        const countryId = inscription.country?.id || inscription.country_id
+        const countryName = inscription.country?.name || 'Pays inconnu'
+        
+        if (countryId) {
+          if (!countryStats[countryId]) {
+            countryStats[countryId] = {
+              name: countryName,
+              totalInscriptions: 0,
+              uniqueClients: new Set(),
+            }
+          }
+          
+          countryStats[countryId].totalInscriptions++
+          if (inscription.user_id) {
+            countryStats[countryId].uniqueClients.add(inscription.user_id)
+          }
+        }
+      })
+      
+      // Convertir en tableau et trier par nombre de clients (décroissant)
+      const inscriptionsByCountry = Object.values(countryStats)
+        .map((stat) => ({
+          name: stat.name,
+          clients: stat.uniqueClients.size,
+          inscriptions: stat.totalInscriptions,
+        }))
+        .sort((a, b) => b.clients - a.clients)
+        .slice(0, 10) // Garder les 10 pays les plus demandés
+      
       setStats({
         users: usersRes.data.length,
         inscriptions: inscriptions.length,
         pending: inscriptions.filter((i) => i.status === 'pending').length,
-        reviews: reviewsRes.data.length,
+        reviews: reviews.length,
         workPermitApplications: workPermitRes.data?.length || 0,
         residenceApplications: residenceRes.data?.length || 0,
         documents: documents.length,
         pendingDocuments: documents.filter((d) => d.status === 'pending').length,
+      })
+      
+      setChartData({
+        countriesCount: countries.length,
+        newsCount: news.length,
+        workPermitCountriesCount: workPermitCountries.length,
+        inscriptionsByCountry,
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
@@ -121,48 +175,6 @@ const AdminDashboard = () => {
 
   const quickActions = [
     {
-      title: 'Gérer les clients',
-      description: 'Voir et gérer tous les clients inscrits',
-      link: '/admin/users',
-      icon: FiUsers,
-      color: 'primary',
-    },
-    {
-      title: 'Gérer les préinscriptions',
-      description: 'Valider ou rejeter les préinscriptions',
-      link: '/admin/inscriptions',
-      icon: FiFileText,
-      color: 'accent',
-    },
-    {
-      title: 'Gérer les documents',
-      description: 'Valider et gérer tous les documents',
-      link: '/admin/documents',
-      icon: FiUpload,
-      color: 'purple',
-    },
-    {
-      title: 'Permis de travail',
-      description: 'Gérer les demandes de permis de travail',
-      link: '/admin/work-permit-applications',
-      icon: FiBriefcase,
-      color: 'blue',
-    },
-    {
-      title: 'Résidence Canada',
-      description: 'Gérer les demandes de résidence',
-      link: '/admin/residence-applications',
-      icon: FiHome,
-      color: 'green',
-    },
-    {
-      title: 'Pays permis de travail',
-      description: 'Configurer les pays pour permis de travail',
-      link: '/admin/work-permit-countries',
-      icon: FiGlobe,
-      color: 'indigo',
-    },
-    {
       title: 'Gérer les pays',
       description: 'Configurer les pays disponibles sur la page d\'accueil',
       link: '/admin/countries',
@@ -170,11 +182,11 @@ const AdminDashboard = () => {
       color: 'success',
     },
     {
-      title: 'Messages',
-      description: 'Voir et répondre aux messages des clients',
-      link: '/admin/chat',
-      icon: FiBell,
-      color: 'pink',
+      title: 'Pays permis de travail',
+      description: 'Configurer les pays pour permis de travail',
+      link: '/admin/work-permit-countries',
+      icon: FiGlobe,
+      color: 'indigo',
     },
     {
       title: 'Gérer les actualités',
@@ -190,13 +202,21 @@ const AdminDashboard = () => {
       icon: FiStar,
       color: 'amber',
     },
-    {
-      title: 'Paramètres',
-      description: 'Configurer les paramètres de la plateforme',
-      link: '/admin/settings',
-      icon: FiSettings,
-      color: 'gray',
-    },
+  ]
+  
+  const chartColors = {
+    primary: '#3b82f6',
+    success: '#10b981',
+    warning: '#f59e0b',
+    danger: '#ef4444',
+    indigo: '#6366f1',
+  }
+  
+  const barChartData = [
+    { name: 'Pays', value: chartData.countriesCount, color: chartColors.success },
+    { name: 'Pays permis', value: chartData.workPermitCountriesCount, color: chartColors.indigo },
+    { name: 'Actualités', value: chartData.newsCount, color: chartColors.warning },
+    { name: 'Avis', value: stats.reviews, color: chartColors.primary },
   ]
 
   if (loading) {
@@ -226,7 +246,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 lg:mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 lg:mb-12">
             {statCards.map((stat, index) => {
               const Icon = stat.icon
               return (
@@ -235,18 +255,18 @@ const AdminDashboard = () => {
                   to={stat.link}
                   className="group"
                 >
-                  <Card hover className="p-6 animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg shadow-${stat.color}-500/25 group-hover:scale-110 transition-transform duration-300`}>
-                        <Icon className="w-6 h-6 text-white" />
+                  <Card hover className="p-3 animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg shadow-${stat.color}-500/25 group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon className="w-4 h-4 text-white" />
                       </div>
                       {stat.link && (
-                        <FiArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all duration-200" />
+                        <FiArrowRight className="w-3 h-3 text-neutral-400 group-hover:text-primary-600 group-hover:translate-x-1 transition-all duration-200" />
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-neutral-600 mb-1">{stat.title}</p>
-                      <p className="text-3xl lg:text-4xl font-bold text-neutral-900">
+                      <p className="text-xs font-medium text-neutral-600 mb-0.5">{stat.title}</p>
+                      <p className="text-xl lg:text-2xl font-bold text-neutral-900">
                         {stat.value}
                       </p>
                     </div>
@@ -259,7 +279,7 @@ const AdminDashboard = () => {
           {/* Quick Actions */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-neutral-900 mb-6">Actions rapides</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {quickActions.map((action, index) => {
                 const Icon = action.icon
                 return (
@@ -300,6 +320,66 @@ const AdminDashboard = () => {
                 )
               })}
             </div>
+          </div>
+
+          {/* Charts Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Préinscriptions par pays */}
+            <Card className="p-6">
+              <h3 className="text-xl font-bold text-neutral-900 mb-6">Pays les plus demandés</h3>
+              {chartData.inscriptionsByCountry.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart
+                    data={chartData.inscriptionsByCountry}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={90} />
+                    <Tooltip 
+                      formatter={(value, name) => {
+                        if (name === 'clients') return [`${value} client${value > 1 ? 's' : ''}`, 'Clients']
+                        if (name === 'inscriptions') return [`${value} préinscription${value > 1 ? 's' : ''}`, 'Préinscriptions']
+                        return value
+                      }}
+                    />
+                    <Legend 
+                      formatter={(value) => {
+                        if (value === 'clients') return 'Nombre de clients'
+                        if (value === 'inscriptions') return 'Nombre de préinscriptions'
+                        return value
+                      }}
+                    />
+                    <Bar dataKey="clients" fill={chartColors.primary} radius={[0, 8, 8, 0]} name="clients" />
+                    <Bar dataKey="inscriptions" fill={chartColors.success} radius={[0, 8, 8, 0]} name="inscriptions" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[400px] text-neutral-500">
+                  <p>Aucune préinscription disponible</p>
+                </div>
+              )}
+            </Card>
+
+            {/* Bar Chart for Countries, News, Reviews */}
+            <Card className="p-6">
+              <h3 className="text-xl font-bold text-neutral-900 mb-6">Vue d'ensemble</h3>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={barChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill={chartColors.primary} radius={[8, 8, 0, 0]}>
+                    {barChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
           </div>
       </div>
     </Layout>

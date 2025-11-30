@@ -504,7 +504,7 @@ const ClientDocuments = () => {
                 </div>
               </div>
             </div>
-
+            
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">

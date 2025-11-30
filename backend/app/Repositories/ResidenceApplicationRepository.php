@@ -12,12 +12,15 @@ class ResidenceApplicationRepository
         return ResidenceApplication::with(['user', 'documents.validator'])->find($id);
     }
 
-    public function getByUser(int $userId): Collection
+    public function getByUser(int $userId, bool $minimal = false): Collection
     {
-        return ResidenceApplication::where('user_id', $userId)
-            ->with(['documents.validator'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = ResidenceApplication::where('user_id', $userId);
+        
+        if (!$minimal) {
+            $query->with(['documents.validator']);
+        }
+        
+        return $query->orderBy('created_at', 'desc')->get();
     }
 
     public function getAll(array $filters = []): Collection

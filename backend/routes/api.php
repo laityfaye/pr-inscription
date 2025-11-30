@@ -61,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/messages/{user?}', [MessageController::class, 'messages']);
     Route::post('/messages', [MessageController::class, 'store']);
     Route::get('/messages/unread/count', [MessageController::class, 'unreadCount']);
+    Route::get('/messages/{message}/download', [MessageController::class, 'downloadFile']);
 
     // Actualités (Admin)
     Route::get('/news/{news}', [NewsController::class, 'show'])->middleware('admin');

@@ -25,9 +25,9 @@ class InscriptionService
         return $this->inscriptionRepository->update($inscription, $data);
     }
 
-    public function getUserInscriptions(int $userId)
+    public function getUserInscriptions(int $userId, bool $minimal = false)
     {
-        return $this->inscriptionRepository->getByUser($userId);
+        return $this->inscriptionRepository->getByUser($userId, $minimal);
     }
 
     public function getAllInscriptions(array $filters = [])

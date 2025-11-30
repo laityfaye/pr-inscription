@@ -799,7 +799,7 @@ const ClientInscriptions = () => {
                     <p className="text-xs text-gray-500">
                       {selectedInscription.documents?.length || 0} document(s) disponible(s)
                     </p>
-                    {selectedInscription.documents && selectedInscription.documents.length > 0 && (
+              {selectedInscription.documents && selectedInscription.documents.length > 0 && (
                       <div className="flex items-center gap-3 mt-2 text-xs">
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
@@ -893,8 +893,8 @@ const ClientInscriptions = () => {
                         Uploader un document
                       </Button>
                     </Link>
-                  </div>
-                )}
+                </div>
+              )}
               </div>
             </div>
 
