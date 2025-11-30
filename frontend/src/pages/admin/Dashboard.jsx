@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Layout from '../../components/Layout'
 import Card from '../../components/ui/Card'
 import api from '../../services/api'
-import { FiUsers, FiFileText, FiMessageSquare, FiStar, FiArrowRight, FiClock, FiCheckCircle, FiGlobe } from 'react-icons/fi'
+import { FiUsers, FiFileText, FiMessageSquare, FiStar, FiArrowRight, FiClock, FiCheckCircle, FiGlobe, FiUpload, FiBriefcase, FiHome, FiSettings, FiBell } from 'react-icons/fi'
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -11,6 +11,10 @@ const AdminDashboard = () => {
     inscriptions: 0,
     pending: 0,
     reviews: 0,
+    workPermitApplications: 0,
+    residenceApplications: 0,
+    documents: 0,
+    pendingDocuments: 0,
   })
   const [loading, setLoading] = useState(true)
 
@@ -21,17 +25,25 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       setLoading(true)
-      const [usersRes, inscriptionsRes, reviewsRes] = await Promise.all([
+      const [usersRes, inscriptionsRes, reviewsRes, workPermitRes, residenceRes, documentsRes] = await Promise.all([
         api.get('/users'),
         api.get('/inscriptions'),
         api.get('/reviews?all=true'),
+        api.get('/work-permit-applications').catch(() => ({ data: [] })),
+        api.get('/residence-applications').catch(() => ({ data: [] })),
+        api.get('/documents').catch(() => ({ data: [] })),
       ])
       const inscriptions = inscriptionsRes.data
+      const documents = documentsRes.data || []
       setStats({
         users: usersRes.data.length,
         inscriptions: inscriptions.length,
         pending: inscriptions.filter((i) => i.status === 'pending').length,
         reviews: reviewsRes.data.length,
+        workPermitApplications: workPermitRes.data?.length || 0,
+        residenceApplications: residenceRes.data?.length || 0,
+        documents: documents.length,
+        pendingDocuments: documents.filter((d) => d.status === 'pending').length,
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
@@ -66,12 +78,44 @@ const AdminDashboard = () => {
       gradient: 'from-warning-500 to-warning-600',
     },
     {
+      title: 'Permis de travail',
+      value: stats.workPermitApplications,
+      icon: FiBriefcase,
+      color: 'primary',
+      link: '/admin/work-permit-applications',
+      gradient: 'from-blue-500 to-blue-600',
+    },
+    {
+      title: 'Résidence Canada',
+      value: stats.residenceApplications,
+      icon: FiHome,
+      color: 'success',
+      link: '/admin/residence-applications',
+      gradient: 'from-green-500 to-green-600',
+    },
+    {
+      title: 'Documents',
+      value: stats.documents,
+      icon: FiUpload,
+      color: 'accent',
+      link: '/admin/documents',
+      gradient: 'from-purple-500 to-purple-600',
+    },
+    {
+      title: 'Documents en attente',
+      value: stats.pendingDocuments,
+      icon: FiClock,
+      color: 'warning',
+      link: '/admin/documents?status=pending',
+      gradient: 'from-yellow-500 to-yellow-600',
+    },
+    {
       title: 'Avis',
       value: stats.reviews,
       icon: FiStar,
       color: 'success',
       link: '/admin/reviews',
-      gradient: 'from-success-500 to-success-600',
+      gradient: 'from-amber-500 to-amber-600',
     },
   ]
 
@@ -91,6 +135,34 @@ const AdminDashboard = () => {
       color: 'accent',
     },
     {
+      title: 'Gérer les documents',
+      description: 'Valider et gérer tous les documents',
+      link: '/admin/documents',
+      icon: FiUpload,
+      color: 'purple',
+    },
+    {
+      title: 'Permis de travail',
+      description: 'Gérer les demandes de permis de travail',
+      link: '/admin/work-permit-applications',
+      icon: FiBriefcase,
+      color: 'blue',
+    },
+    {
+      title: 'Résidence Canada',
+      description: 'Gérer les demandes de résidence',
+      link: '/admin/residence-applications',
+      icon: FiHome,
+      color: 'green',
+    },
+    {
+      title: 'Pays permis de travail',
+      description: 'Configurer les pays pour permis de travail',
+      link: '/admin/work-permit-countries',
+      icon: FiGlobe,
+      color: 'indigo',
+    },
+    {
       title: 'Gérer les pays',
       description: 'Configurer les pays disponibles sur la page d\'accueil',
       link: '/admin/countries',
@@ -98,11 +170,32 @@ const AdminDashboard = () => {
       color: 'success',
     },
     {
+      title: 'Messages',
+      description: 'Voir et répondre aux messages des clients',
+      link: '/admin/chat',
+      icon: FiBell,
+      color: 'pink',
+    },
+    {
       title: 'Gérer les actualités',
       description: 'Créer et modifier les actualités',
       link: '/admin/news',
       icon: FiMessageSquare,
       color: 'warning',
+    },
+    {
+      title: 'Gérer les avis',
+      description: 'Modérer les avis des clients',
+      link: '/admin/reviews',
+      icon: FiStar,
+      color: 'amber',
+    },
+    {
+      title: 'Paramètres',
+      description: 'Configurer les paramètres de la plateforme',
+      link: '/admin/settings',
+      icon: FiSettings,
+      color: 'gray',
     },
   ]
 
@@ -166,7 +259,7 @@ const AdminDashboard = () => {
           {/* Quick Actions */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-neutral-900 mb-6">Actions rapides</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {quickActions.map((action, index) => {
                 const Icon = action.icon
                 return (
@@ -176,7 +269,20 @@ const AdminDashboard = () => {
                     className="group"
                   >
                     <Card interactive className="p-6 h-full animate-slide-up" style={{ animationDelay: `${(index + 4) * 50}ms` }}>
-                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br from-${action.color}-500 to-${action.color}-600 flex items-center justify-center mb-4 shadow-lg shadow-${action.color}-500/25 group-hover:scale-110 transition-transform duration-300`}>
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300 ${
+                        action.color === 'primary' ? 'bg-gradient-to-br from-primary-500 to-primary-600 shadow-primary-500/25' :
+                        action.color === 'accent' ? 'bg-gradient-to-br from-accent-500 to-accent-600 shadow-accent-500/25' :
+                        action.color === 'success' ? 'bg-gradient-to-br from-success-500 to-success-600 shadow-success-500/25' :
+                        action.color === 'warning' ? 'bg-gradient-to-br from-warning-500 to-warning-600 shadow-warning-500/25' :
+                        action.color === 'purple' ? 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-purple-500/25' :
+                        action.color === 'blue' ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/25' :
+                        action.color === 'green' ? 'bg-gradient-to-br from-green-500 to-green-600 shadow-green-500/25' :
+                        action.color === 'indigo' ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-indigo-500/25' :
+                        action.color === 'pink' ? 'bg-gradient-to-br from-pink-500 to-pink-600 shadow-pink-500/25' :
+                        action.color === 'amber' ? 'bg-gradient-to-br from-amber-500 to-amber-600 shadow-amber-500/25' :
+                        action.color === 'gray' ? 'bg-gradient-to-br from-gray-500 to-gray-600 shadow-gray-500/25' :
+                        'bg-gradient-to-br from-primary-500 to-primary-600 shadow-primary-500/25'
+                      }`}>
                         <Icon className="w-7 h-7 text-white" />
                       </div>
                       <h3 className="text-xl font-bold text-neutral-900 mb-2 group-hover:text-primary-700 transition-colors">

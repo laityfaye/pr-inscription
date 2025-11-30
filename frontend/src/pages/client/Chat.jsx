@@ -6,30 +6,32 @@ import Input from '../../components/ui/Input'
 import { useAuth } from '../../contexts/AuthContext'
 import api from '../../services/api'
 import { FiSend, FiMessageSquare, FiUser } from 'react-icons/fi'
-import io from 'socket.io-client'
-import { getSocketUrl } from '../../utils/socketUrl'
 
 const ClientChat = () => {
   const { user } = useAuth()
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [admin, setAdmin] = useState(null)
-  const [socket, setSocket] = useState(null)
   const [loading, setLoading] = useState(true)
   const messagesEndRef = useRef(null)
+  const pollingIntervalRef = useRef(null)
 
   useEffect(() => {
     fetchConversation()
-    // Initialiser Socket.io pour le chat temps réel
-    const newSocket = io(getSocketUrl())
-    setSocket(newSocket)
+    
+    // Polling pour les nouveaux messages toutes les 3 secondes
+    pollingIntervalRef.current = setInterval(() => {
+      if (admin) {
+        fetchConversation()
+      }
+    }, 3000)
 
-    newSocket.on('message', (message) => {
-      setMessages((prev) => [...prev, message])
-    })
-
-    return () => newSocket.close()
-  }, [])
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+    }
+  }, [admin])
 
   useEffect(() => {
     scrollToBottom()
@@ -64,13 +66,11 @@ const ClientChat = () => {
         content: messageContent,
       })
       setMessages((prev) => [...prev, response.data])
-      
-      // Envoyer via socket
-      if (socket) {
-        socket.emit('message', response.data)
-      }
+      // Recharger les messages pour avoir la version complète
+      fetchConversation()
     } catch (error) {
       console.error('Error sending message:', error)
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'envoi du message')
       setNewMessage(messageContent) // Restaurer le message en cas d'erreur
     }
   }

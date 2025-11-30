@@ -10,7 +10,8 @@ import {
   FiGlobe,
   FiFile,
   FiBell,
-  FiLogOut
+  FiLogOut,
+  FiBriefcase
 } from 'react-icons/fi'
 import { useAuth } from '../contexts/AuthContext'
 import { useAgency } from '../contexts/AgencyContext'
@@ -64,9 +65,13 @@ const Sidebar = ({ unreadCount = 0 }) => {
   const adminLinks = [
     { to: '/admin/dashboard', label: 'Tableau de bord', icon: FiHome },
     { to: '/admin/inscriptions', label: 'Préinscriptions', icon: FiFileText },
+    { to: '/admin/work-permit-applications', label: 'Permis de travail', icon: FiBriefcase },
+    { to: '/admin/residence-applications', label: 'Résidence Canada', icon: FiHome },
     { to: '/admin/users', label: 'Utilisateurs', icon: FiUsers },
+    { to: '/admin/documents', label: 'Documents', icon: FiUpload },
     { to: '/admin/chat', label: 'Messages', icon: FiBell, badge: unreadCount },
     { to: '/admin/countries', label: 'Pays', icon: FiGlobe },
+    { to: '/admin/work-permit-countries', label: 'Pays permis', icon: FiBriefcase },
     { to: '/admin/news', label: 'Actualités', icon: FiMessageSquare },
     { to: '/admin/settings', label: 'Paramètres', icon: FiSettings },
   ]
@@ -74,6 +79,8 @@ const Sidebar = ({ unreadCount = 0 }) => {
   const clientLinks = [
     { to: '/client/dashboard', label: 'Tableau de bord', icon: FiHome },
     { to: '/client/inscriptions', label: 'Mes préinscriptions', icon: FiFileText },
+    { to: '/client/work-permit-applications', label: 'Permis de travail', icon: FiBriefcase },
+    { to: '/client/residence-applications', label: 'Résidence Canada', icon: FiHome },
     { to: '/client/documents', label: 'Mes documents', icon: FiUpload },
     { to: '/client/chat', label: 'Messages', icon: FiBell, badge: unreadCount },
     { to: '/client/review/add', label: 'Laisser un avis', icon: FiStar },

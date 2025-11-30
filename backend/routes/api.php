@@ -7,10 +7,13 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\InscriptionController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NewsController;
+use App\Http\Controllers\Api\ResidenceApplicationController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StorageController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\WorkPermitApplicationController;
+use App\Http\Controllers\Api\WorkPermitCountryController;
 use Illuminate\Support\Facades\Route;
 
 // Routes publiques
@@ -45,8 +48,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/inscriptions/{inscription}/notify-client', [InscriptionController::class, 'notifyClient'])->middleware('admin');
 
     // Documents
-    Route::apiResource('documents', DocumentController::class);
+    // Routes spécifiques doivent être définies AVANT apiResource pour éviter les conflits
+    Route::get('/documents/{document}/view', [DocumentController::class, 'view']);
     Route::get('/documents/{document}/download', [DocumentController::class, 'download']);
+    Route::post('/documents/{document}/approve', [DocumentController::class, 'approve'])->middleware('admin');
+    Route::post('/documents/{document}/reject', [DocumentController::class, 'reject'])->middleware('admin');
+    // Exclure 'update' car nous n'utilisons pas cette méthode
+    Route::apiResource('documents', DocumentController::class)->except(['update']);
 
     // Messages
     Route::get('/messages/conversations', [MessageController::class, 'conversations']);
@@ -86,6 +94,24 @@ Route::middleware('auth:sanctum')->group(function () {
     // Paramètres (Admin)
     Route::put('/settings/{key}', [SettingsController::class, 'update'])->middleware('admin');
     Route::post('/settings/multiple', [SettingsController::class, 'updateMultiple'])->middleware('admin');
+
+    // Pays de permis de travail
+    Route::get('/work-permit-countries/all', [WorkPermitCountryController::class, 'index'])->middleware('admin');
+    Route::get('/work-permit-countries', [WorkPermitCountryController::class, 'index']);
+    Route::get('/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'show']);
+    Route::post('/work-permit-countries', [WorkPermitCountryController::class, 'store'])->middleware('admin');
+    Route::match(['put', 'post'], '/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'update'])->middleware('admin');
+    Route::delete('/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'destroy'])->middleware('admin');
+
+    // Demandes de permis de travail
+    Route::apiResource('work-permit-applications', WorkPermitApplicationController::class);
+    Route::patch('/work-permit-applications/{workPermitApplication}/status', [WorkPermitApplicationController::class, 'updateStatus'])->middleware('admin');
+    Route::post('/work-permit-applications/{workPermitApplication}/notify-client', [WorkPermitApplicationController::class, 'notifyClient'])->middleware('admin');
+
+    // Demandes de résidence
+    Route::apiResource('residence-applications', ResidenceApplicationController::class);
+    Route::patch('/residence-applications/{residenceApplication}/status', [ResidenceApplicationController::class, 'updateStatus'])->middleware('admin');
+    Route::post('/residence-applications/{residenceApplication}/notify-client', [ResidenceApplicationController::class, 'notifyClient'])->middleware('admin');
 });
 
 

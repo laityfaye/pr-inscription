@@ -2,53 +2,44 @@
 
 namespace App\Repositories;
 
-use App\Models\Inscription;
+use App\Models\ResidenceApplication;
 use Illuminate\Database\Eloquent\Collection;
 
-class InscriptionRepository
+class ResidenceApplicationRepository
 {
-    public function find(int $id): ?Inscription
+    public function find(int $id): ?ResidenceApplication
     {
-        return Inscription::with(['user', 'country', 'documents.validator'])->find($id);
+        return ResidenceApplication::with(['user', 'documents.validator'])->find($id);
     }
 
     public function getByUser(int $userId): Collection
     {
-        return Inscription::where('user_id', $userId)
-            ->with(['country', 'documents.validator'])
+        return ResidenceApplication::where('user_id', $userId)
+            ->with(['documents.validator'])
+            ->orderBy('created_at', 'desc')
             ->get();
     }
 
     public function getAll(array $filters = []): Collection
     {
-        $query = Inscription::with(['user', 'country', 'documents.validator']);
+        $query = ResidenceApplication::with(['user', 'documents.validator']);
 
-        // Filtre par statut
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        // Filtre par pays
-        if (!empty($filters['country_id'])) {
-            $query->where('country_id', $filters['country_id']);
-        }
-
-        // Filtre par utilisateur
         if (!empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
         }
 
-        // Filtre par date de début
         if (!empty($filters['date_from'])) {
             $query->whereDate('created_at', '>=', $filters['date_from']);
         }
 
-        // Filtre par date de fin
         if (!empty($filters['date_to'])) {
             $query->whereDate('created_at', '<=', $filters['date_to']);
         }
 
-        // Recherche par nom ou email du client
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->whereHas('user', function($q) use ($search) {
@@ -60,21 +51,19 @@ class InscriptionRepository
         return $query->orderBy('created_at', 'desc')->get();
     }
 
-    public function create(array $data): Inscription
+    public function create(array $data): ResidenceApplication
     {
-        return Inscription::create($data);
+        return ResidenceApplication::create($data);
     }
 
-    public function update(Inscription $inscription, array $data): bool
+    public function update(ResidenceApplication $application, array $data): bool
     {
-        return $inscription->update($data);
+        return $application->update($data);
     }
 
-    public function delete(Inscription $inscription): bool
+    public function delete(ResidenceApplication $application): bool
     {
-        return $inscription->delete();
+        return $application->delete();
     }
 }
-
-
 

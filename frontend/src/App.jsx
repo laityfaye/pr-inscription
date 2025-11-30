@@ -18,6 +18,8 @@ import ClientInscriptions from './pages/client/Inscriptions'
 import ClientDocuments from './pages/client/Documents'
 import ClientChat from './pages/client/Chat'
 import AddReview from './pages/client/AddReview'
+import ClientResidenceApplications from './pages/client/ResidenceApplications'
+import ClientWorkPermitApplications from './pages/client/WorkPermitApplications'
 
 // Pages admin
 import AdminDashboard from './pages/admin/Dashboard'
@@ -28,6 +30,10 @@ import AdminReviews from './pages/admin/Reviews'
 import AdminSettings from './pages/admin/Settings'
 import AdminChat from './pages/admin/Chat'
 import AdminCountries from './pages/admin/Countries'
+import AdminDocuments from './pages/admin/Documents'
+import AdminWorkPermitCountries from './pages/admin/WorkPermitCountries'
+import AdminWorkPermitApplications from './pages/admin/WorkPermitApplications'
+import AdminResidenceApplications from './pages/admin/ResidenceApplications'
 
 function App() {
   return (
@@ -81,6 +87,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AddReview />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/residence-applications"
+              element={
+                <ProtectedRoute>
+                  <ClientResidenceApplications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/work-permit-applications"
+              element={
+                <ProtectedRoute>
+                  <ClientWorkPermitApplications />
                 </ProtectedRoute>
               }
             />
@@ -147,6 +169,38 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminCountries />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/documents"
+              element={
+                <AdminRoute>
+                  <AdminDocuments />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/work-permit-countries"
+              element={
+                <AdminRoute>
+                  <AdminWorkPermitCountries />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/work-permit-applications"
+              element={
+                <AdminRoute>
+                  <AdminWorkPermitApplications />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/residence-applications"
+              element={
+                <AdminRoute>
+                  <AdminResidenceApplications />
                 </AdminRoute>
               }
             />

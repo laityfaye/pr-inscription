@@ -38,13 +38,10 @@ class InscriptionController extends Controller
         // Charger l'inscription avec les relations
         $inscription->load(['user', 'country']);
         
-        // Récupérer tous les documents de l'utilisateur de cette inscription
-        // (soit liés à l'inscription, soit sans inscription_id - documents généraux du client)
+        // Récupérer uniquement les documents liés à cette inscription
         $allDocuments = Document::where('user_id', $inscription->user_id)
-            ->where(function($query) use ($inscription) {
-                $query->where('inscription_id', $inscription->id)
-                      ->orWhereNull('inscription_id');
-            })
+            ->where('inscription_id', $inscription->id)
+            ->with(['validator'])
             ->orderBy('created_at', 'desc')
             ->get();
         
@@ -98,6 +95,58 @@ class InscriptionController extends Controller
             'message' => 'Statut mis à jour',
             'inscription' => $inscription->fresh(['user', 'country', 'documents']),
         ]);
+    }
+
+    public function update(Request $request, Inscription $inscription): JsonResponse
+    {
+        // Vérifier que l'utilisateur est le propriétaire ou un admin
+        if (!$request->user()->isAdmin() && $inscription->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        // Vérifier que l'inscription est en attente (seulement pour les clients)
+        if (!$request->user()->isAdmin() && $inscription->status !== 'pending') {
+            return response()->json([
+                'message' => 'Seules les préinscriptions en attente peuvent être modifiées'
+            ], 400);
+        }
+
+        $request->validate([
+            'country_id' => ['sometimes', 'required', 'exists:countries,id'],
+            'current_education_level' => ['nullable', 'in:bac,licence_1,licence_2,licence_3,master_1,master_2'],
+            'current_field' => ['nullable', 'string', 'max:255'],
+            'requested_education_level' => ['nullable', 'in:bac,licence_1,licence_2,licence_3,master_1,master_2'],
+            'requested_field' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $inscription->update($request->only([
+            'country_id',
+            'current_education_level',
+            'current_field',
+            'requested_education_level',
+            'requested_field',
+        ]));
+
+        return response()->json($inscription->fresh(['country', 'documents']));
+    }
+
+    public function destroy(Request $request, Inscription $inscription): JsonResponse
+    {
+        // Vérifier que l'utilisateur est le propriétaire ou un admin
+        if (!$request->user()->isAdmin() && $inscription->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        // Vérifier que l'inscription est en attente (seulement pour les clients)
+        if (!$request->user()->isAdmin() && $inscription->status !== 'pending') {
+            return response()->json([
+                'message' => 'Seules les préinscriptions en attente peuvent être supprimées'
+            ], 400);
+        }
+
+        $inscription->delete();
+
+        return response()->json(['message' => 'Préinscription supprimée avec succès']);
     }
 
     public function notifyClient(Request $request, Inscription $inscription): JsonResponse

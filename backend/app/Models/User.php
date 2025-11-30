@@ -68,6 +68,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Review::class);
     }
+
+    public function workPermitApplications()
+    {
+        return $this->hasMany(WorkPermitApplication::class);
+    }
+
+    public function residenceApplications()
+    {
+        return $this->hasMany(ResidenceApplication::class);
+    }
 }
 
 

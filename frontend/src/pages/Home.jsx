@@ -27,13 +27,16 @@ import {
   FiTrendingUp,
   FiZap,
   FiTarget,
-  FiHeart
+  FiHeart,
+  FiBriefcase,
+  FiHome
 } from 'react-icons/fi'
 import ReactPlayer from 'react-player'
 
 const Home = () => {
   const [agency, setAgency] = useState(null)
   const [countries, setCountries] = useState([])
+  const [workPermitCountries, setWorkPermitCountries] = useState([])
   const [news, setNews] = useState([])
   const [reviews, setReviews] = useState([])
   const [selectedCountry, setSelectedCountry] = useState(null)
@@ -90,7 +93,7 @@ const Home = () => {
       setLoading(true)
       // Ajouter un timestamp pour éviter le cache
       const timestamp = new Date().getTime()
-      const [agencyRes, countriesRes, newsRes, reviewsRes, rentreeTextRes, defaultDescRes, statsRes] = await Promise.all([
+      const [agencyRes, countriesRes, workPermitCountriesRes, newsRes, reviewsRes, rentreeTextRes, defaultDescRes, statsRes] = await Promise.all([
         api.get(`/agency?nocache=${timestamp}`, {
           headers: {
             'Cache-Control': 'no-cache',
@@ -98,6 +101,7 @@ const Home = () => {
           }
         }),
         api.get('/countries'),
+        api.get('/work-permit-countries').catch(() => ({ data: [] })),
         api.get('/news'),
         api.get('/reviews'),
         api.get('/settings/rentree_text').catch(() => ({ data: { value: null } })),
@@ -111,6 +115,7 @@ const Home = () => {
       // Mettre à jour les états en une seule fois pour éviter les re-renders multiples
       setAgency(agencyRes.data)
       setCountries(countriesRes.data)
+      setWorkPermitCountries(workPermitCountriesRes.data || [])
       setNews(newsRes.data.slice(0, 3))
       // Ne pas limiter les avis pour le carrousel, il gère lui-même l'affichage
       setReviews(reviewsRes.data)
@@ -155,7 +160,7 @@ const Home = () => {
   return (
     <Layout>
       {/* Hero Section - Modern & Premium */}
-      <section className="relative overflow-hidden text-white py-20 sm:py-32 min-h-[85vh] flex items-center">
+      <section className="relative overflow-hidden text-white py-12 sm:py-12 min-h-[85vh] flex items-center">
         {/* Animated Background */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -477,6 +482,150 @@ const Home = () => {
           </div>
         </section>
       )}
+
+      {/* Work Permit Section */}
+      {workPermitCountries.length > 0 && (
+        <section className="py-24 bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
+          <div className="section-container">
+            <div className="text-center mb-20">
+              <Badge variant="primary" size="lg" className="mb-6">
+                Permis de travail
+              </Badge>
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
+                Obtenez votre permis de travail
+              </h2>
+              <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+                Explorez les opportunités de travail à l'étranger et démarrez votre carrière internationale
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {workPermitCountries.map((country, index) => (
+                <Link
+                  key={country.id}
+                  to="/client/work-permit-applications"
+                  className="block"
+                >
+                  <Card
+                    interactive
+                    className="p-6 h-full animate-slide-up group"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className="relative mb-5 inline-block">
+                      <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <FiBriefcase className="text-3xl text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-bold mb-2 text-neutral-900 group-hover:text-primary-700 transition-colors">
+                      {country.name}
+                    </h3>
+                    {country.subtitle && (
+                      <p className="text-sm font-medium text-primary-600 mb-3">
+                        {country.subtitle}
+                      </p>
+                    )}
+                    <p className="text-neutral-600 text-sm leading-relaxed line-clamp-3 mb-4">
+                      {country.description || 'Découvrez les opportunités de travail dans ce pays'}
+                    </p>
+                    {country.processing_time && (
+                      <p className="text-xs text-neutral-500 mb-2">
+                        <FiClock className="inline w-3 h-3 mr-1" />
+                        Délai: {country.processing_time}
+                      </p>
+                    )}
+                    <div className="flex items-center text-primary-600 text-sm font-semibold group-hover:translate-x-1 transition-transform">
+                      <span>Faire une demande</span>
+                      <FiArrowRight className="ml-2 w-4 h-4" />
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+
+            <div className="text-center mt-12">
+              <Link to="/client/work-permit-applications">
+                <Button variant="primary" size="lg" icon={FiArrowRight} iconPosition="right">
+                  Voir toutes les opportunités
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Residence Application Section */}
+      <section className="py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
+        <div className="section-container">
+          <div className="text-center mb-20">
+            <Badge variant="accent" size="lg" className="mb-6">
+              Résidence permanente
+            </Badge>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
+              Résidence permanente au Canada
+            </h2>
+            <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+              Réalisez votre rêve d'immigration au Canada avec notre accompagnement expert
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <Card interactive className="p-8 md:p-12 animate-slide-up">
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl blur-xl opacity-50"></div>
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-xl">
+                    <FiHome className="text-4xl md:text-5xl text-white" />
+                  </div>
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
+                    Obtenez votre résidence permanente au Canada
+                  </h3>
+                  <p className="text-neutral-600 mb-6 leading-relaxed">
+                    Le Canada offre de nombreuses opportunités pour ceux qui souhaitent s'y installer de manière permanente. 
+                    Notre équipe vous accompagne dans toutes les démarches nécessaires pour obtenir votre résidence permanente.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-neutral-900">Accompagnement complet</p>
+                        <p className="text-sm text-neutral-600">De la préparation du dossier à l'obtention</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-neutral-900">Expertise reconnue</p>
+                        <p className="text-sm text-neutral-600">Des années d'expérience dans l'immigration</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-neutral-900">Suivi personnalisé</p>
+                        <p className="text-sm text-neutral-600">Un conseiller dédié à votre dossier</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-neutral-900">Taux de réussite élevé</p>
+                        <p className="text-sm text-neutral-600">Maximisez vos chances de succès</p>
+                      </div>
+                    </div>
+                  </div>
+                  <Link to="/client/residence-applications">
+                    <Button variant="primary" size="lg" icon={FiArrowRight} iconPosition="right" fullWidth className="md:w-auto">
+                      Faire une demande de résidence
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
 
       {/* Agency Info - Enhanced */}
       {agency && (

@@ -4,7 +4,7 @@ import Layout from '../../components/Layout'
 import Card from '../../components/ui/Card'
 import { useAuth } from '../../contexts/AuthContext'
 import api from '../../services/api'
-import { FiFileText, FiMessageSquare, FiUpload, FiCheckCircle, FiClock, FiXCircle, FiStar, FiArrowRight } from 'react-icons/fi'
+import { FiFileText, FiMessageSquare, FiUpload, FiCheckCircle, FiClock, FiXCircle, FiStar, FiArrowRight, FiBriefcase, FiHome } from 'react-icons/fi'
 
 const ClientDashboard = () => {
   const { user } = useAuth()
@@ -104,7 +104,7 @@ const ClientDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
           <Link to="/client/inscriptions">
             <Card hover className="p-8 animate-slide-up" style={{ animationDelay: '0.4s' }}>
               <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
@@ -118,8 +118,34 @@ const ClientDashboard = () => {
               </div>
             </Card>
           </Link>
-          <Link to="/client/documents">
+          <Link to="/client/work-permit-applications">
+            <Card hover className="p-8 animate-slide-up" style={{ animationDelay: '0.45s' }}>
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                <FiBriefcase className="text-3xl text-white" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">Permis de travail</h3>
+              <p className="text-gray-600 mb-4">Gérer vos demandes de permis</p>
+              <div className="flex items-center text-primary-600 font-medium">
+                <span>Accéder</span>
+                <FiArrowRight className="ml-2 w-4 h-4" />
+              </div>
+            </Card>
+          </Link>
+          <Link to="/client/residence-applications">
             <Card hover className="p-8 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                <FiHome className="text-3xl text-white" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">Résidence Canada</h3>
+              <p className="text-gray-600 mb-4">Demande de résidence</p>
+              <div className="flex items-center text-primary-600 font-medium">
+                <span>Accéder</span>
+                <FiArrowRight className="ml-2 w-4 h-4" />
+              </div>
+            </Card>
+          </Link>
+          <Link to="/client/documents">
+            <Card hover className="p-8 animate-slide-up" style={{ animationDelay: '0.55s' }}>
               <div className="w-16 h-16 bg-gradient-to-br from-accent-500 to-accent-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                 <FiUpload className="text-3xl text-white" />
               </div>
@@ -133,7 +159,7 @@ const ClientDashboard = () => {
           </Link>
           <Link to="/client/chat">
             <Card hover className="p-8 animate-slide-up" style={{ animationDelay: '0.6s' }}>
-              <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                 <FiMessageSquare className="text-3xl text-white" />
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-900">Messages</h3>
@@ -145,7 +171,7 @@ const ClientDashboard = () => {
             </Card>
           </Link>
           <Link to="/client/review/add">
-            <Card hover className="p-8 animate-slide-up bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200" style={{ animationDelay: '0.7s' }}>
+            <Card hover className="p-8 animate-slide-up bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200" style={{ animationDelay: '0.65s' }}>
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                 <FiStar className="text-3xl text-white" />
               </div>

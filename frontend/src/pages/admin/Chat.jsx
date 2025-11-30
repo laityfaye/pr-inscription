@@ -3,9 +3,8 @@ import Layout from '../../components/Layout'
 import Card from '../../components/ui/Card'
 import { useAuth } from '../../contexts/AuthContext'
 import api from '../../services/api'
+import toast from 'react-hot-toast'
 import { FiSend, FiUser, FiMessageSquare, FiSearch, FiX } from 'react-icons/fi'
-import io from 'socket.io-client'
-import { getSocketUrl } from '../../utils/socketUrl'
 
 const AdminChat = () => {
   const { user } = useAuth()
@@ -13,28 +12,31 @@ const AdminChat = () => {
   const [selectedClient, setSelectedClient] = useState(null)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
-  const [socket, setSocket] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const [showSearchResults, setShowSearchResults] = useState(false)
   const messagesEndRef = useRef(null)
   const searchTimeoutRef = useRef(null)
+  const pollingIntervalRef = useRef(null)
 
   useEffect(() => {
     fetchConversations()
-    // Initialiser Socket.io pour le chat temps réel
-    const newSocket = io(getSocketUrl())
-    setSocket(newSocket)
+    
+    // Polling pour les nouveaux messages toutes les 3 secondes
+    pollingIntervalRef.current = setInterval(() => {
+      if (selectedClient) {
+        fetchMessages(selectedClient.id)
+        fetchConversations() // Mettre à jour les compteurs
+      }
+    }, 3000)
 
-    newSocket.on('message', (message) => {
-      setMessages((prev) => [...prev, message])
-      // Mettre à jour le compteur de messages non lus
-      fetchConversations()
-    })
-
-    return () => newSocket.close()
-  }, [])
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+      }
+    }
+  }, [selectedClient])
 
   useEffect(() => {
     if (selectedClient) {
@@ -147,13 +149,12 @@ const AdminChat = () => {
       })
       setMessages((prev) => [...prev, response.data])
       setNewMessage('')
-      
-      // Envoyer via socket
-      if (socket) {
-        socket.emit('message', response.data)
-      }
+      // Recharger les messages pour avoir la version complète
+      fetchMessages(selectedClient.id)
+      fetchConversations() // Mettre à jour les compteurs
     } catch (error) {
       console.error('Error sending message:', error)
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'envoi du message')
     }
   }
 
