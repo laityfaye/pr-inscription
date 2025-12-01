@@ -11,6 +11,7 @@ import Reviews from './pages/Reviews'
 import News from './pages/News'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Appointment from './pages/Appointment'
 
 // Pages client
 import ClientDashboard from './pages/client/Dashboard'
@@ -48,6 +49,7 @@ function App() {
             <Route path="/news" element={<News />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/appointment" element={<Appointment />} />
 
             {/* Routes client */}
             <Route

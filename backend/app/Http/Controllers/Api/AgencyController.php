@@ -34,6 +34,13 @@ class AgencyController extends Controller
             'phone' => ['nullable', 'string'],
             'address' => ['nullable', 'string'],
             'registration_number' => ['nullable', 'string'],
+            'lawyer_card_enabled' => ['nullable', 'in:true,false,1,0,"true","false","1","0"'],
+            'lawyer_first_name' => ['nullable', 'string'],
+            'lawyer_last_name' => ['nullable', 'string'],
+            'lawyer_title' => ['nullable', 'string'],
+            'lawyer_image' => ['nullable', 'image', 'max:2048'],
+            'lawyer_phone' => ['nullable', 'string'],
+            'lawyer_email' => ['nullable', 'email'],
         ]);
 
         $settings = AgencySetting::getSettings();
@@ -44,7 +51,7 @@ class AgencyController extends Controller
         // Traiter chaque champ individuellement
         // IMPORTANT: Avec FormData en PUT, Laravel ne parse pas toujours correctement
         // Utiliser input() pour chaque champ au lieu de all()
-        $fields = ['name', 'description', 'hero_subtitle', 'email', 'whatsapp', 'phone', 'address', 'registration_number'];
+        $fields = ['name', 'description', 'hero_subtitle', 'email', 'whatsapp', 'phone', 'address', 'registration_number', 'lawyer_first_name', 'lawyer_last_name', 'lawyer_title', 'lawyer_phone', 'lawyer_email'];
         
         foreach ($fields as $field) {
             // Vérifier si le champ existe dans la requête avec input() qui fonctionne mieux avec FormData
@@ -79,6 +86,28 @@ class AgencyController extends Controller
                 Storage::disk('public')->delete($settings->logo);
             }
             $updateData['logo'] = $request->file('logo')->store('agency', 'public');
+        }
+
+        // Traiter l'image de l'avocat séparément
+        if ($request->hasFile('lawyer_image')) {
+            if ($settings->lawyer_image) {
+                Storage::disk('public')->delete($settings->lawyer_image);
+            }
+            $updateData['lawyer_image'] = $request->file('lawyer_image')->store('agency', 'public');
+        }
+
+        // Traiter lawyer_card_enabled (peut être une string "true"/"false" depuis FormData)
+        if ($request->has('lawyer_card_enabled')) {
+            $value = $request->input('lawyer_card_enabled');
+            // Convertir différentes représentations en booléen
+            if (is_string($value)) {
+                $updateData['lawyer_card_enabled'] = in_array(strtolower($value), ['true', '1', 'on', 'yes'], true);
+            } else {
+                $updateData['lawyer_card_enabled'] = (bool) $value;
+            }
+        } else {
+            // Si le champ n'est pas présent dans la requête, c'est qu'il est désactivé
+            $updateData['lawyer_card_enabled'] = false;
         }
 
         // Log pour debug

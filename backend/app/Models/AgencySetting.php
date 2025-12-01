@@ -20,12 +20,20 @@ class AgencySetting extends Model
         'address',
         'registration_number',
         'social_links',
+        'lawyer_card_enabled',
+        'lawyer_first_name',
+        'lawyer_last_name',
+        'lawyer_title',
+        'lawyer_image',
+        'lawyer_phone',
+        'lawyer_email',
     ];
 
     protected function casts(): array
     {
         return [
             'social_links' => 'array',
+            'lawyer_card_enabled' => 'boolean',
         ];
     }
 

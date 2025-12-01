@@ -68,8 +68,28 @@ export const AgencyProvider = ({ children }) => {
     fetchAgency()
     
     // Écouter les événements de mise à jour des paramètres
-    const handleAgencyUpdate = () => {
-      fetchAgency()
+    const handleAgencyUpdate = (event) => {
+      // Si l'événement contient les données mises à jour, les utiliser directement
+      if (event.detail && typeof event.detail === 'object') {
+        const updatedData = event.detail
+        console.log('Mise à jour directe depuis l\'événement:', updatedData)
+        
+        // Mettre à jour l'état immédiatement
+        setAgency(updatedData)
+        
+        // Mettre à jour le cache immédiatement
+        try {
+          localStorage.setItem('agency_cache', JSON.stringify({
+            data: updatedData,
+            timestamp: Date.now()
+          }))
+        } catch (error) {
+          console.error('Error updating agency cache:', error)
+        }
+      } else {
+        // Sinon, faire un appel API pour récupérer les données
+        fetchAgency()
+      }
     }
     
     window.addEventListener('agencySettingsUpdated', handleAgencyUpdate)

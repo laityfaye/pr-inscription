@@ -7,6 +7,7 @@ import Badge from '../components/ui/Badge'
 import TestimonialCarousel from '../components/TestimonialCarousel'
 import api from '../services/api'
 import { getImageUrl } from '../utils/imageUrl'
+import { useAgency } from '../contexts/AgencyContext'
 import { 
   FiMapPin, 
   FiPhone, 
@@ -29,27 +30,32 @@ import {
   FiTarget,
   FiHeart,
   FiBriefcase,
-  FiHome
+  FiHome,
+  FiCalendar
 } from 'react-icons/fi'
 import ReactPlayer from 'react-player'
 
 const Home = () => {
-  const [agency, setAgency] = useState(null)
+  // Utiliser directement le contexte Agency qui a déjà un système de cache
+  // Le contexte charge immédiatement depuis le cache localStorage, donc pas de délai
+  // Les données de l'agence sont toujours disponibles (cache ou valeurs par défaut)
+  const { agency } = useAgency()
   const [countries, setCountries] = useState([])
   const [workPermitCountries, setWorkPermitCountries] = useState([])
   const [news, setNews] = useState([])
   const [reviews, setReviews] = useState([])
   const [selectedCountry, setSelectedCountry] = useState(null)
   const [loadingCountry, setLoadingCountry] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false) // Ne plus bloquer l'affichage initial
   const [rentreeText, setRentreeText] = useState('Rentrée 2025 - 2026 - Inscriptions ouvertes')
   const [defaultDescription, setDefaultDescription] = useState('Votre destination, notre mission. Nous vous accompagnons dans vos démarches de préinscription pour vos études à l\'étranger.')
   const [clientsCount, setClientsCount] = useState(0)
 
   useEffect(() => {
-    fetchData()
+    // Charger les données non-critiques en arrière-plan (ne bloque pas l'affichage)
+    fetchNonCriticalData()
     
-    // Écouter les événements de focus pour recharger les données
+    // Écouter les événements de focus pour recharger les données non-critiques
     const handleFocus = () => {
       // Vérifier si les paramètres ont été mis à jour
       const lastUpdate = localStorage.getItem('agency_updated')
@@ -59,24 +65,17 @@ const Home = () => {
         // Si la mise à jour a eu lieu il y a moins de 5 minutes, recharger
         if (now - updateTime < 5 * 60 * 1000) {
           console.log('Détection de mise à jour des paramètres, rechargement des données...')
-          fetchData()
+          fetchNonCriticalData()
           // Supprimer le signal après rechargement
           localStorage.removeItem('agency_updated')
         }
-      } else {
-        fetchData()
       }
     }
     
     // Écouter l'événement personnalisé de mise à jour
-    const handleAgencyUpdate = (event) => {
-      console.log('Événement de mise à jour reçu:', event.detail)
-      if (event.detail) {
-        setAgency(event.detail)
-        setLoading(false) // S'assurer que le loading est désactivé
-      } else {
-        fetchData()
-      }
+    const handleAgencyUpdate = () => {
+      // Le contexte Agency gère déjà la mise à jour, on recharge juste les autres données
+      fetchNonCriticalData()
     }
     
     window.addEventListener('focus', handleFocus)
@@ -88,18 +87,12 @@ const Home = () => {
     }
   }, [])
 
-  const fetchData = async () => {
+  // Charger uniquement les données non-critiques (ne bloque pas l'affichage de la section Hero)
+  const fetchNonCriticalData = async () => {
     try {
       setLoading(true)
-      // Ajouter un timestamp pour éviter le cache
-      const timestamp = new Date().getTime()
-      const [agencyRes, countriesRes, workPermitCountriesRes, newsRes, reviewsRes, rentreeTextRes, defaultDescRes, statsRes] = await Promise.all([
-        api.get(`/agency?nocache=${timestamp}`, {
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-          }
-        }),
+      // Charger toutes les données non-critiques en parallèle
+      const [countriesRes, workPermitCountriesRes, newsRes, reviewsRes, rentreeTextRes, defaultDescRes, statsRes] = await Promise.all([
         api.get('/countries'),
         api.get('/work-permit-countries').catch(() => ({ data: [] })),
         api.get('/news'),
@@ -109,11 +102,7 @@ const Home = () => {
         api.get('/stats').catch(() => ({ data: { clients_count: 0 } })),
       ])
       
-      // Log pour debug
-      console.log('Données de l\'agence chargées:', agencyRes.data)
-      
-      // Mettre à jour les états en une seule fois pour éviter les re-renders multiples
-      setAgency(agencyRes.data)
+      // Mettre à jour les états
       setCountries(countriesRes.data)
       setWorkPermitCountries(workPermitCountriesRes.data || [])
       setNews(newsRes.data.slice(0, 3))
@@ -135,7 +124,7 @@ const Home = () => {
         setClientsCount(statsRes.data.clients_count)
       }
     } catch (error) {
-      console.error('Error fetching data:', error)
+      console.error('Error fetching non-critical data:', error)
     } finally {
       setLoading(false)
     }
@@ -160,7 +149,7 @@ const Home = () => {
   return (
     <Layout>
       {/* Hero Section - Modern & Premium */}
-      <section className="relative overflow-hidden text-white py-12 sm:py-12 min-h-[85vh] flex items-center">
+      <section className="relative overflow-hidden text-white h-screen flex items-center">
         {/* Animated Background */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -174,6 +163,45 @@ const Home = () => {
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-20 animate-pulse-slow"></div>
         </div>
 
+        {/* Lawyer Card - Bottom Left */}
+        {agency?.lawyer_card_enabled && (agency?.lawyer_first_name || agency?.lawyer_last_name) && (
+          <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 md:bottom-8 md:left-8 z-20 animate-slide-up w-[calc(100%-1rem)] sm:w-auto" style={{ animationDelay: '0.5s' }}>
+            <div className="bg-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 shadow-2xl border border-white/20 w-full sm:max-w-xs md:max-w-sm">
+              <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 md:space-y-4">
+                {/* Circular Image */}
+                {agency?.lawyer_image && (
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-xl opacity-50"></div>
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 sm:border-4 border-white shadow-xl">
+                      <img 
+                        src={getImageUrl(agency.lawyer_image)} 
+                        alt={`${agency.lawyer_first_name || ''} ${agency.lawyer_last_name || ''}`.trim() || 'Avocat'} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+                {/* Lawyer Info */}
+                <div className="w-full">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-1">
+                    {agency.lawyer_first_name || ''} {agency.lawyer_last_name || ''}
+                  </h3>
+                  {agency.lawyer_title && (
+                    <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 md:mb-4 px-2">{agency.lawyer_title}</p>
+                  )}
+                  {/* Appointment Button */}
+                  <Link to="/appointment" className="block w-full">
+                    <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-4 sm:py-2.5 sm:px-5 md:py-3 md:px-6 rounded-lg sm:rounded-xl hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base">
+                      <FiCalendar className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="whitespace-nowrap">Prendre rendez-vous</span>
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="section-container relative z-10 text-center animate-fade-in">
           {/* Badge */}
           <div className="inline-flex items-center justify-center px-5 py-2.5 bg-white/15 backdrop-blur-xl rounded-full mb-8 text-sm font-semibold border border-white/20 shadow-lg animate-slide-down">
@@ -181,41 +209,30 @@ const Home = () => {
             <span>{rentreeText}</span>
           </div>
 
-          {/* Main Heading - Masqué pendant le chargement */}
-          {!loading && (
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 text-balance animate-slide-up leading-tight">
-              <span className="block mb-2">{agency?.name || 'TFKS Touba Fall Khidma Services'}</span>
-              {agency?.name && agency?.name !== 'TFKS Touba Fall Khidma Services' && (
-                <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-primary-100">
-                  Touba Fall Khidma Services
-                </span>
-              )}
-            </h1>
-          )}
+          {/* Main Heading - Toujours affiché car les données de l'agence sont disponibles depuis le cache */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 text-balance animate-slide-up leading-tight">
+            <span className="block mb-2">{agency?.name || 'TFKS Touba Fall Khidma Services'}</span>
+            {agency?.name && agency?.name !== 'TFKS Touba Fall Khidma Services' && (
+              <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-primary-100">
+                Touba Fall Khidma Services
+              </span>
+            )}
+          </h1>
 
-          {/* Subtitle - Toujours affiché avec le texte par défaut pendant le chargement */}
-          <p className="text-xl sm:text-2xl md:text-3xl mb-4 text-primary-100 font-light max-w-3xl mx-auto animate-slide-up" style={{ animationDelay: loading ? '0s' : '0.1s' }}>
-            {loading ? defaultDescription : (agency?.description || defaultDescription)}
+          {/* Subtitle - Toujours affiché avec les données de l'agence (cache ou valeurs par défaut) */}
+          <p className="text-xl sm:text-2xl md:text-3xl mb-4 text-primary-100 font-light max-w-3xl mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            {agency?.description || defaultDescription}
           </p>
-          {!loading && (
-            <>
-              {agency?.hero_subtitle ? (
-                <p className="text-lg sm:text-xl mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                  {agency.hero_subtitle}
-                </p>
-              ) : (
-                <p className="text-lg sm:text-xl mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                  Transformez votre rêve d'études à l'étranger en réalité avec notre accompagnement expert
-                </p>
-              )}
-            </>
-          )}
-          {loading && (
-            <div className="flex justify-center items-center space-x-2 mb-12">
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-            </div>
+          
+          {/* Hero Subtitle */}
+          {agency?.hero_subtitle ? (
+            <p className="text-lg sm:text-xl mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              {agency.hero_subtitle}
+            </p>
+          ) : (
+            <p className="text-lg sm:text-xl mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
+              Transformez votre rêve d'études à l'étranger en réalité avec notre accompagnement expert
+            </p>
           )}
 
           {/* CTA Buttons */}

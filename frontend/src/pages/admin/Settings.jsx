@@ -18,9 +18,17 @@ const AdminSettings = () => {
     phone: '',
     address: '',
     registration_number: '',
+    lawyer_card_enabled: false,
+    lawyer_first_name: '',
+    lawyer_last_name: '',
+    lawyer_title: '',
+    lawyer_phone: '',
+    lawyer_email: '',
   })
   const [logo, setLogo] = useState(null)
   const [logoPreview, setLogoPreview] = useState(null)
+  const [lawyerImage, setLawyerImage] = useState(null)
+  const [lawyerImagePreview, setLawyerImagePreview] = useState(null)
   const [rentreeText, setRentreeText] = useState('Rentrée 2025 - 2026 - Inscriptions ouvertes')
 
   useEffect(() => {
@@ -41,9 +49,18 @@ const AdminSettings = () => {
         phone: data.phone || '',
         address: data.address || '',
         registration_number: data.registration_number || '',
+        lawyer_card_enabled: data.lawyer_card_enabled || false,
+        lawyer_first_name: data.lawyer_first_name || '',
+        lawyer_last_name: data.lawyer_last_name || '',
+        lawyer_title: data.lawyer_title || '',
+        lawyer_phone: data.lawyer_phone || '',
+        lawyer_email: data.lawyer_email || '',
       })
       if (data.logo) {
         setLogoPreview(getLogoUrl(data.logo))
+      }
+      if (data.lawyer_image) {
+        setLawyerImagePreview(getLogoUrl(data.lawyer_image))
       }
     } catch (error) {
       console.error('Error fetching settings:', error)
@@ -65,15 +82,36 @@ const AdminSettings = () => {
     e.preventDefault()
     const data = new FormData()
     
+    // Vérifier si les informations minimales de l'avocat sont présentes
+    const hasMinimalLawyerInfo = (settings.lawyer_first_name && settings.lawyer_first_name.trim()) || 
+                                 (settings.lawyer_last_name && settings.lawyer_last_name.trim())
+    
+    // Désactiver automatiquement lawyer_card_enabled si les informations minimales ne sont pas présentes
+    const lawyerCardEnabled = hasMinimalLawyerInfo && settings.lawyer_card_enabled
+    
     // Ajouter tous les champs de settings, même s'ils sont vides
     Object.keys(settings).forEach((key) => {
       const value = settings[key]
-      // Envoyer la valeur même si elle est vide (ne pas utiliser || '' car ça enlève les valeurs 0)
-      data.append(key, value !== null && value !== undefined ? value : '')
+      // Pour les booléens, convertir en string
+      if (key === 'lawyer_card_enabled') {
+        // Utiliser la valeur validée
+        data.append(key, lawyerCardEnabled ? 'true' : 'false')
+      } else {
+        // Envoyer la valeur même si elle est vide (ne pas utiliser || '' car ça enlève les valeurs 0)
+        data.append(key, value !== null && value !== undefined ? value : '')
+      }
     })
+    
+    // Avertir l'utilisateur si la carte a été désactivée automatiquement
+    if (settings.lawyer_card_enabled && !lawyerCardEnabled) {
+      toast.error('La carte de l\'avocat a été désactivée car les informations minimales (prénom ou nom) sont manquantes')
+    }
     
     if (logo) {
       data.append('logo', logo)
+    }
+    if (lawyerImage) {
+      data.append('lawyer_image', lawyerImage)
     }
 
     // Ajouter _method=PUT pour Laravel (nécessaire avec FormData)
@@ -109,13 +147,14 @@ const AdminSettings = () => {
         // Définir un signal dans localStorage pour forcer le rechargement de la page d'accueil
         localStorage.setItem('agency_updated', Date.now().toString())
         
-        // Émettre un événement personnalisé pour forcer le rechargement
+        // Émettre un événement personnalisé avec les données mises à jour
+        // Le contexte Agency utilisera ces données directement pour une mise à jour immédiate
         window.dispatchEvent(new CustomEvent('agencySettingsUpdated', { 
           detail: response.data 
         }))
         
         // Informer l'utilisateur
-        toast.success('Les modifications seront visibles sur la page d\'accueil après un rafraîchissement (F5)')
+        toast.success('Paramètres mis à jour avec succès. Les modifications sont visibles immédiatement.')
       }
     } catch (error) {
       console.error('Error updating settings:', error)
@@ -130,6 +169,14 @@ const AdminSettings = () => {
     if (file) {
       setLogo(file)
       setLogoPreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handleLawyerImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setLawyerImage(file)
+      setLawyerImagePreview(URL.createObjectURL(file))
     }
   }
 
@@ -296,6 +343,148 @@ const AdminSettings = () => {
                   helperText="Numéro d'enregistrement officiel"
                 />
               </div>
+            </div>
+
+            {/* Informations de l'avocat */}
+            <div className="border-t border-neutral-200 pt-6">
+              <h2 className="text-xl font-bold text-neutral-900 mb-6 flex items-center gap-2">
+                <FiCalendar className="text-primary-600" />
+                Informations de l'avocat
+              </h2>
+              
+              {/* Vérifier si les informations minimales sont présentes */}
+              {(() => {
+                const hasMinimalInfo = (settings.lawyer_first_name && settings.lawyer_first_name.trim()) || 
+                                      (settings.lawyer_last_name && settings.lawyer_last_name.trim())
+                const canEnable = hasMinimalInfo
+                
+                return (
+                  <>
+                    <div className="mb-6">
+                      <label className={`flex items-center gap-3 ${canEnable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>
+                        <input
+                          type="checkbox"
+                          checked={settings.lawyer_card_enabled}
+                          disabled={!canEnable}
+                          onChange={(e) => {
+                            if (canEnable) {
+                              setSettings({ ...settings, lawyer_card_enabled: e.target.checked })
+                            } else {
+                              toast.error('Veuillez d\'abord remplir au moins le prénom ou le nom de l\'avocat')
+                            }
+                          }}
+                          className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                        <span className="text-sm font-semibold text-neutral-700">
+                          Afficher la carte de l'avocat sur la page d'accueil
+                        </span>
+                      </label>
+                      {!canEnable && (
+                        <p className="form-error mt-2 flex items-center gap-2">
+                          <span>⚠️</span>
+                          <span>Vous devez remplir au moins le prénom ou le nom de l'avocat pour activer cette option</span>
+                        </p>
+                      )}
+                      {canEnable && !settings.lawyer_card_enabled && (
+                        <p className="form-helper mt-2">
+                          Activez cette option pour afficher la carte de l'avocat dans la section Hero de la page d'accueil
+                        </p>
+                      )}
+                      {canEnable && settings.lawyer_card_enabled && (
+                        <p className="form-helper mt-2 text-success-600">
+                          ✓ La carte de l'avocat sera affichée sur la page d'accueil
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Désactiver automatiquement si les informations minimales sont supprimées */}
+                    {settings.lawyer_card_enabled && !canEnable && (
+                      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          ⚠️ Les informations minimales ont été supprimées. La carte sera désactivée lors de la sauvegarde.
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )
+              })()}
+
+              {/* Toujours afficher les champs pour permettre la saisie des informations */}
+              <div className="space-y-6 bg-gray-50 p-6 rounded-xl">
+                {!settings.lawyer_first_name && !settings.lawyer_last_name && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      💡 Remplissez au moins le prénom ou le nom de l'avocat pour pouvoir activer l'affichage de la carte
+                    </p>
+                  </div>
+                )}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <Input
+                      type="text"
+                      label="Prénom de l'avocat"
+                      value={settings.lawyer_first_name}
+                      onChange={(e) => setSettings({ ...settings, lawyer_first_name: e.target.value })}
+                      placeholder="Touba"
+                      helperText="Au moins le prénom ou le nom est requis pour activer la carte"
+                    />
+                    <Input
+                      type="text"
+                      label="Nom de l'avocat"
+                      value={settings.lawyer_last_name}
+                      onChange={(e) => setSettings({ ...settings, lawyer_last_name: e.target.value })}
+                      placeholder="Fall"
+                      helperText="Au moins le prénom ou le nom est requis pour activer la carte"
+                    />
+                  </div>
+
+                  <Input
+                    type="text"
+                    label="Titre / Fonction"
+                    value={settings.lawyer_title}
+                    onChange={(e) => setSettings({ ...settings, lawyer_title: e.target.value })}
+                    placeholder="Avocat spécialisé en immigration"
+                    helperText="Ex: Maître, Avocat spécialisé en immigration, etc."
+                  />
+
+                  <div className="form-group">
+                    <label className="form-label">
+                      Photo de l'avocat
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLawyerImageChange}
+                        className="input cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                      />
+                      {lawyerImagePreview && (
+                        <div className="mt-4">
+                          <img src={lawyerImagePreview} alt="Photo avocat preview" className="w-32 h-32 object-cover rounded-full border-4 border-primary-200 shadow-lg" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <Input
+                      type="tel"
+                      label="Téléphone de l'avocat"
+                      value={settings.lawyer_phone}
+                      onChange={(e) => setSettings({ ...settings, lawyer_phone: e.target.value })}
+                      icon={FiPhone}
+                      placeholder="+221 XX XXX XX XX"
+                    />
+                    <Input
+                      type="email"
+                      label="Email de l'avocat"
+                      value={settings.lawyer_email}
+                      onChange={(e) => setSettings({ ...settings, lawyer_email: e.target.value })}
+                      icon={FiMail}
+                      placeholder="avocat@exemple.com"
+                    />
+                  </div>
+                </div>
+              
             </div>
 
             {/* Actions */}
