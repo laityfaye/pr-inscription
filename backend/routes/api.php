@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\StorageController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WorkPermitApplicationController;
 use App\Http\Controllers\Api\WorkPermitCountryController;
+use App\Http\Controllers\Api\AppointmentController;
 use Illuminate\Support\Facades\Route;
 
 // Routes publiques
@@ -31,6 +32,11 @@ Route::get('/stats', [UserController::class, 'stats']);
 // Route publique pour servir les fichiers du storage via API
 // Permet d'accéder aux images même si le backend n'est pas accessible directement
 Route::get('/storage/{path}', [StorageController::class, 'serve'])->where('path', '.*');
+
+// Routes publiques pour les rendez-vous
+Route::get('/appointments/booked-slots', [AppointmentController::class, 'getBookedSlots']);
+Route::get('/appointments/unavailable-days', [AppointmentController::class, 'getUnavailableDays']);
+Route::get('/appointments/slot-prices', [AppointmentController::class, 'getSlotPrices']);
 
 // Authentification
 Route::post('/register', [AuthController::class, 'register']);
@@ -113,6 +119,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('residence-applications', ResidenceApplicationController::class);
     Route::patch('/residence-applications/{residenceApplication}/status', [ResidenceApplicationController::class, 'updateStatus'])->middleware('admin');
     Route::post('/residence-applications/{residenceApplication}/notify-client', [ResidenceApplicationController::class, 'notifyClient'])->middleware('admin');
+
+    // Rendez-vous
+    Route::post('/appointments', [AppointmentController::class, 'store']);
+    Route::get('/appointments', [AppointmentController::class, 'index'])->middleware('admin');
+    Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->middleware('admin');
+    Route::post('/appointments/{appointment}/validate', [AppointmentController::class, 'validateAppointment'])->middleware('admin');
+    Route::post('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->middleware('admin');
+    Route::post('/appointments/unavailable-days', [AppointmentController::class, 'addUnavailableDay'])->middleware('admin');
+    Route::delete('/appointments/unavailable-days/{date}', [AppointmentController::class, 'removeUnavailableDay'])->middleware('admin');
+    Route::post('/appointments/slot-prices', [AppointmentController::class, 'updateSlotPrice'])->middleware('admin');
 });
 
 

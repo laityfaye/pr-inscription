@@ -11,7 +11,8 @@ import {
   FiFile,
   FiBell,
   FiLogOut,
-  FiBriefcase
+  FiBriefcase,
+  FiCalendar
 } from 'react-icons/fi'
 import { useAuth } from '../contexts/AuthContext'
 import { useAgency } from '../contexts/AgencyContext'
@@ -65,6 +66,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
   const adminLinks = [
     { to: '/admin/dashboard', label: 'Tableau de bord', icon: FiHome },
     { to: '/admin/inscriptions', label: 'Préinscriptions', icon: FiFileText },
+    { to: '/admin/appointments', label: 'Rendez-vous', icon: FiCalendar },
     { to: '/admin/work-permit-applications', label: 'Permis de travail', icon: FiBriefcase },
     { to: '/admin/residence-applications', label: 'Résidence Canada', icon: FiHome },
     { to: '/admin/users', label: 'Utilisateurs', icon: FiUsers },

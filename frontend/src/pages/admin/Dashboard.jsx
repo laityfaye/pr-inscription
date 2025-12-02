@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Layout from '../../components/Layout'
 import Card from '../../components/ui/Card'
 import api from '../../services/api'
-import { FiUsers, FiFileText, FiMessageSquare, FiStar, FiArrowRight, FiClock, FiCheckCircle, FiGlobe, FiUpload, FiBriefcase, FiHome, FiSettings, FiBell } from 'react-icons/fi'
+import { FiUsers, FiFileText, FiMessageSquare, FiStar, FiArrowRight, FiClock, FiCheckCircle, FiGlobe, FiUpload, FiBriefcase, FiHome, FiSettings, FiBell, FiCalendar } from 'react-icons/fi'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
 
 const AdminDashboard = () => {
@@ -16,6 +16,8 @@ const AdminDashboard = () => {
     residenceApplications: 0,
     documents: 0,
     pendingDocuments: 0,
+    appointments: 0,
+    pendingAppointments: 0,
   })
   const [chartData, setChartData] = useState({
     countriesCount: 0,
@@ -32,7 +34,7 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       setLoading(true)
-      const [usersRes, inscriptionsRes, reviewsRes, workPermitRes, residenceRes, documentsRes, countriesRes, newsRes, workPermitCountriesRes] = await Promise.all([
+      const [usersRes, inscriptionsRes, reviewsRes, workPermitRes, residenceRes, documentsRes, countriesRes, newsRes, workPermitCountriesRes, appointmentsRes] = await Promise.all([
         api.get('/users'),
         api.get('/inscriptions'),
         api.get('/reviews/all'),
@@ -42,6 +44,7 @@ const AdminDashboard = () => {
         api.get('/countries/all?all=true').catch(() => ({ data: [] })),
         api.get('/news?all=true').catch(() => ({ data: [] })),
         api.get('/work-permit-countries').catch(() => ({ data: [] })),
+        api.get('/appointments').catch(() => ({ data: [] })),
       ])
       const inscriptions = inscriptionsRes.data || []
       const documents = documentsRes.data || []
@@ -49,6 +52,7 @@ const AdminDashboard = () => {
       const countries = countriesRes.data || []
       const news = newsRes.data || []
       const workPermitCountries = workPermitCountriesRes.data || []
+      const appointments = appointmentsRes.data || []
       
       // Calculer les préinscriptions par pays avec le nombre de clients uniques
       const countryStats = {}
@@ -91,6 +95,8 @@ const AdminDashboard = () => {
         residenceApplications: residenceRes.data?.length || 0,
         documents: documents.length,
         pendingDocuments: documents.filter((d) => d.status === 'pending').length,
+        appointments: appointments.length,
+        pendingAppointments: appointments.filter((a) => a.status === 'pending').length,
       })
       
       setChartData({
@@ -124,14 +130,6 @@ const AdminDashboard = () => {
       gradient: 'from-accent-500 to-accent-600',
     },
     {
-      title: 'En attente',
-      value: stats.pending,
-      icon: FiClock,
-      color: 'warning',
-      link: '/admin/inscriptions?status=pending',
-      gradient: 'from-warning-500 to-warning-600',
-    },
-    {
       title: 'Permis de travail',
       value: stats.workPermitApplications,
       icon: FiBriefcase,
@@ -148,14 +146,6 @@ const AdminDashboard = () => {
       gradient: 'from-green-500 to-green-600',
     },
     {
-      title: 'Documents',
-      value: stats.documents,
-      icon: FiUpload,
-      color: 'accent',
-      link: '/admin/documents',
-      gradient: 'from-purple-500 to-purple-600',
-    },
-    {
       title: 'Documents en attente',
       value: stats.pendingDocuments,
       icon: FiClock,
@@ -170,6 +160,22 @@ const AdminDashboard = () => {
       color: 'success',
       link: '/admin/reviews',
       gradient: 'from-amber-500 to-amber-600',
+    },
+    {
+      title: 'Rendez-vous',
+      value: stats.appointments,
+      icon: FiCalendar,
+      color: 'primary',
+      link: '/admin/appointments',
+      gradient: 'from-indigo-500 to-indigo-600',
+    },
+    {
+      title: 'Rendez-vous en attente',
+      value: stats.pendingAppointments,
+      icon: FiClock,
+      color: 'warning',
+      link: '/admin/appointments?status=pending',
+      gradient: 'from-orange-500 to-orange-600',
     },
   ]
 
@@ -201,6 +207,13 @@ const AdminDashboard = () => {
       link: '/admin/reviews',
       icon: FiStar,
       color: 'amber',
+    },
+    {
+      title: 'Gérer les rendez-vous',
+      description: 'Valider et gérer les rendez-vous clients',
+      link: '/admin/appointments',
+      icon: FiCalendar,
+      color: 'indigo',
     },
   ]
   
