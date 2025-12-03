@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
+import Footer from './Footer'
 import { useState, useEffect } from 'react'
 import api from '../services/api'
 
@@ -62,11 +63,12 @@ const Layout = ({ children, showSidebar = false }) => {
 
   // Layout standard pour les pages publiques
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-neutral-50">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-neutral-50 flex flex-col">
       <Navbar variant="full" unreadCount={unreadCount} />
-      <main>
+      <main className="flex-1">
         {children}
       </main>
+      <Footer />
     </div>
   )
 }

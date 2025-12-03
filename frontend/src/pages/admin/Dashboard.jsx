@@ -166,7 +166,7 @@ const AdminDashboard = () => {
       value: stats.appointments,
       icon: FiCalendar,
       color: 'primary',
-      link: '/admin/appointments',
+      // link: '/admin/appointments',
       gradient: 'from-indigo-500 to-indigo-600',
     },
     {
@@ -174,7 +174,7 @@ const AdminDashboard = () => {
       value: stats.pendingAppointments,
       icon: FiClock,
       color: 'warning',
-      link: '/admin/appointments?status=pending',
+      // link: '/admin/appointments?status=pending',
       gradient: 'from-orange-500 to-orange-600',
     },
   ]
@@ -208,13 +208,13 @@ const AdminDashboard = () => {
       icon: FiStar,
       color: 'amber',
     },
-    {
-      title: 'Gérer les rendez-vous',
-      description: 'Valider et gérer les rendez-vous clients',
-      link: '/admin/appointments',
-      icon: FiCalendar,
-      color: 'indigo',
-    },
+    // {
+    //   title: 'Gérer les rendez-vous',
+    //   description: 'Valider et gérer les rendez-vous clients',
+    //   link: '/admin/appointments',
+    //   icon: FiCalendar,
+    //   color: 'indigo',
+    // },
   ]
   
   const chartColors = {

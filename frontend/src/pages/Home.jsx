@@ -31,9 +31,12 @@ import {
   FiHeart,
   FiBriefcase,
   FiHome,
-  FiCalendar
+  FiCalendar,
+  FiEye,
+  FiDollarSign
 } from 'react-icons/fi'
 import ReactPlayer from 'react-player'
+import toast from 'react-hot-toast'
 
 const Home = () => {
   // Utiliser directement le contexte Agency qui a déjà un système de cache
@@ -50,6 +53,9 @@ const Home = () => {
   const [rentreeText, setRentreeText] = useState('Rentrée 2025 - 2026 - Inscriptions ouvertes')
   const [defaultDescription, setDefaultDescription] = useState('Votre destination, notre mission. Nous vous accompagnons dans vos démarches de préinscription pour vos études à l\'étranger.')
   const [clientsCount, setClientsCount] = useState(0)
+  const [selectedWorkPermitCountry, setSelectedWorkPermitCountry] = useState(null)
+  const [showWorkPermitDetails, setShowWorkPermitDetails] = useState(false)
+  const [loadingWorkPermitDetails, setLoadingWorkPermitDetails] = useState(false)
 
   useEffect(() => {
     // Charger les données non-critiques en arrière-plan (ne bloque pas l'affichage)
@@ -142,6 +148,21 @@ const Home = () => {
     }
   }
 
+  const handleWorkPermitDetailsClick = async (countryId) => {
+    setLoadingWorkPermitDetails(true)
+    setShowWorkPermitDetails(true)
+    try {
+      const response = await api.get(`/work-permit-countries/${countryId}`)
+      setSelectedWorkPermitCountry(response.data)
+    } catch (error) {
+      console.error('Error fetching work permit country details:', error)
+      toast.error('Erreur lors du chargement des détails')
+      setShowWorkPermitDetails(false)
+    } finally {
+      setLoadingWorkPermitDetails(false)
+    }
+  }
+
   const closeModal = () => {
     setSelectedCountry(null)
   }
@@ -190,7 +211,8 @@ const Home = () => {
                     <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 md:mb-4 px-2">{agency.lawyer_title}</p>
                   )}
                   {/* Appointment Button */}
-                  <Link to="/appointment" className="block w-full">
+                  {/* #="/appointment" */}
+                  <Link to="/#" className="block w-full">
                     <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-4 sm:py-2.5 sm:px-5 md:py-3 md:px-6 rounded-lg sm:rounded-xl hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base">
                       <FiCalendar className="w-4 h-4 sm:w-5 sm:h-5" />
                       <span className="whitespace-nowrap">Prendre rendez-vous</span>
@@ -518,44 +540,64 @@ const Home = () => {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {workPermitCountries.map((country, index) => (
-                <Link
+                <Card
                   key={country.id}
-                  to="/client/work-permit-applications"
-                  className="block"
+                  interactive
+                  className="p-6 h-full animate-slide-up group flex flex-col"
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <Card
-                    interactive
-                    className="p-6 h-full animate-slide-up group"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <div className="relative mb-5 inline-block">
-                      <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                        <FiBriefcase className="text-3xl text-white" />
-                      </div>
+                  <div className="relative mb-5 inline-block">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <FiBriefcase className="text-3xl text-white" />
                     </div>
-                    <h3 className="text-xl font-bold mb-2 text-neutral-900 group-hover:text-primary-700 transition-colors">
-                      {country.name}
-                    </h3>
-                    {country.subtitle && (
-                      <p className="text-sm font-medium text-primary-600 mb-3">
-                        {country.subtitle}
-                      </p>
-                    )}
-                    <p className="text-neutral-600 text-sm leading-relaxed line-clamp-3 mb-4">
-                      {country.description || 'Découvrez les opportunités de travail dans ce pays'}
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-neutral-900 group-hover:text-primary-700 transition-colors">
+                    {country.name}
+                  </h3>
+                  {country.subtitle && (
+                    <p className="text-sm font-medium text-primary-600 mb-3">
+                      {country.subtitle}
                     </p>
-                    {country.processing_time && (
-                      <p className="text-xs text-neutral-500 mb-2">
-                        <FiClock className="inline w-3 h-3 mr-1" />
-                        Délai: {country.processing_time}
-                      </p>
-                    )}
-                    <div className="flex items-center text-primary-600 text-sm font-semibold group-hover:translate-x-1 transition-transform">
-                      <span>Faire une demande</span>
-                      <FiArrowRight className="ml-2 w-4 h-4" />
-                    </div>
-                  </Card>
-                </Link>
+                  )}
+                  <p className="text-neutral-600 text-sm leading-relaxed line-clamp-3 mb-4 flex-1">
+                    {country.description || 'Découvrez les opportunités de travail dans ce pays'}
+                  </p>
+                  {country.processing_time && (
+                    <p className="text-xs text-neutral-500 mb-3 flex items-center gap-1">
+                      <FiClock className="w-3 h-3" />
+                      Délai: {country.processing_time}
+                    </p>
+                  )}
+                  <div className="flex gap-2 mt-auto">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleWorkPermitDetailsClick(country.id)
+                      }}
+                      className="flex-1 hover:bg-primary-50 hover:text-primary-600"
+                      icon={FiEye}
+                    >
+                      Voir détail
+                    </Button>
+                    <Link
+                      to="/client/work-permit-applications"
+                      className="flex-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="w-full"
+                        icon={FiArrowRight}
+                        iconPosition="right"
+                      >
+                        Faire une demande
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
               ))}
             </div>
 
@@ -646,7 +688,7 @@ const Home = () => {
 
       {/* Agency Info - Enhanced */}
       {agency && (
-        <section className="py-24 bg-white">
+        <section id="about-us" className="py-24 bg-white">
           <div className="section-container">
             <div className="text-center mb-20 animate-fade-in">
               <Badge variant="primary" size="lg" className="mb-6">
@@ -1022,6 +1064,193 @@ const Home = () => {
                 </Link>
               </div>
             </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Modal Détails Permis de Travail */}
+      {showWorkPermitDetails && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <Card className="max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border-2 border-neutral-200">
+            <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold mb-1">Détails du permis de travail</h2>
+                  <p className="text-white/90 text-sm">Informations complètes sur les opportunités de travail</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowWorkPermitDetails(false)
+                    setSelectedWorkPermitCountry(null)
+                  }}
+                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="overflow-y-auto flex-1 p-6">
+              {loadingWorkPermitDetails ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                </div>
+              ) : selectedWorkPermitCountry ? (
+                <div className="space-y-6">
+                  {/* En-tête avec nom et sous-titre */}
+                  <div className="bg-gradient-to-br from-primary-50 to-accent-50 p-6 rounded-xl border border-primary-200">
+                    <div className="flex items-start gap-4">
+                      <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                        <FiBriefcase className="text-3xl text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-neutral-900 mb-2">
+                          {selectedWorkPermitCountry.name}
+                        </h3>
+                        {selectedWorkPermitCountry.subtitle && (
+                          <p className="text-lg font-medium text-primary-600 mb-3">
+                            {selectedWorkPermitCountry.subtitle}
+                          </p>
+                        )}
+                        {selectedWorkPermitCountry.description && (
+                          <p className="text-neutral-700 leading-relaxed">
+                            {selectedWorkPermitCountry.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Délai de traitement */}
+                  {selectedWorkPermitCountry.processing_time && (
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100/30 p-5 rounded-xl border border-blue-200">
+                      <h4 className="font-bold text-neutral-900 mb-3 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                          <FiClock className="w-4 h-4 text-white" />
+                        </div>
+                        Délai de traitement
+                      </h4>
+                      <p className="text-neutral-700 pl-10">{selectedWorkPermitCountry.processing_time}</p>
+                    </div>
+                  )}
+
+                  {/* Coûts */}
+                  {selectedWorkPermitCountry.costs && (
+                    <div className="bg-gradient-to-br from-green-50 to-green-100/30 p-5 rounded-xl border border-green-200">
+                      <h4 className="font-bold text-neutral-900 mb-3 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                          <FiDollarSign className="w-4 h-4 text-white" />
+                        </div>
+                        Coûts
+                      </h4>
+                      <p className="text-neutral-700 pl-10 whitespace-pre-line">{selectedWorkPermitCountry.costs}</p>
+                    </div>
+                  )}
+
+                  {/* Conditions d'éligibilité */}
+                  {selectedWorkPermitCountry.eligibility_conditions && (
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100/30 p-5 rounded-xl border border-purple-200">
+                      <h4 className="font-bold text-neutral-900 mb-3 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+                          <FiCheckCircle className="w-4 h-4 text-white" />
+                        </div>
+                        Conditions d'éligibilité
+                      </h4>
+                      <div className="pl-10">
+                        <ul className="space-y-2 text-neutral-700">
+                          {selectedWorkPermitCountry.eligibility_conditions.split('\n').filter(line => line.trim()).map((condition, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <FiCheckCircle className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                              <span>{condition.trim()}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Documents requis */}
+                  {selectedWorkPermitCountry.required_documents && (
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100/30 p-5 rounded-xl border border-orange-200">
+                      <h4 className="font-bold text-neutral-900 mb-3 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+                          <FiFileText className="w-4 h-4 text-white" />
+                        </div>
+                        Documents requis
+                      </h4>
+                      <div className="pl-10">
+                        <ul className="space-y-2 text-neutral-700">
+                          {selectedWorkPermitCountry.required_documents.split('\n').filter(line => line.trim()).map((doc, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <FiFileText className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                              <span>{doc.trim()}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Processus de demande */}
+                  {selectedWorkPermitCountry.application_process && (
+                    <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/30 p-5 rounded-xl border border-indigo-200">
+                      <h4 className="font-bold text-neutral-900 mb-3 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+                          <FiInfo className="w-4 h-4 text-white" />
+                        </div>
+                        Processus de demande
+                      </h4>
+                      <div className="pl-10">
+                        <ol className="space-y-3 text-neutral-700">
+                          {selectedWorkPermitCountry.application_process.split('\n').filter(line => line.trim()).map((step, index) => (
+                            <li key={index} className="flex items-start gap-3">
+                              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-500 text-white flex items-center justify-center text-sm font-bold">
+                                {index + 1}
+                              </span>
+                              <span className="pt-0.5">{step.trim()}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <FiInfo className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
+                  <p className="text-neutral-500">Aucune information disponible</p>
+                </div>
+              )}
+            </div>
+            
+            {selectedWorkPermitCountry && (
+              <div className="border-t border-neutral-200 p-6 bg-neutral-50">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setShowWorkPermitDetails(false)
+                      setSelectedWorkPermitCountry(null)
+                    }}
+                    className="sm:order-2"
+                  >
+                    Fermer
+                  </Button>
+                  <Link
+                    to="/client/work-permit-applications"
+                    className="sm:order-1 flex-1"
+                    onClick={() => {
+                      setShowWorkPermitDetails(false)
+                      setSelectedWorkPermitCountry(null)
+                    }}
+                  >
+                    <Button variant="primary" fullWidth className="sm:w-auto" icon={FiArrowRight} iconPosition="right">
+                      Faire une demande
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
       )}

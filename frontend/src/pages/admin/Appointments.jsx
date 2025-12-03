@@ -371,36 +371,36 @@ const AdminAppointments = () => {
         {/* Header avec statistiques */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-            <div>
+          <div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 mb-2 bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent">
-                Gestion des rendez-vous
-              </h1>
+              Gestion des rendez-vous
+            </h1>
               <p className="text-sm sm:text-base text-neutral-600">
-                Gérez les rendez-vous, les jours indisponibles et les prix des créneaux
-              </p>
-            </div>
+              Gérez les rendez-vous, les jours indisponibles et les prix des créneaux
+            </p>
+          </div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => setShowUnavailableDaysModal(true)}
-                icon={FiCalendar}
+            <Button
+              variant="secondary"
+              onClick={() => setShowUnavailableDaysModal(true)}
+              icon={FiCalendar}
                 className="text-xs sm:text-sm"
-              >
+            >
                 <span className="hidden sm:inline">Jours indisponibles</span>
                 <span className="sm:hidden">Jours</span>
-              </Button>
-              <Button
-                variant="secondary"
+            </Button>
+            <Button
+              variant="secondary"
                 onClick={async () => {
                   await fetchSlotPrices()
-                  setShowPriceModal(true)
-                }}
-                icon={FiDollarSign}
+                setShowPriceModal(true)
+              }}
+              icon={FiDollarSign}
                 className="text-xs sm:text-sm"
-              >
+            >
                 <span className="hidden sm:inline">Prix des créneaux</span>
                 <span className="sm:hidden">Prix</span>
-              </Button>
+            </Button>
             </div>
           </div>
 
@@ -516,15 +516,15 @@ const AdminAppointments = () => {
               
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="sm:col-span-2 lg:col-span-1">
-              <Input
-                type="text"
-                label="Rechercher"
-                placeholder="Nom, email, téléphone..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                icon={FiSearch}
+            <Input
+              type="text"
+              label="Rechercher"
+              placeholder="Nom, email, téléphone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              icon={FiSearch}
                 className="w-full"
-              />
+            />
             </div>
             <div className="form-group">
               <label className="form-label flex items-center gap-2">
@@ -569,8 +569,8 @@ const AdminAppointments = () => {
                 Réinitialiser tous les filtres
               </Button>
             </div>
-              </div>
-            </Card>
+          </div>
+        </Card>
           )}
         </div>
 
@@ -917,10 +917,10 @@ const AdminAppointments = () => {
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accent-400 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                             {appointment.name.charAt(0).toUpperCase()}
                           </div>
-                          <div>
+                        <div>
                             <div className="font-semibold text-neutral-900 mb-0.5">
-                              {appointment.name}
-                            </div>
+                            {appointment.name}
+                          </div>
                             <div className="text-xs text-neutral-500 flex items-center gap-1">
                               <FiMail className="w-3 h-3" />
                               {appointment.email}
@@ -936,7 +936,7 @@ const AdminAppointments = () => {
                         <div className="flex items-center gap-2">
                           <FiCalendar className="w-4 h-4 text-primary-500" />
                           <span className="text-sm text-neutral-700">
-                            {new Date(appointment.date).toLocaleDateString('fr-FR', {
+                        {new Date(appointment.date).toLocaleDateString('fr-FR', {
                               weekday: 'short',
                               day: 'numeric',
                               month: 'short',
@@ -1045,8 +1045,8 @@ const AdminAppointments = () => {
                         </span>
                       </div>
                     )}
-                  </div>
-                </Card>
+          </div>
+        </Card>
               ))
             )}
           </div>
@@ -1063,15 +1063,15 @@ const AdminAppointments = () => {
                     <h2 className="text-2xl font-bold mb-1">Détails du rendez-vous</h2>
                     <p className="text-white/90 text-sm">Informations complètes du rendez-vous</p>
                   </div>
-                  <button
-                    onClick={() => setShowDetailsModal(false)}
+                <button
+                  onClick={() => setShowDetailsModal(false)}
                     className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  >
-                    <FiX className="w-5 h-5" />
-                  </button>
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
                 </div>
               </div>
-              
+
               <div className="overflow-y-auto flex-1 p-6">
 
               <div className="space-y-5">
@@ -1112,15 +1112,15 @@ const AdminAppointments = () => {
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
                       <FiCalendar className="w-4 h-4 text-primary-500" />
-                      <div>
+                <div>
                         <span className="text-xs text-neutral-500 block">Date</span>
                         <span className="font-semibold text-neutral-900">
-                          {new Date(selectedAppointment.date).toLocaleDateString('fr-FR', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+                      {new Date(selectedAppointment.date).toLocaleDateString('fr-FR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
                         </span>
                       </div>
                     </div>
@@ -1189,8 +1189,8 @@ const AdminAppointments = () => {
 
               </div>
               </div>
-              
-              {selectedAppointment.status === 'pending' && (
+
+                {selectedAppointment.status === 'pending' && (
                 <div className="border-t border-neutral-200 p-6 bg-neutral-50">
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
@@ -1215,7 +1215,7 @@ const AdminAppointments = () => {
                       Rejeter
                     </Button>
                   </div>
-                </div>
+              </div>
               )}
             </Card>
           </div>
@@ -1231,12 +1231,12 @@ const AdminAppointments = () => {
                     <h2 className="text-2xl font-bold mb-1">Jours indisponibles</h2>
                     <p className="text-white/90 text-sm">Gérez les jours où les rendez-vous ne sont pas disponibles</p>
                   </div>
-                  <button
-                    onClick={() => setShowUnavailableDaysModal(false)}
+                <button
+                  onClick={() => setShowUnavailableDaysModal(false)}
                     className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  >
-                    <FiX className="w-5 h-5" />
-                  </button>
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
                 </div>
               </div>
               
@@ -1387,12 +1387,12 @@ const AdminAppointments = () => {
                     <h2 className="text-2xl font-bold mb-1">Prix des créneaux horaires</h2>
                     <p className="text-white/90 text-sm">Définissez les prix pour chaque créneau horaire</p>
                   </div>
-                  <button
-                    onClick={() => setShowPriceModal(false)}
+                <button
+                  onClick={() => setShowPriceModal(false)}
                     className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                  >
-                    <FiX className="w-5 h-5" />
-                  </button>
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
                 </div>
               </div>
               
@@ -1416,38 +1416,38 @@ const AdminAppointments = () => {
                     {editingPrice === hour ? (
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                         <div className="flex-1 sm:flex-initial">
-                          <input
-                            type="number"
-                            value={newPrice}
-                            onChange={(e) => setNewPrice(e.target.value)}
-                            placeholder="Prix en FCFA"
+                        <input
+                          type="number"
+                          value={newPrice}
+                          onChange={(e) => setNewPrice(e.target.value)}
+                          placeholder="Prix en FCFA"
                             className="input w-full sm:w-40"
-                            min="0"
-                            step="100"
+                          min="0"
+                          step="100"
                             autoFocus
-                          />
+                        />
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => handleUpdateSlotPrice(hour, newPrice)}
-                            icon={FiSave}
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleUpdateSlotPrice(hour, newPrice)}
+                          icon={FiSave}
                             className="flex-1 sm:flex-initial"
-                          >
-                            Enregistrer
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEditingPrice(null)
-                              setNewPrice('')
-                            }}
+                        >
+                          Enregistrer
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditingPrice(null)
+                            setNewPrice('')
+                          }}
                             className="flex-1 sm:flex-initial"
-                          >
-                            Annuler
-                          </Button>
+                        >
+                          Annuler
+                        </Button>
                         </div>
                       </div>
                     ) : (
@@ -1456,9 +1456,9 @@ const AdminAppointments = () => {
                           <FiDollarSign className="w-4 h-4 text-green-600" />
                           <span className="text-neutral-900 font-bold text-lg">
                             {slotPrices[hour] !== undefined && slotPrices[hour] !== null && slotPrices[hour] > 0
-                              ? `${Number(slotPrices[hour]).toLocaleString('fr-FR')} FCFA` 
+                            ? `${Number(slotPrices[hour]).toLocaleString('fr-FR')} FCFA` 
                               : <span className="text-neutral-400">Non défini</span>}
-                          </span>
+                        </span>
                         </div>
                         <Button
                           variant="ghost"
