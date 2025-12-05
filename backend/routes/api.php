@@ -38,6 +38,10 @@ Route::get('/appointments/booked-slots', [AppointmentController::class, 'getBook
 Route::get('/appointments/unavailable-days', [AppointmentController::class, 'getUnavailableDays']);
 Route::get('/appointments/slot-prices', [AppointmentController::class, 'getSlotPrices']);
 
+// Routes publiques pour les pays de permis de travail
+Route::get('/work-permit-countries', [WorkPermitCountryController::class, 'index']);
+Route::get('/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'show']);
+
 // Authentification
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -102,10 +106,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/{key}', [SettingsController::class, 'update'])->middleware('admin');
     Route::post('/settings/multiple', [SettingsController::class, 'updateMultiple'])->middleware('admin');
 
-    // Pays de permis de travail
+    // Pays de permis de travail (Admin - routes protégées)
     Route::get('/work-permit-countries/all', [WorkPermitCountryController::class, 'index'])->middleware('admin');
-    Route::get('/work-permit-countries', [WorkPermitCountryController::class, 'index']);
-    Route::get('/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'show']);
     Route::post('/work-permit-countries', [WorkPermitCountryController::class, 'store'])->middleware('admin');
     Route::match(['put', 'post'], '/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'update'])->middleware('admin');
     Route::delete('/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'destroy'])->middleware('admin');
