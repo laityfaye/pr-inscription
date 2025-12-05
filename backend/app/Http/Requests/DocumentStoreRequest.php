@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Log;
 
 class DocumentStoreRequest extends FormRequest
 {
@@ -23,6 +24,9 @@ class DocumentStoreRequest extends FormRequest
                     $dataToMerge[$field] = null;
                 } elseif (is_numeric($value)) {
                     $dataToMerge[$field] = (int) $value;
+                } else {
+                    // Si ce n'est pas numérique et pas vide, le mettre à null
+                    $dataToMerge[$field] = null;
                 }
             }
         }
@@ -30,6 +34,18 @@ class DocumentStoreRequest extends FormRequest
         if (!empty($dataToMerge)) {
             $this->merge($dataToMerge);
         }
+        
+        // Logger les données reçues pour debug
+        Log::info('Document upload request data:', [
+            'has_file' => $this->hasFile('file'),
+            'file_size' => $this->hasFile('file') ? $this->file('file')->getSize() : null,
+            'type' => $this->input('type'),
+            'inscription_id' => $this->input('inscription_id'),
+            'work_permit_application_id' => $this->input('work_permit_application_id'),
+            'residence_application_id' => $this->input('residence_application_id'),
+            'name' => $this->input('name'),
+            'all_inputs' => $this->all(),
+        ]);
     }
 
     public function rules(): array
@@ -37,9 +53,9 @@ class DocumentStoreRequest extends FormRequest
         return [
             'file' => ['required', 'file', 'max:10240'], // 10MB max (en KB)
             'type' => ['required', 'string'],
-            'inscription_id' => ['nullable', 'integer', 'exists:inscriptions,id'],
-            'work_permit_application_id' => ['nullable', 'integer', 'exists:work_permit_applications,id'],
-            'residence_application_id' => ['nullable', 'integer', 'exists:residence_applications,id'],
+            'inscription_id' => ['nullable', 'integer'],
+            'work_permit_application_id' => ['nullable', 'integer'],
+            'residence_application_id' => ['nullable', 'integer'],
             'name' => ['nullable', 'string', 'max:255'],
         ];
     }

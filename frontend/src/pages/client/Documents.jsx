@@ -108,11 +108,15 @@ const ClientDocuments = () => {
       setSelectedResidenceId('')
       fetchDocuments()
     } catch (error) {
+      console.error('Upload error:', error)
+      console.error('Response data:', error.response?.data)
+      
       if (error.response?.data?.errors) {
-        // Afficher la première erreur de validation
+        // Afficher toutes les erreurs de validation
         const validationErrors = error.response.data.errors
-        const firstError = Object.values(validationErrors).flat()[0]
-        toast.error(firstError || 'Erreur de validation')
+        Object.values(validationErrors).flat().forEach(err => {
+          toast.error(err)
+        })
       } else {
         toast.error(error.response?.data?.message || 'Erreur lors de l\'upload')
       }

@@ -36,13 +36,28 @@ class DocumentController extends Controller
 
     public function store(DocumentStoreRequest $request): JsonResponse
     {
-        $validated = $request->validated();
+        try {
+            $validated = $request->validated();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Document upload validation failed:', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all(),
+                'user_id' => $request->user()?->id,
+            ]);
+            throw $e;
+        }
 
-        // Vérifier que les IDs appartiennent à l'utilisateur (sécurité)
+        // Vérifier que les IDs existent et appartiennent à l'utilisateur (sécurité)
         $user = $request->user();
         if (!empty($validated['inscription_id'])) {
             $inscription = \App\Models\Inscription::find($validated['inscription_id']);
-            if (!$inscription || $inscription->user_id !== $user->id) {
+            if (!$inscription) {
+                return response()->json([
+                    'message' => 'La préinscription sélectionnée n\'existe pas.',
+                    'errors' => ['inscription_id' => ['La préinscription sélectionnée n\'existe pas.']]
+                ], 422);
+            }
+            if ($inscription->user_id !== $user->id) {
                 return response()->json([
                     'message' => 'La préinscription sélectionnée ne vous appartient pas.',
                     'errors' => ['inscription_id' => ['La préinscription sélectionnée ne vous appartient pas.']]
@@ -52,7 +67,13 @@ class DocumentController extends Controller
         
         if (!empty($validated['work_permit_application_id'])) {
             $workPermit = \App\Models\WorkPermitApplication::find($validated['work_permit_application_id']);
-            if (!$workPermit || $workPermit->user_id !== $user->id) {
+            if (!$workPermit) {
+                return response()->json([
+                    'message' => 'La demande de permis de travail sélectionnée n\'existe pas.',
+                    'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée n\'existe pas.']]
+                ], 422);
+            }
+            if ($workPermit->user_id !== $user->id) {
                 return response()->json([
                     'message' => 'La demande de permis de travail sélectionnée ne vous appartient pas.',
                     'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée ne vous appartient pas.']]
@@ -62,7 +83,13 @@ class DocumentController extends Controller
         
         if (!empty($validated['residence_application_id'])) {
             $residence = \App\Models\ResidenceApplication::find($validated['residence_application_id']);
-            if (!$residence || $residence->user_id !== $user->id) {
+            if (!$residence) {
+                return response()->json([
+                    'message' => 'La demande de résidence sélectionnée n\'existe pas.',
+                    'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée n\'existe pas.']]
+                ], 422);
+            }
+            if ($residence->user_id !== $user->id) {
                 return response()->json([
                     'message' => 'La demande de résidence sélectionnée ne vous appartient pas.',
                     'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée ne vous appartient pas.']]
