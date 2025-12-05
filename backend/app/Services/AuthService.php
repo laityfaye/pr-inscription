@@ -23,25 +23,6 @@ class AuthService
 
         $user = $this->userRepository->create($data);
 
-        // Envoyer les emails de manière asynchrone pour ne pas bloquer l'inscription
-        // Si l'envoi échoue, l'inscription doit quand même réussir
-        try {
-            // Envoyer email de bienvenue au client
-            Mail::to($user->email)->send(new WelcomeMail($user));
-        } catch (\Exception $e) {
-            // Logger l'erreur mais ne pas faire échouer l'inscription
-            Log::warning('Erreur lors de l\'envoi de l\'email de bienvenue: ' . $e->getMessage());
-        }
-
-        try {
-            // Envoyer notification à l'admin
-            $adminEmail = config('mail.admin_email', 'laityfaye1709@gmail.com');
-            Mail::to($adminEmail)->send(new NewClientNotificationMail($user));
-        } catch (\Exception $e) {
-            // Logger l'erreur mais ne pas faire échouer l'inscription
-            Log::warning('Erreur lors de l\'envoi de la notification admin: ' . $e->getMessage());
-        }
-
         return $user;
     }
 

@@ -37,23 +37,10 @@ class AuthController extends Controller
             // Recharger l'utilisateur pour éviter les problèmes de sérialisation
             // et s'assurer qu'il n'y a pas de relations chargées
             $user = $user->fresh();
-            
-            // Sérialiser l'utilisateur manuellement pour éviter les problèmes
-            $userData = [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user->role,
-                'target_country' => $user->target_country,
-                'photo' => $user->photo,
-                'created_at' => $user->created_at?->toISOString(),
-                'updated_at' => $user->updated_at?->toISOString(),
-            ];
 
             return response()->json([
                 'message' => 'Inscription réussie',
-                'user' => $userData,
+                'user' => $user,
                 'token' => $token,
             ], 201);
         } catch (\Exception $e) {
