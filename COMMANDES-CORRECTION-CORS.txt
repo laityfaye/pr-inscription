@@ -1,0 +1,25 @@
+# Commandes à exécuter sur le serveur pour corriger CORS
+
+# 1. Mettre à jour nginx
+sudo nano /etc/nginx/sites-available/backend.sbcgroupe.ca
+# Copier le contenu corrigé de nginx-backend-subdomain.conf (lignes 60-93)
+
+# 2. Mettre à jour Laravel CORS
+cd /home/deploy/pr-inscription/backend
+nano config/cors.php
+# Modifier allowed_origins pour inclure uniquement :
+#   'https://preinscription.sbcgroupe.ca',
+#   'http://localhost:3000',
+#   'http://127.0.0.1:3000',
+
+# 3. Vider le cache Laravel
+php artisan config:clear
+php artisan cache:clear
+
+# 4. Tester et recharger nginx
+sudo nginx -t
+sudo systemctl reload nginx
+
+# 5. Vérifier
+curl -I https://backend.sbcgroupe.ca/api/countries
+
