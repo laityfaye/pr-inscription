@@ -272,7 +272,7 @@ const AdminDocuments = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-800 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                         <FiFile className="text-2xl text-white" />
                       </div>
                       <div className="flex-1 min-w-0">

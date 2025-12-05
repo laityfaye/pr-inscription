@@ -26,7 +26,7 @@ class AgencyController extends Controller
 
         $request->validate([
             'name' => ['nullable', 'string'],
-            'logo' => ['nullable', 'image', 'max:2048'],
+            'logo' => ['nullable', 'image'],
             'description' => ['nullable', 'string'],
             'hero_subtitle' => ['nullable', 'string'],
             'email' => ['nullable', 'email'],
@@ -38,7 +38,7 @@ class AgencyController extends Controller
             'lawyer_first_name' => ['nullable', 'string'],
             'lawyer_last_name' => ['nullable', 'string'],
             'lawyer_title' => ['nullable', 'string'],
-            'lawyer_image' => ['nullable', 'image', 'max:2048'],
+            'lawyer_image' => ['nullable', 'image'],
             'lawyer_phone' => ['nullable', 'string'],
             'lawyer_email' => ['nullable', 'email'],
         ]);

@@ -80,7 +80,7 @@ const Register = () => {
           <div className="card p-8 sm:p-10">
             {/* Header */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-2xl mb-4 shadow-lg">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl mb-4 shadow-lg">
                 <FiUser className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">

@@ -426,7 +426,7 @@ const AdminChat = () => {
                         className="w-full p-3 text-left hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
                       >
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center text-white font-semibold">
+                          <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-800 rounded-full flex items-center justify-center text-white font-semibold">
                             {client.name?.charAt(0) || 'C'}
                           </div>
                           <div>
@@ -472,8 +472,8 @@ const AdminChat = () => {
                         <div className="flex items-center space-x-3">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold flex-shrink-0 ${
                             selectedClient?.id === client.id 
-                              ? 'bg-gradient-to-br from-primary-600 to-accent-600 text-white shadow-md' 
-                              : 'bg-gradient-to-br from-primary-500 to-accent-500 text-white'
+                              ? 'bg-gradient-to-br from-primary-600 to-primary-800 text-white shadow-md' 
+                              : 'bg-gradient-to-br from-primary-500 to-primary-800 text-white'
                           }`}>
                             {client.name?.charAt(0) || 'C'}
                           </div>
@@ -527,7 +527,7 @@ const AdminChat = () => {
                               onClick={() => handleApplicationSelect(app.type, app)}
                               className={`flex-shrink-0 p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-lg min-w-[200px] ${
                                 isSelected 
-                                  ? 'bg-gradient-to-br from-primary-600 to-accent-600 text-white border-primary-600 shadow-lg scale-105' 
+                                  ? 'bg-gradient-to-br from-primary-600 to-primary-800 text-white border-primary-600 shadow-lg scale-105' 
                                   : 'bg-white text-gray-900 border-gray-200 hover:border-primary-300'
                               }`}
                             >
@@ -568,7 +568,7 @@ const AdminChat = () => {
                 {selectedClient ? (
                   <>
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-primary-600 via-primary-500 to-accent-600 text-white shadow-lg">
+                <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-primary-600 via-primary-500 to-primary-800 text-white shadow-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg ring-2 ring-white/30">
@@ -631,7 +631,7 @@ const AdminChat = () => {
                           <div className={`flex ${isSender ? 'justify-end' : 'justify-start'} animate-fade-in`}>
                             <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-md transition-all duration-200 hover:shadow-lg ${
                               isSender
-                                ? 'bg-gradient-to-r from-primary-600 to-accent-600 text-white'
+                                ? 'bg-gradient-to-r from-primary-600 to-primary-800 text-white'
                                 : 'bg-white text-gray-900 border border-gray-200'
                             }`}>
                               {message.status_update && (

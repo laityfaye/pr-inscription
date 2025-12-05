@@ -154,7 +154,7 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
                   {agencyLoading ? (
                     <span className="inline-block w-32 h-5 bg-neutral-200 rounded animate-pulse"></span>
                   ) : (
-                    agencyInitials
+                    agencyInitials + ' Groupe'
                   )}
                 </div>
               </div>
@@ -269,8 +269,8 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
                       className="flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-neutral-100 transition-all duration-200 group"
                     >
                       <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
-                        <div className="relative w-9 h-9 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md">
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-800 rounded-full blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                        <div className="relative w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-800 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md">
                           {user.name?.charAt(0) || 'U'}
                         </div>
                       </div>

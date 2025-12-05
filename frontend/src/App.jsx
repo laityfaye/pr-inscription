@@ -39,9 +39,14 @@ import AdminAppointments from './pages/admin/Appointments'
 
 function App() {
   return (
-    <AuthProvider>
+      <AuthProvider>
       <AgencyProvider>
-        <Router>
+        <Router
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           <div className="min-h-screen">
             <Routes>
             {/* Routes publiques */}

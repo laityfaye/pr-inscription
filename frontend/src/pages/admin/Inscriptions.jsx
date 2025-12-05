@@ -702,7 +702,7 @@ const AdminInscriptions = () => {
                             <div className="space-y-3">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center flex-shrink-0 shadow-md">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-800 flex items-center justify-center flex-shrink-0 shadow-md">
                                   <FiFile className="w-6 h-6 text-white" />
                                 </div>
                                 <div className="flex-1 min-w-0">

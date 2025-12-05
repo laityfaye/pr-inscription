@@ -122,7 +122,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
           </div>
           <div>
             <div className="text-base font-bold gradient-text-static">
-              {agencyInitials}
+              {agencyInitials + ' Groupe'}
             </div>
             <div className="text-[10px] text-neutral-500 font-medium">Dashboard</div>
           </div>
@@ -164,7 +164,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
       {user && (
         <div className="p-4 border-t border-neutral-200">
           <div className="flex items-center space-x-3 px-4 py-3 rounded-xl bg-neutral-50">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md">
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-800 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md">
               {user.name?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 min-w-0">

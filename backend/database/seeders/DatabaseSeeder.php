@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
         // Créer l'admin
         User::create([
             'name' => 'Administrateur',
-            'email' => 'admin@tfks.com',
+            'email' => 'massaersyll3@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
             'phone' => '789553756',
@@ -45,11 +45,11 @@ class DatabaseSeeder extends Seeder
 
         // Créer les paramètres de l'agence
         AgencySetting::create([
-            'name' => 'TFKS Touba Fall Khidma Services',
+            'name' => 'InnoSoft',
             'description' => 'Votre destination, notre mission. Nous vous accompagnons dans vos démarches de préinscription pour vos études à l\'étranger.',
-            'email' => 'toubafallv@gmail.com',
+            'email' => 'massaersyll3@gmail.com',
             'whatsapp' => '789553756',
-            'phone' => '789553756 - 771801995',
+            'phone' => '789553756',
             'address' => 'Dakar, HLM FASS',
             'registration_number' => 'SN.DKR.2025.A.34574',
         ]);

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState, useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -8,6 +8,7 @@ import TestimonialCarousel from '../components/TestimonialCarousel'
 import api from '../services/api'
 import { getImageUrl } from '../utils/imageUrl'
 import { useAgency } from '../contexts/AgencyContext'
+import { useAuth } from '../contexts/AuthContext'
 import { 
   FiMapPin, 
   FiPhone, 
@@ -43,6 +44,8 @@ const Home = () => {
   // Le contexte charge immédiatement depuis le cache localStorage, donc pas de délai
   // Les données de l'agence sont toujours disponibles (cache ou valeurs par défaut)
   const { agency } = useAgency()
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [countries, setCountries] = useState([])
   const [workPermitCountries, setWorkPermitCountries] = useState([])
   const [news, setNews] = useState([])
@@ -56,6 +59,102 @@ const Home = () => {
   const [selectedWorkPermitCountry, setSelectedWorkPermitCountry] = useState(null)
   const [showWorkPermitDetails, setShowWorkPermitDetails] = useState(false)
   const [loadingWorkPermitDetails, setLoadingWorkPermitDetails] = useState(false)
+
+  // Fonction helper pour gérer les clics sur les boutons de demande
+  // Redirige vers /register si l'utilisateur n'est pas connecté, sinon vers la route normale
+  const handleApplicationClick = useCallback((e, route) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const token = localStorage.getItem('token')
+    const isAuthenticated = user || token
+    
+    if (!isAuthenticated) {
+      // Rediriger vers l'inscription si l'utilisateur n'est pas connecté
+      navigate('/register')
+    } else {
+      // Sinon, naviguer vers la route normale
+      navigate(route)
+    }
+  }, [user, navigate])
+
+  // Charger uniquement les données non-critiques (ne bloque pas l'affichage de la section Hero)
+  const fetchNonCriticalData = useCallback(async () => {
+    try {
+      setLoading(true)
+      
+      // Fonction helper pour gérer silencieusement les erreurs (endpoints qui peuvent échouer)
+      const safeGet = (url, defaultValue) => {
+        return api.get(url).catch((error) => {
+          // Ignorer silencieusement les erreurs et retourner la valeur par défaut
+          return { data: defaultValue }
+        })
+      }
+      
+      // Vérifier si l'utilisateur est connecté pour certaines données
+      const token = localStorage.getItem('token')
+      const isAuthenticated = user || token
+      
+      // Toujours charger les pays et permis de travail (même sans authentification)
+      // Les autres données nécessitent une authentification
+      const promises = [
+        safeGet('/countries', []),
+        safeGet('/work-permit-countries', []),
+      ]
+      
+      // Ajouter les autres requêtes seulement si l'utilisateur est connecté
+      if (isAuthenticated) {
+        promises.push(
+          safeGet('/news', []),
+          safeGet('/reviews', []),
+          safeGet('/settings/rentree_text', { value: null }),
+          safeGet('/settings/agency_default_description', { value: null }),
+          safeGet('/stats', { clients_count: 0 })
+        )
+      } else {
+        // Si non connecté, utiliser des valeurs par défaut pour les autres données
+        promises.push(
+          Promise.resolve({ data: [] }), // news
+          Promise.resolve({ data: [] }), // reviews
+          Promise.resolve({ data: { value: null } }), // rentree_text
+          Promise.resolve({ data: { value: null } }), // agency_default_description
+          Promise.resolve({ data: { clients_count: 0 } }) // stats
+        )
+      }
+      
+      const [countriesRes, workPermitCountriesRes, newsRes, reviewsRes, rentreeTextRes, defaultDescRes, statsRes] = await Promise.all(promises)
+      
+      // Mettre à jour les états
+      setCountries(countriesRes.data)
+      setWorkPermitCountries(workPermitCountriesRes.data || [])
+      
+      // Mettre à jour les autres données seulement si elles ont été chargées
+      if (isAuthenticated) {
+        setNews(newsRes.data.slice(0, 3))
+        // Ne pas limiter les avis pour le carrousel, il gère lui-même l'affichage
+        setReviews(reviewsRes.data)
+        
+        // Mettre à jour le texte de rentrée
+        if (rentreeTextRes.data?.value) {
+          setRentreeText(rentreeTextRes.data.value)
+        }
+        
+        // Mettre à jour la description par défaut
+        if (defaultDescRes.data?.value) {
+          setDefaultDescription(defaultDescRes.data.value)
+        }
+        
+        // Mettre à jour le nombre de clients
+        if (statsRes.data?.clients_count !== undefined) {
+          setClientsCount(statsRes.data.clients_count)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching non-critical data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [user]) // Dépend de user pour savoir si on doit faire les requêtes
 
   useEffect(() => {
     // Charger les données non-critiques en arrière-plan (ne bloque pas l'affichage)
@@ -91,50 +190,7 @@ const Home = () => {
       window.removeEventListener('focus', handleFocus)
       window.removeEventListener('agencySettingsUpdated', handleAgencyUpdate)
     }
-  }, [])
-
-  // Charger uniquement les données non-critiques (ne bloque pas l'affichage de la section Hero)
-  const fetchNonCriticalData = async () => {
-    try {
-      setLoading(true)
-      // Charger toutes les données non-critiques en parallèle
-      const [countriesRes, workPermitCountriesRes, newsRes, reviewsRes, rentreeTextRes, defaultDescRes, statsRes] = await Promise.all([
-        api.get('/countries'),
-        api.get('/work-permit-countries').catch(() => ({ data: [] })),
-        api.get('/news'),
-        api.get('/reviews'),
-        api.get('/settings/rentree_text').catch(() => ({ data: { value: null } })),
-        api.get('/settings/agency_default_description').catch(() => ({ data: { value: null } })),
-        api.get('/stats').catch(() => ({ data: { clients_count: 0 } })),
-      ])
-      
-      // Mettre à jour les états
-      setCountries(countriesRes.data)
-      setWorkPermitCountries(workPermitCountriesRes.data || [])
-      setNews(newsRes.data.slice(0, 3))
-      // Ne pas limiter les avis pour le carrousel, il gère lui-même l'affichage
-      setReviews(reviewsRes.data)
-      
-      // Mettre à jour le texte de rentrée
-      if (rentreeTextRes.data?.value) {
-        setRentreeText(rentreeTextRes.data.value)
-      }
-      
-      // Mettre à jour la description par défaut
-      if (defaultDescRes.data?.value) {
-        setDefaultDescription(defaultDescRes.data.value)
-      }
-      
-      // Mettre à jour le nombre de clients
-      if (statsRes.data?.clients_count !== undefined) {
-        setClientsCount(statsRes.data.clients_count)
-      }
-    } catch (error) {
-      console.error('Error fetching non-critical data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [fetchNonCriticalData]) // Recharger les données quand fetchNonCriticalData change (donc quand user change)
 
   const handleCountryClick = async (countryId) => {
     setLoadingCountry(true)
@@ -233,10 +289,10 @@ const Home = () => {
 
           {/* Main Heading - Toujours affiché car les données de l'agence sont disponibles depuis le cache */}
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 text-balance animate-slide-up leading-tight">
-            <span className="block mb-2">{agency?.name || 'TFKS Touba Fall Khidma Services'}</span>
-            {agency?.name && agency?.name !== 'TFKS Touba Fall Khidma Services' && (
+            <span className="block mb-2">{agency?.name || 'SBC Synergie Business et Consultation'}</span>
+            {agency?.name && agency?.name !== 'SBC Synergie Business et Consultation' && (
               <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-primary-100">
-                Touba Fall Khidma Services
+                SBC Groupe
               </span>
             )}
           </h1>
@@ -333,14 +389,14 @@ const Home = () => {
                 icon: FiAward, 
                 title: 'Expertise', 
                 desc: 'Des années d\'expérience dans le domaine des études à l\'étranger',
-                gradient: 'from-success-500 to-success-600',
+                gradient: 'from-accent-500 to-accent-600',
                 delay: '0.3s'
               },
               { 
                 icon: FiUsers, 
                 title: 'Communauté', 
                 desc: 'Rejoignez une communauté d\'étudiants satisfaits et épanouis',
-                gradient: 'from-primary-500 to-accent-600',
+                gradient: 'from-primary-500 to-primary-600',
                 delay: '0.4s'
               },
             ].map((feature, index) => {
@@ -390,10 +446,10 @@ const Home = () => {
             <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-200 via-accent-200 to-primary-200 transform -translate-y-1/2" style={{ top: '25%' }}></div>
 
             {[
-              { step: '1', title: 'Inscription', desc: 'Créez votre compte et remplissez votre profil en quelques minutes', icon: FiFileText, gradient: 'from-primary-500 to-accent-600', badgeGradient: 'from-primary-500 to-primary-600' },
-              { step: '2', title: 'Préinscription', desc: 'Sélectionnez votre pays de destination et complétez votre dossier', icon: FiGlobe, gradient: 'from-accent-500 to-primary-600', badgeGradient: 'from-accent-500 to-accent-600' },
-              { step: '3', title: 'Documents', desc: 'Uploadez vos documents nécessaires de manière sécurisée', icon: FiFileText, gradient: 'from-success-500 to-success-600', badgeGradient: 'from-success-500 to-success-600' },
-              { step: '4', title: 'Validation', desc: 'Notre équipe valide votre dossier et vous accompagne jusqu\'au bout', icon: FiCheckCircle, gradient: 'from-primary-500 to-accent-600', badgeGradient: 'from-primary-500 to-primary-600' },
+              { step: '1', title: 'Inscription', desc: 'Créez votre compte et remplissez votre profil en quelques minutes', icon: FiFileText, gradient: 'from-primary-500 to-primary-600', badgeGradient: 'from-primary-500 to-primary-600' },
+              { step: '2', title: 'Préinscription', desc: 'Sélectionnez votre pays de destination et complétez votre dossier', icon: FiGlobe, gradient: 'from-accent-500 to-accent-600', badgeGradient: 'from-accent-500 to-accent-600' },
+              { step: '3', title: 'Documents', desc: 'Uploadez vos documents nécessaires de manière sécurisée', icon: FiFileText, gradient: 'from-accent-500 to-accent-600', badgeGradient: 'from-accent-500 to-accent-600' },
+              { step: '4', title: 'Validation', desc: 'Notre équipe valide votre dossier et vous accompagne jusqu\'au bout', icon: FiCheckCircle, gradient: 'from-primary-500 to-primary-600', badgeGradient: 'from-primary-500 to-primary-600' },
             ].map((item, index) => {
               const Icon = item.icon
               return (
@@ -496,7 +552,7 @@ const Home = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="relative mb-5 inline-block">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-br from-accent-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                       <FiGlobe className="text-3xl text-white" />
                     </div>
                   </div>
@@ -547,7 +603,7 @@ const Home = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="relative mb-5 inline-block">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                       <FiBriefcase className="text-3xl text-white" />
                     </div>
                   </div>
@@ -581,32 +637,34 @@ const Home = () => {
                     >
                       Voir détail
                     </Button>
-                    <Link
-                      to="/client/work-permit-applications"
-                      className="flex-1"
-                      onClick={(e) => e.stopPropagation()}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="w-full flex-1"
+                      icon={FiArrowRight}
+                      iconPosition="right"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleApplicationClick(e, '/client/work-permit-applications')
+                      }}
                     >
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        className="w-full"
-                        icon={FiArrowRight}
-                        iconPosition="right"
-                      >
-                        Faire une demande
-                      </Button>
-                    </Link>
+                      Faire une demande
+                    </Button>
                   </div>
                 </Card>
               ))}
             </div>
 
             <div className="text-center mt-12">
-              <Link to="/client/work-permit-applications">
-                <Button variant="primary" size="lg" icon={FiArrowRight} iconPosition="right">
-                  Voir toutes les opportunités
-                </Button>
-              </Link>
+              <Button 
+                variant="primary" 
+                size="lg" 
+                icon={FiArrowRight} 
+                iconPosition="right"
+                onClick={(e) => handleApplicationClick(e, '/client/work-permit-applications')}
+              >
+                Voir toutes les opportunités
+              </Button>
             </div>
           </div>
         </section>
@@ -632,7 +690,7 @@ const Home = () => {
               <div className="flex flex-col md:flex-row items-center gap-8">
                 <div className="relative flex-shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl blur-xl opacity-50"></div>
-                  <div className="relative w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center shadow-xl">
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-primary-500 to-primary-800 rounded-2xl flex items-center justify-center shadow-xl">
                     <FiHome className="text-4xl md:text-5xl text-white" />
                   </div>
                 </div>
@@ -674,11 +732,17 @@ const Home = () => {
                       </div>
                     </div>
                   </div>
-                  <Link to="/client/residence-applications">
-                    <Button variant="primary" size="lg" icon={FiArrowRight} iconPosition="right" fullWidth className="md:w-auto">
-                      Faire une demande de résidence
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="primary" 
+                    size="lg" 
+                    icon={FiArrowRight} 
+                    iconPosition="right" 
+                    fullWidth 
+                    className="md:w-auto"
+                    onClick={(e) => handleApplicationClick(e, '/client/residence-applications')}
+                  >
+                    Faire une demande de résidence
+                  </Button>
                 </div>
               </div>
             </Card>
@@ -698,7 +762,7 @@ const Home = () => {
                 Votre partenaire de confiance
               </h2>
               <p className="text-xl text-neutral-600 max-w-4xl mx-auto leading-relaxed">
-                {agency.description || 'Voyager pour étudier est une étape majeure qui demande une organisation parfaite. Notre agence de voyage TFKS est là pour transformer cette étape excitante en une expérience simple et sécurisée.'}
+                {agency.description || 'Voyager pour étudier est une étape majeure qui demande une organisation parfaite. Notre agence de voyage SBC est là pour transformer cette étape excitante en une expérience simple et sécurisée.'}
               </p>
             </div>
 
@@ -707,7 +771,7 @@ const Home = () => {
                 { icon: FiMail, label: 'Email', value: agency.email, link: `mailto:${agency.email}`, gradient: 'from-primary-500 to-primary-600' },
                 { icon: FiPhone, label: 'Téléphone', value: agency.phone, link: `tel:${agency.phone}`, gradient: 'from-accent-500 to-accent-600' },
                 ...(agency.whatsapp ? [{ icon: FiMessageCircle, label: 'WhatsApp', value: agency.whatsapp, link: `https://wa.me/${agency.whatsapp.replace(/\D/g, '')}`, gradient: 'from-success-500 to-success-600', external: true }] : []),
-                { icon: FiMapPin, label: 'Adresse', value: agency.address, gradient: 'from-primary-500 to-accent-600' },
+                { icon: FiMapPin, label: 'Adresse', value: agency.address, gradient: 'from-primary-500 to-primary-600' },
               ].map((contact, index) => {
                 const Icon = contact.icon
                 return contact.link ? (
@@ -904,7 +968,7 @@ const Home = () => {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-800 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform">
                     <FiHelpCircle className="text-white text-xl" />
                   </div>
                   <div className="flex-1">
@@ -985,7 +1049,7 @@ const Home = () => {
             padding="none"
           >
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-accent-600 text-white p-8 rounded-t-3xl z-10">
+            <div className="sticky top-0 bg-gradient-to-r from-primary-600 to-primary-800 text-white p-8 rounded-t-3xl z-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="relative">
@@ -1072,7 +1136,7 @@ const Home = () => {
       {showWorkPermitDetails && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <Card className="max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border-2 border-neutral-200">
-            <div className="bg-gradient-to-r from-primary-600 to-accent-600 p-6 text-white">
+            <div className="bg-gradient-to-r from-primary-600 to-primary-800 p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold mb-1">Détails du permis de travail</h2>
@@ -1100,7 +1164,7 @@ const Home = () => {
                   {/* En-tête avec nom et sous-titre */}
                   <div className="bg-gradient-to-br from-primary-50 to-accent-50 p-6 rounded-xl border border-primary-200">
                     <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                      <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-800 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                         <FiBriefcase className="text-3xl text-white" />
                       </div>
                       <div className="flex-1">
@@ -1236,18 +1300,20 @@ const Home = () => {
                   >
                     Fermer
                   </Button>
-                  <Link
-                    to="/client/work-permit-applications"
-                    className="sm:order-1 flex-1"
-                    onClick={() => {
+                  <Button 
+                    variant="primary" 
+                    fullWidth 
+                    className="sm:order-1 flex-1 sm:w-auto" 
+                    icon={FiArrowRight} 
+                    iconPosition="right"
+                    onClick={(e) => {
                       setShowWorkPermitDetails(false)
                       setSelectedWorkPermitCountry(null)
+                      handleApplicationClick(e, '/client/work-permit-applications')
                     }}
                   >
-                    <Button variant="primary" fullWidth className="sm:w-auto" icon={FiArrowRight} iconPosition="right">
-                      Faire une demande
-                    </Button>
-                  </Link>
+                    Faire une demande
+                  </Button>
                 </div>
               </div>
             )}

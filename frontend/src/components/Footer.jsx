@@ -54,7 +54,7 @@ const Footer = () => {
             {/* À propos */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-800 rounded-xl flex items-center justify-center shadow-lg">
                   <FiGlobe className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold bg-gradient-to-r from-white to-primary-200 bg-clip-text text-transparent">
@@ -158,7 +158,7 @@ const Footer = () => {
         {/* Bouton flottant pour afficher la carte de l'entreprise */}
         <button
           onClick={() => setShowCompanyCard(!showCompanyCard)}
-          className={`fixed bottom-6 right-6 z-40 w-16 h-16 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all duration-300 group ring-4 ring-primary-500/20 hover:ring-primary-500/40 ${
+          className={`fixed bottom-6 right-6 z-40 w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-500 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all duration-300 group ring-4 ring-primary-500/20 hover:ring-primary-500/40 ${
             showCompanyCard ? 'rotate-45' : ''
           }`}
           aria-label="Informations sur l'entreprise"
@@ -176,7 +176,7 @@ const Footer = () => {
         <div className="fixed bottom-28 right-6 z-50 w-[420px] max-w-[calc(100vw-3rem)] animate-slide-up">
           <Card className="bg-white shadow-2xl border-2 border-primary-200 max-h-[85vh] overflow-hidden flex flex-col backdrop-blur-xl">
             {/* Header avec gradient animé */}
-            <div className="relative bg-gradient-to-r from-primary-600 via-primary-500 to-accent-600 px-6 py-8 min-h-[120px] text-white overflow-hidden">
+            <div className="relative bg-gradient-to-r from-primary-600 via-primary-500 to-primary-800 px-6 py-8 min-h-[120px] text-white overflow-hidden">
               {/* Effet de brillance */}
               <div 
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent z-0"

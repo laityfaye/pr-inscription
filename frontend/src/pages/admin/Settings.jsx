@@ -117,9 +117,6 @@ const AdminSettings = () => {
     // Ajouter _method=PUT pour Laravel (nécessaire avec FormData)
     data.append('_method', 'PUT')
 
-    // Debug: afficher les données envoyées
-    console.log('Données à envoyer:', Object.fromEntries(data.entries()))
-
     try {
       // Utiliser POST avec _method=PUT pour que Laravel puisse parser FormData correctement
       const response = await api.post('/agency', data)
@@ -134,33 +131,60 @@ const AdminSettings = () => {
         await fetchSettings()
         await fetchRentreeText()
         
-        // Vérifier les données retournées
-        console.log('Données mises à jour:', response.data)
-        console.log('Données sauvegardées:', {
-          name: response.data.name,
-          description: response.data.description,
-          email: response.data.email,
-          phone: response.data.phone,
-          address: response.data.address,
-        })
-        
         // Définir un signal dans localStorage pour forcer le rechargement de la page d'accueil
         localStorage.setItem('agency_updated', Date.now().toString())
         
-        // Émettre un événement personnalisé avec les données mises à jour
-        // Le contexte Agency utilisera ces données directement pour une mise à jour immédiate
-        window.dispatchEvent(new CustomEvent('agencySettingsUpdated', { 
-          detail: response.data 
-        }))
-        
-        // Informer l'utilisateur
+        window.dispatchEvent(new CustomEvent('agencySettingsUpdated', { detail: response.data }))
         toast.success('Paramètres mis à jour avec succès. Les modifications sont visibles immédiatement.')
       }
     } catch (error) {
-      console.error('Error updating settings:', error)
-      console.error('Error details:', error.response?.data)
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Erreur lors de la mise à jour'
-      toast.error(errorMessage)
+      // Traitement amélioré des erreurs de validation serveur, notamment validation.max.file et 413
+      const status = error.response?.status
+      const resp = error.response?.data
+      // Erreur 413 (Payload Too Large)
+      if (status === 413) {
+        toast.error('Le fichier envoyé est trop volumineux pour le serveur. Réduisez la taille du fichier ou contactez l\'administrateur.')
+        return
+      }
+
+      // Si structure d'erreurs Laravel: { errors: { field: [messages] } }
+      const serverErrors = resp?.errors
+      let shown = false
+
+      if (serverErrors && typeof serverErrors === 'object') {
+        Object.keys(serverErrors).forEach((field) => {
+          const msgs = serverErrors[field]
+          if (Array.isArray(msgs)) {
+            msgs.forEach((m) => {
+              // Cas où le backend retourne une clé technique
+              if (m && (m.toString().includes('validation.max.file') || m.toString().toLowerCase().includes('taille') || m.toString().toLowerCase().includes('max'))) {
+                toast.error('Le fichier dépasse la taille maximale autorisée par le serveur. Réduisez la taille (ex: < 4 Mo) ou contactez l\'administrateur.')
+              } else {
+                toast.error(m.toString())
+              }
+              shown = true
+            })
+          }
+        })
+      }
+
+      // Si le backend renvoie un message simple ou clé technique
+      if (!shown && resp?.message) {
+        const msg = resp.message.toString()
+        if (msg.includes('validation.max.file') || msg.toLowerCase().includes('fichier') && msg.toLowerCase().includes('max')) {
+          toast.error('Le fichier dépasse la taille maximale autorisée par le serveur. Réduisez la taille (ex: < 4 Mo) ou contactez l\'administrateur.')
+        } else {
+          toast.error(msg)
+        }
+        shown = true
+      }
+
+      // Fallback: afficher message générique
+      if (!shown) {
+        console.error('Error updating settings:', error)
+        const errorMessage = resp?.message || resp?.error || 'Erreur lors de la mise à jour'
+        toast.error(errorMessage)
+      }
     }
   }
 
@@ -222,6 +246,7 @@ const AdminSettings = () => {
                       onChange={handleLogoChange}
                       className="input cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                     />
+                    <p className="text-xs text-neutral-500 mt-2">Formats acceptés : JPG, PNG, SVG.</p>
                     {logoPreview && (
                       <div className="mt-4">
                         <img src={logoPreview} alt="Logo preview" className="w-32 h-32 object-contain rounded-xl border-2 border-neutral-200" />
@@ -457,6 +482,7 @@ const AdminSettings = () => {
                         onChange={handleLawyerImageChange}
                         className="input cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                       />
+                      <p className="text-xs text-neutral-500 mt-2">Formats acceptés : JPG, PNG.</p>
                       {lawyerImagePreview && (
                         <div className="mt-4">
                           <img src={lawyerImagePreview} alt="Photo avocat preview" className="w-32 h-32 object-cover rounded-full border-4 border-primary-200 shadow-lg" />

@@ -44,7 +44,7 @@ const Login = () => {
             <div className="text-center mb-8">
               <div className="relative inline-block mb-6">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-accent-600 rounded-2xl blur-xl opacity-50"></div>
-                <div className="relative inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-2xl shadow-lg">
+                <div className="relative inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl shadow-lg">
                   <FiLock className="w-8 h-8 text-white" />
                 </div>
               </div>

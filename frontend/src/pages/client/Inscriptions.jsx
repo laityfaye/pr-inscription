@@ -245,7 +245,7 @@ const ClientInscriptions = () => {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   {/* Left side */}
                   <div className="flex items-start space-x-4 flex-1">
-                    <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                    <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                       <FiGlobe className="text-2xl text-white" />
                     </div>
                     <div className="flex-1">

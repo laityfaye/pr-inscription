@@ -415,7 +415,7 @@ const ClientChat = () => {
                         onClick={() => handleApplicationSelect(app.type, app)}
                         className={`flex-shrink-0 p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-lg min-w-[200px] ${
                           isSelected 
-                            ? 'bg-gradient-to-br from-primary-600 to-accent-600 text-white border-primary-600 shadow-lg scale-105' 
+                            ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white border-primary-600 shadow-lg scale-105' 
                             : 'bg-white text-gray-900 border-gray-200 hover:border-primary-300'
                         }`}
                       >
@@ -455,7 +455,7 @@ const ClientChat = () => {
             {selectedApplication ? (
               <>
              {/* Header */}
-             <div className="p-6 bg-gradient-to-r from-primary-600 via-primary-500 to-accent-600 text-white shadow-lg">
+             <div className="p-6 bg-gradient-to-r from-primary-600 via-primary-500 to-primary-600 text-white shadow-lg">
                    <div className="flex items-center justify-between">
                <div className="flex items-center space-x-4">
                  <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg ring-2 ring-white/30">
@@ -516,7 +516,7 @@ const ClientChat = () => {
                              <div className={`flex ${isSender ? 'justify-end' : 'justify-start'} animate-fade-in`}>
                            <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-md transition-all duration-200 hover:shadow-lg ${
                              isSender
-                           ? 'bg-gradient-to-r from-primary-600 to-accent-600 text-white'
+                           ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'
                            : 'bg-white text-gray-900 border border-gray-200'
                            }`}>
                             {message.status_update && (
