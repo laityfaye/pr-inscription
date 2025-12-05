@@ -1,3 +1,30 @@
+# Correction HTTPS - Étapes à suivre
+
+## Problème identifié
+Le fichier `/etc/nginx/sites-available/preinscription` ne contient **PAS** le bloc HTTPS (port 443).
+
+## Solution : Ajouter le bloc HTTPS
+
+### Étape 1 : Voir la configuration actuelle
+```bash
+sudo cat /etc/nginx/sites-available/preinscription
+```
+
+### Étape 2 : Sauvegarder la configuration actuelle
+```bash
+sudo cp /etc/nginx/sites-available/preinscription /etc/nginx/sites-available/preinscription.backup
+```
+
+### Étape 3 : Éditer le fichier de configuration
+```bash
+sudo nano /etc/nginx/sites-available/preinscription
+```
+
+### Étape 4 : Remplacer le contenu par la configuration complète
+
+**Copiez-collez cette configuration complète** (elle contient les blocs HTTP et HTTPS) :
+
+```nginx
 # =============================
 #   PREINSCRIPTION.SBCGROUPE.CA
 #   Nginx + React + Laravel API
@@ -74,53 +101,39 @@ server {
     # API Laravel – /api/*
     # ------------------------------
     location /api {
-        # CORS headers
+        alias /home/deploy/pr-inscription/backend/public;
+        try_files $uri $uri/ @laravel;
+
+        # CORS
         add_header Access-Control-Allow-Origin $http_origin always;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
         add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept, X-Requested-With" always;
         add_header Access-Control-Allow-Credentials "true" always;
 
         if ($request_method = OPTIONS) {
-            add_header Access-Control-Allow-Origin $http_origin always;
-            add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
-            add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept, X-Requested-With" always;
-            add_header Access-Control-Allow-Credentials "true" always;
-            add_header Content-Length 0;
-            add_header Content-Type text/plain;
             return 204;
         }
+    }
 
-        # Capturer l'URI original avant le rewrite
-        set $laravel_uri $request_uri;
-        
-        # Rediriger toutes les requêtes /api/* vers index.php
-        rewrite ^/api/(.*)$ /api/index.php last;
+    # Laravel rewrite
+    location @laravel {
+        rewrite ^/api/(.*)$ /api/index.php?$query_string last;
     }
 
     # ------------------------------
-    # PHP FPM – Laravel index.php pour /api/*
+    # PHP FPM – Laravel index.php
     # ------------------------------
-    location ~ ^/api/index\.php {
-        root /home/deploy/pr-inscription/backend/public;
-        
+    location ~ ^/api/index\.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
 
         fastcgi_param SCRIPT_FILENAME /home/deploy/pr-inscription/backend/public/index.php;
-        # Utiliser l'URI original capturé pour que Laravel puisse router correctement
-        fastcgi_param REQUEST_URI $laravel_uri;
 
         fastcgi_read_timeout 300;
         fastcgi_send_timeout 300;
         fastcgi_buffer_size 128k;
         fastcgi_buffers 4 256k;
         fastcgi_busy_buffers_size 256k;
-
-        # CORS headers
-        add_header Access-Control-Allow-Origin $http_origin always;
-        add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS" always;
-        add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept, X-Requested-With" always;
-        add_header Access-Control-Allow-Credentials "true" always;
     }
 
     # Bloquer l'exécution de PHP ailleurs
@@ -133,3 +146,51 @@ server {
         deny all;
     }
 }
+```
+
+**Dans nano :**
+- Appuyez sur `Ctrl+K` plusieurs fois pour supprimer tout le contenu
+- Collez la nouvelle configuration (`Ctrl+Shift+V` ou clic droit)
+- Sauvegardez avec `Ctrl+O`, puis `Enter`
+- Quittez avec `Ctrl+X`
+
+### Étape 5 : Tester la configuration
+```bash
+sudo nginx -t
+```
+
+**Vous devriez voir :**
+```
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+```
+
+### Étape 6 : Recharger nginx
+```bash
+sudo systemctl reload nginx
+```
+
+### Étape 7 : Vérifier que le port 443 est ouvert
+```bash
+sudo ss -tlnp | grep nginx
+```
+
+**Vous devriez maintenant voir :**
+```
+LISTEN 0 511 0.0.0.0:80   0.0.0.0:*    users:(("nginx",...))
+LISTEN 0 511 0.0.0.0:443  0.0.0.0:*    users:(("nginx",...))
+```
+
+### Étape 8 : Tester l'accès HTTPS
+```bash
+curl -I https://preinscription.sbcgroupe.ca
+```
+
+## Vérification finale
+
+1. ✅ Nginx écoute sur le port 443
+2. ✅ La configuration est valide
+3. ✅ Le site est accessible en HTTPS
+
+Si tout fonctionne, vous pouvez maintenant accéder à `https://preinscription.sbcgroupe.ca/` depuis votre navigateur !
+

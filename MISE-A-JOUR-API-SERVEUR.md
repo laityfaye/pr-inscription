@@ -1,75 +1,20 @@
-# =============================
-#   PREINSCRIPTION.SBCGROUPE.CA
-#   Nginx + React + Laravel API
-# =============================
+# Mise à jour de la configuration API sur le serveur
 
-# ------------------------------
-# HTTP → Redirection vers HTTPS
-# ------------------------------
-server {
-    listen 80;
-    listen [::]:80;
-    server_name preinscription.sbcgroupe.ca;
+## Configuration corrigée à copier
 
-    return 301 https://$server_name$request_uri;
-}
+Sur votre serveur, exécutez cette commande pour remplacer la section API :
 
-# ------------------------------
-# HTTPS – Site complet
-# ------------------------------
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name preinscription.sbcgroupe.ca;
+```bash
+# 1. Sauvegarder
+sudo cp /etc/nginx/sites-available/preinscription /etc/nginx/sites-available/preinscription.backup.api
 
-    # ------------------------------
-    # SSL Certificates – Let's Encrypt
-    # ------------------------------
-    ssl_certificate     /etc/letsencrypt/live/preinscription.sbcgroupe.ca/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/preinscription.sbcgroupe.ca/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
+# 2. Éditer le fichier
+sudo nano /etc/nginx/sites-available/preinscription
+```
 
-    # Diffie Hellman
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+**Remplacez la section API (environ lignes 73-122) par :**
 
-    # Logs
-    access_log /var/log/nginx/preinscription-access.log;
-    error_log  /var/log/nginx/preinscription-error.log;
-
-    # Taille upload
-    client_max_body_size 25M;
-
-    # ------------------------------
-    # FRONTEND REACT (Vite)
-    # ------------------------------
-    root /home/deploy/pr-inscription/frontend/dist;
-    index index.html;
-
-    # Cache assets
-    location ~* \.(jpg|jpeg|png|gif|webp|ico|css|js|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    # Route SPA – renvoie index.html
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # ------------------------------
-    # STORAGE Laravel
-    # ------------------------------
-    location /storage {
-        alias /home/deploy/pr-inscription/backend/storage/app/public;
-
-        location ~ \.php$ {
-            deny all;
-        }
-
-        expires 7d;
-        add_header Cache-Control "public";
-    }
-
+```nginx
     # ------------------------------
     # API Laravel – /api/*
     # ------------------------------
@@ -122,14 +67,35 @@ server {
         add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept, X-Requested-With" always;
         add_header Access-Control-Allow-Credentials "true" always;
     }
+```
 
-    # Bloquer l'exécution de PHP ailleurs
-    location ~ \.php$ {
-        deny all;
-    }
+## Commandes à exécuter après modification
 
-    # Sécurité
-    location ~ /\. {
-        deny all;
-    }
-}
+```bash
+# 1. Tester la configuration
+sudo nginx -t
+
+# 2. Si OK, recharger nginx
+sudo systemctl reload nginx
+
+# 3. Tester l'API
+curl -I https://preinscription.sbcgroupe.ca/api/countries
+```
+
+## Vérification
+
+Vous devriez maintenant obtenir :
+- `/api/countries` → 200 OK (ou 401 si non authentifié, mais pas 404)
+- `/api/` → 200 OK (ou 401, mais pas 403)
+
+## Si ça ne fonctionne toujours pas
+
+Vérifiez les logs :
+```bash
+# Logs nginx
+sudo tail -50 /var/log/nginx/preinscription-error.log
+
+# Logs Laravel
+sudo tail -50 /home/deploy/pr-inscription/backend/storage/logs/laravel.log
+```
+
