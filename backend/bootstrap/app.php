@@ -22,7 +22,56 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            // Pour les requêtes API, toujours retourner JSON avec headers CORS
+            if ($request->is('api/*') || $request->expectsJson()) {
+                $allowedOrigins = [
+                    'https://sbcgroupe.ca',
+                    'https://www.sbcgroupe.ca',
+                    'http://localhost:3000',
+                    'http://127.0.0.1:3000',
+                ];
+                
+                $origin = $request->header('Origin');
+                $corsHeaders = [];
+                
+                if (in_array($origin, $allowedOrigins)) {
+                    $corsHeaders['Access-Control-Allow-Origin'] = $origin;
+                } elseif (!empty($allowedOrigins)) {
+                    $corsHeaders['Access-Control-Allow-Origin'] = $allowedOrigins[0];
+                }
+                
+                $corsHeaders['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
+                $corsHeaders['Access-Control-Allow-Headers'] = 'Authorization, Content-Type, Accept, X-Requested-With';
+                $corsHeaders['Access-Control-Allow-Credentials'] = 'true';
+                
+                // Logger l'erreur
+                \Illuminate\Support\Facades\Log::error('API Exception: ' . $e->getMessage(), [
+                    'exception' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
+                    'url' => $request->fullUrl(),
+                    'method' => $request->method(),
+                ]);
+                
+                // Gérer les erreurs de validation
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    return response()->json([
+                        'message' => 'Erreur de validation',
+                        'errors' => $e->errors(),
+                    ], 422)->withHeaders($corsHeaders);
+                }
+                
+                // Retourner une réponse JSON avec headers CORS
+                return response()->json([
+                    'message' => 'Une erreur est survenue',
+                    'error' => config('app.debug') ? $e->getMessage() : 'Une erreur interne est survenue',
+                ], 500)->withHeaders($corsHeaders);
+            }
+            
+            return null; // Laisser Laravel gérer les autres cas
+        });
     })->create();
 
 
