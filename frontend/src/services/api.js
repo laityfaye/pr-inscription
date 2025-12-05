@@ -9,6 +9,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  withCredentials: true, // Important pour les cookies cross-origin (si utilisés avec Sanctum)
 })
 
 // Intercepteur pour ajouter le token

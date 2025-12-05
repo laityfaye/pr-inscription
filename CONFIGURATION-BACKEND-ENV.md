@@ -16,10 +16,15 @@ nano .env
 FRONTEND_URL=https://preinscription.sbcgroupe.ca
 
 # Domaines stateful pour Sanctum (ajoutez le domaine frontend)
-SANCTUM_STATEFUL_DOMAINS=localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1,preinscription.sbcgroupe.ca
+SANCTUM_STATEFUL_DOMAINS=preinscription.sbcgroupe.ca,backend.sbcgroupe.ca,localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1
 
 # URL de l'application (backend)
 APP_URL=https://backend.sbcgroupe.ca
+
+# Configuration des sessions pour le domaine parent (permet les cookies entre sous-domaines)
+SESSION_DOMAIN=.sbcgroupe.ca
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=lax
 ```
 
 ## Après modification
