@@ -1,14 +1,14 @@
-# Configuration Nginx SIMPLIFIÉE pour sbcgroupe.ca
+# Configuration Nginx SIMPLIFIÉE pour préinscription.sbcgroupe.ca
 # Backend: Laravel 11 (API)
 # Frontend: React SPA (Vite)
 
 server {
     listen 80;
-    server_name sbcgroupe.ca www.sbcgroupe.ca;
+    server_name preinscription.sbcgroupe.ca;
     
     # Logs
-    access_log /var/log/nginx/sbcgroupe-access.log;
-    error_log /var/log/nginx/sbcgroupe-error.log;
+    access_log /var/log/nginx/preinscription-access.log;
+    error_log /var/log/nginx/preinscription-error.log;
 
     # Taille maximale des uploads
     client_max_body_size 20M;

@@ -5,7 +5,8 @@ return [
     'allowed_methods' => ['*'],
     // Pour la production, autoriser uniquement le domaine frontend
     'allowed_origins' => [
-        'https://preinscription.sbcgroupe.ca',
+        'https://sbcgroupe.ca',
+        'https://www.sbcgroupe.ca',
         'http://localhost:3000',
         'http://127.0.0.1:3000',
     ],
