@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class DocumentController extends Controller
 {
@@ -37,77 +38,92 @@ class DocumentController extends Controller
     public function store(DocumentStoreRequest $request): JsonResponse
     {
         try {
-            $validated = $request->validated();
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Document upload validation failed:', [
-                'errors' => $e->errors(),
-                'request_data' => $request->all(),
+            try {
+                $validated = $request->validated();
+            } catch (ValidationException $e) {
+                Log::error('Document upload validation failed:', [
+                    'errors' => $e->errors(),
+                    'request_data' => $request->all(),
+                    'user_id' => $request->user()?->id,
+                ]);
+                throw $e;
+            }
+
+            // Vérifier que les IDs existent et appartiennent à l'utilisateur (sécurité)
+            $user = $request->user();
+            if (!empty($validated['inscription_id'])) {
+                $inscription = \App\Models\Inscription::find($validated['inscription_id']);
+                if (!$inscription) {
+                    return response()->json([
+                        'message' => 'La préinscription sélectionnée n\'existe pas.',
+                        'errors' => ['inscription_id' => ['La préinscription sélectionnée n\'existe pas.']]
+                    ], 422);
+                }
+                if ($inscription->user_id !== $user->id) {
+                    return response()->json([
+                        'message' => 'La préinscription sélectionnée ne vous appartient pas.',
+                        'errors' => ['inscription_id' => ['La préinscription sélectionnée ne vous appartient pas.']]
+                    ], 422);
+                }
+            }
+            
+            if (!empty($validated['work_permit_application_id'])) {
+                $workPermit = \App\Models\WorkPermitApplication::find($validated['work_permit_application_id']);
+                if (!$workPermit) {
+                    return response()->json([
+                        'message' => 'La demande de permis de travail sélectionnée n\'existe pas.',
+                        'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée n\'existe pas.']]
+                    ], 422);
+                }
+                if ($workPermit->user_id !== $user->id) {
+                    return response()->json([
+                        'message' => 'La demande de permis de travail sélectionnée ne vous appartient pas.',
+                        'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée ne vous appartient pas.']]
+                    ], 422);
+                }
+            }
+            
+            if (!empty($validated['residence_application_id'])) {
+                $residence = \App\Models\ResidenceApplication::find($validated['residence_application_id']);
+                if (!$residence) {
+                    return response()->json([
+                        'message' => 'La demande de résidence sélectionnée n\'existe pas.',
+                        'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée n\'existe pas.']]
+                    ], 422);
+                }
+                if ($residence->user_id !== $user->id) {
+                    return response()->json([
+                        'message' => 'La demande de résidence sélectionnée ne vous appartient pas.',
+                        'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée ne vous appartient pas.']]
+                    ], 422);
+                }
+            }
+
+            $document = $this->documentService->upload(
+                $user,
+                $request->file('file'),
+                $validated['type'],
+                $validated['inscription_id'] ?? null,
+                $validated['name'] ?? null,
+                $validated['work_permit_application_id'] ?? null,
+                $validated['residence_application_id'] ?? null
+            );
+
+            return response()->json($document, 201);
+        } catch (\Exception $e) {
+            Log::error('Document upload error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'user_id' => $request->user()?->id,
             ]);
-            throw $e;
+            
+            return response()->json([
+                'message' => 'Erreur lors de l\'upload du document',
+                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur est survenue lors de l\'upload',
+            ], 500);
         }
-
-        // Vérifier que les IDs existent et appartiennent à l'utilisateur (sécurité)
-        $user = $request->user();
-        if (!empty($validated['inscription_id'])) {
-            $inscription = \App\Models\Inscription::find($validated['inscription_id']);
-            if (!$inscription) {
-                return response()->json([
-                    'message' => 'La préinscription sélectionnée n\'existe pas.',
-                    'errors' => ['inscription_id' => ['La préinscription sélectionnée n\'existe pas.']]
-                ], 422);
-            }
-            if ($inscription->user_id !== $user->id) {
-                return response()->json([
-                    'message' => 'La préinscription sélectionnée ne vous appartient pas.',
-                    'errors' => ['inscription_id' => ['La préinscription sélectionnée ne vous appartient pas.']]
-                ], 422);
-            }
-        }
-        
-        if (!empty($validated['work_permit_application_id'])) {
-            $workPermit = \App\Models\WorkPermitApplication::find($validated['work_permit_application_id']);
-            if (!$workPermit) {
-                return response()->json([
-                    'message' => 'La demande de permis de travail sélectionnée n\'existe pas.',
-                    'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée n\'existe pas.']]
-                ], 422);
-            }
-            if ($workPermit->user_id !== $user->id) {
-                return response()->json([
-                    'message' => 'La demande de permis de travail sélectionnée ne vous appartient pas.',
-                    'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée ne vous appartient pas.']]
-                ], 422);
-            }
-        }
-        
-        if (!empty($validated['residence_application_id'])) {
-            $residence = \App\Models\ResidenceApplication::find($validated['residence_application_id']);
-            if (!$residence) {
-                return response()->json([
-                    'message' => 'La demande de résidence sélectionnée n\'existe pas.',
-                    'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée n\'existe pas.']]
-                ], 422);
-            }
-            if ($residence->user_id !== $user->id) {
-                return response()->json([
-                    'message' => 'La demande de résidence sélectionnée ne vous appartient pas.',
-                    'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée ne vous appartient pas.']]
-                ], 422);
-            }
-        }
-
-        $document = $this->documentService->upload(
-            $user,
-            $request->file('file'),
-            $validated['type'],
-            $validated['inscription_id'] ?? null,
-            $validated['name'] ?? null,
-            $validated['work_permit_application_id'] ?? null,
-            $validated['residence_application_id'] ?? null
-        );
-
-        return response()->json($document, 201);
     }
 
     public function show(Request $request, Document $document): JsonResponse
