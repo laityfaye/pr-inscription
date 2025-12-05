@@ -39,6 +39,8 @@ Route::get('/appointments/unavailable-days', [AppointmentController::class, 'get
 Route::get('/appointments/slot-prices', [AppointmentController::class, 'getSlotPrices']);
 
 // Routes publiques pour les pays de permis de travail
+// IMPORTANT: /work-permit-countries/all doit être défini AVANT /work-permit-countries/{workPermitCountry} pour éviter les conflits de routage
+Route::get('/work-permit-countries/all', [WorkPermitCountryController::class, 'index']);
 Route::get('/work-permit-countries', [WorkPermitCountryController::class, 'index']);
 Route::get('/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'show']);
 
@@ -107,7 +109,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/settings/multiple', [SettingsController::class, 'updateMultiple'])->middleware('admin');
 
     // Pays de permis de travail (Admin - routes protégées)
-    Route::get('/work-permit-countries/all', [WorkPermitCountryController::class, 'index'])->middleware('admin');
+    // Note: /work-permit-countries/all est définie comme route publique (voir plus haut) pour éviter les conflits de routage
     Route::post('/work-permit-countries', [WorkPermitCountryController::class, 'store'])->middleware('admin');
     Route::match(['put', 'post'], '/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'update'])->middleware('admin');
     Route::delete('/work-permit-countries/{workPermitCountry}', [WorkPermitCountryController::class, 'destroy'])->middleware('admin');
