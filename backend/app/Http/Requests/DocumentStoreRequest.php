@@ -36,16 +36,20 @@ class DocumentStoreRequest extends FormRequest
         }
         
         // Logger les données reçues pour debug
-        Log::info('Document upload request data:', [
-            'has_file' => $this->hasFile('file'),
-            'file_size' => $this->hasFile('file') ? $this->file('file')->getSize() : null,
-            'type' => $this->input('type'),
-            'inscription_id' => $this->input('inscription_id'),
-            'work_permit_application_id' => $this->input('work_permit_application_id'),
-            'residence_application_id' => $this->input('residence_application_id'),
-            'name' => $this->input('name'),
-            'all_inputs' => $this->all(),
-        ]);
+        try {
+            Log::info('Document upload request data:', [
+                'has_file' => $this->hasFile('file'),
+                'file_size' => $this->hasFile('file') ? $this->file('file')->getSize() : null,
+                'type' => $this->input('type'),
+                'inscription_id' => $this->input('inscription_id'),
+                'work_permit_application_id' => $this->input('work_permit_application_id'),
+                'residence_application_id' => $this->input('residence_application_id'),
+                'name' => $this->input('name'),
+            ]);
+        } catch (\Exception $e) {
+            // Si le logging échoue, continuer quand même
+            error_log('Failed to log document upload request: ' . $e->getMessage());
+        }
     }
 
     public function rules(): array
