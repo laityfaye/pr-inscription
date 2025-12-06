@@ -66,7 +66,7 @@ class AgencyUpdateRequest extends FormRequest
     {
         return [
             'name' => ['nullable', 'string', 'max:255'],
-            'logo' => ['nullable', 'image'], // Aucune restriction de taille
+            'logo' => ['nullable', 'image', 'max:25600'], // 25MB max (en KB) pour correspondre à Nginx
             'description' => ['nullable', 'string'],
             'hero_subtitle' => ['nullable', 'string', 'max:500'],
             'email' => ['nullable', 'string', 'max:255'],
@@ -78,7 +78,7 @@ class AgencyUpdateRequest extends FormRequest
             'lawyer_first_name' => ['nullable', 'string', 'max:255'],
             'lawyer_last_name' => ['nullable', 'string', 'max:255'],
             'lawyer_title' => ['nullable', 'string', 'max:255'],
-            'lawyer_image' => ['nullable', 'image'], // Aucune restriction de taille
+            'lawyer_image' => ['nullable', 'image', 'max:25600'], // 25MB max (en KB) pour correspondre à Nginx
             'lawyer_phone' => ['nullable', 'string', 'max:50'],
             'lawyer_email' => ['nullable', 'string', 'max:255'],
         ];
@@ -90,7 +90,9 @@ class AgencyUpdateRequest extends FormRequest
             'email.email' => 'L\'email doit être une adresse email valide.',
             'lawyer_email.email' => 'L\'email de l\'avocat doit être une adresse email valide.',
             'logo.image' => 'Le logo doit être une image.',
+            'logo.max' => 'Le logo ne doit pas dépasser 25 MB.',
             'lawyer_image.image' => 'L\'image de l\'avocat doit être une image.',
+            'lawyer_image.max' => 'L\'image de l\'avocat ne doit pas dépasser 25 MB.',
         ];
     }
 }
