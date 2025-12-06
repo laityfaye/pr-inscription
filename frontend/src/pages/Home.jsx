@@ -1379,6 +1379,101 @@ const Home = () => {
           </Card>
         </div>
       )}
+
+      {/* Partners Section */}
+      <section className="py-24 bg-gradient-to-b from-neutral-50 via-white to-neutral-50 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-primary-500 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-500 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="section-container relative z-10">
+          <div className="text-center mb-16">
+            <Badge variant="primary" size="lg" className="mb-6">
+              Nos partenaires
+            </Badge>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
+              Institutions partenaires
+            </h2>
+            <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
+              Nous collaborons avec des établissements d'enseignement de renom au Canada pour vous offrir les meilleures opportunités
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
+            {[
+              {
+                name: 'Collège Ellis',
+                image: '/images/partners/college-ellis.png',
+                alt: 'Logo Collège Ellis'
+              },
+              {
+                name: 'COLLÈGE de l\'île',
+                image: '/images/partners/college-de-lile.png',
+                alt: 'Logo COLLÈGE de l\'île'
+              },
+              {
+                name: 'COLLÈGE SUPÉRIEUR DE MONTRÉAL',
+                image: '/images/partners/college-superieur-montreal.png',
+                alt: 'Logo COLLÈGE SUPÉRIEUR DE MONTRÉAL'
+              },
+              {
+                name: 'Collège CDI',
+                image: '/images/partners/college-cdi.png',
+                alt: 'Logo Collège CDI'
+              },
+              {
+                name: 'CESTAR COLLÈGE',
+                image: '/images/partners/cestar-college.png',
+                alt: 'Logo CESTAR COLLÈGE, Campus Longueuil'
+              },
+              {
+                name: 'Collège National',
+                image: '/images/partners/college-national.png',
+                alt: 'Logo Collège National'
+              }
+            ].map((partner, index) => (
+              <Card
+                key={index}
+                interactive
+                className="p-6 sm:p-8 bg-white hover:shadow-2xl transition-all duration-300 group border-2 border-neutral-200 hover:border-primary-300 animate-slide-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="flex flex-col items-center justify-center h-full min-h-[180px] sm:min-h-[200px]">
+                  <div className="relative w-full h-32 sm:h-40 flex items-center justify-center mb-4 p-4">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-accent-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
+                    <img
+                      src={partner.image}
+                      alt={partner.alt}
+                      className="relative z-10 max-w-full max-h-full object-contain filter group-hover:brightness-110 transition-all duration-300 group-hover:scale-105"
+                      onError={(e) => {
+                        // Fallback si l'image n'est pas trouvée
+                        const fallback = e.target.nextElementSibling
+                        if (fallback) {
+                          e.target.style.display = 'none'
+                          fallback.style.display = 'flex'
+                        }
+                      }}
+                    />
+                    <div
+                      className="hidden items-center justify-center w-full h-full text-center"
+                      style={{ display: 'none' }}
+                    >
+                      <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-accent-100 rounded-xl flex items-center justify-center">
+                        <FiGlobe className="w-8 h-8 text-primary-600" />
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="text-xs sm:text-sm md:text-base font-semibold text-neutral-700 group-hover:text-primary-700 transition-colors text-center leading-tight px-2">
+                    {partner.name}
+                  </h3>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
     </Layout>
   )
 }
