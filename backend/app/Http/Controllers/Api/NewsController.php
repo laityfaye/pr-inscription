@@ -57,10 +57,15 @@ class NewsController extends Controller
                 'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('Error creating news:', ['error' => $e->getMessage()]);
+            Log::error('Error creating news:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             return response()->json([
                 'message' => 'Erreur lors de la création',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur interne est survenue',
             ], 500);
         }
     }
