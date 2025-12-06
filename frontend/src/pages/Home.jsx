@@ -343,6 +343,25 @@ const Home = () => {
                 Voir les témoignages
               </button>
             </Link>
+            <a 
+              href="https://assurancevisiteurs.ca/collaborations/sbc-voyage/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto"
+            >
+              <button 
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
+                           px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
+                           bg-white text-red-600
+                           hover:bg-red-50 hover:text-red-700 
+                           shadow-2xl hover:shadow-glow-lg transform hover:scale-105 
+                           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+                           whitespace-nowrap border-0"
+              >
+                Assurance voyage
+                <FiArrowRight className="w-4 h-4" />
+              </button>
+            </a>
             </div>
           )}
 
