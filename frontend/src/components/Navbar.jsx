@@ -154,7 +154,7 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
                   {agencyLoading ? (
                     <span className="inline-block w-32 h-5 bg-neutral-200 rounded animate-pulse"></span>
                   ) : (
-                    agencyInitials + ' Groupe'
+                    'SBC Groupe'
                   )}
                 </div>
               </div>
