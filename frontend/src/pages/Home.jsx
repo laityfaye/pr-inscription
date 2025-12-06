@@ -243,13 +243,13 @@ const Home = () => {
         {/* Lawyer Card - Bottom Left */}
         {agency?.lawyer_card_enabled && (agency?.lawyer_first_name || agency?.lawyer_last_name) && (
           <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 md:bottom-8 md:left-8 z-20 animate-slide-up w-[calc(100%-1rem)] sm:w-auto" style={{ animationDelay: '0.5s' }}>
-            <div className="bg-white/95 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 shadow-2xl border border-white/20 w-full sm:max-w-xs md:max-w-sm">
-              <div className="flex flex-col items-center text-center space-y-2 sm:space-y-3 md:space-y-4">
+            <div className="bg-white/95 backdrop-blur-xl rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 shadow-2xl border border-white/20 w-full sm:max-w-[200px] md:max-w-[220px]">
+              <div className="flex flex-col items-center text-center space-y-1.5 sm:space-y-2">
                 {/* Circular Image */}
                 {agency?.lawyer_image && (
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-xl opacity-50"></div>
-                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 sm:border-4 border-white shadow-xl">
+                    <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 rounded-full overflow-hidden border-2 border-white shadow-xl">
                       <img 
                         src={getImageUrl(agency.lawyer_image)} 
                         alt={`${agency.lawyer_first_name || ''} ${agency.lawyer_last_name || ''}`.trim() || 'Avocat'} 
@@ -260,17 +260,17 @@ const Home = () => {
                 )}
                 {/* Lawyer Info */}
                 <div className="w-full">
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-1">
+                  <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-900 mb-0.5">
                     {agency.lawyer_first_name || ''} {agency.lawyer_last_name || ''}
                   </h3>
                   {agency.lawyer_title && (
-                    <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 md:mb-4 px-2">{agency.lawyer_title}</p>
+                    <p className="text-[10px] sm:text-xs text-gray-600 mb-1.5 sm:mb-2 px-1 line-clamp-2">{agency.lawyer_title}</p>
                   )}
                   {/* Appointment Button */}
                   {/* #="/appointment" */}
                   <Link to="/#" className="block w-full">
-                    <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-4 sm:py-2.5 sm:px-5 md:py-3 md:px-6 rounded-lg sm:rounded-xl hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 text-xs sm:text-sm md:text-base">
-                      <FiCalendar className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-1.5 px-2 sm:py-2 sm:px-3 rounded-md sm:rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-1.5 text-[10px] sm:text-xs">
+                      <FiCalendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                       <span className="whitespace-nowrap">Prendre rendez-vous</span>
                     </button>
                   </Link>
