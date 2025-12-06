@@ -25,7 +25,8 @@ class NewsController extends Controller
             $news = $this->newsRepository->getPublished();
         }
 
-        return response()->json($news);
+        return response()->json($news)
+            ->withHeaders($this->getCorsHeaders($request));
     }
 
     public function store(NewsRequest $request): JsonResponse
@@ -50,12 +51,13 @@ class NewsController extends Controller
 
             $news = $this->newsRepository->create($data);
 
-            return response()->json($news->load('user'), 201);
+            return response()->json($news->load('user'), 201)
+                ->withHeaders($this->getCorsHeaders($request));
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Erreur de validation',
                 'errors' => $e->errors(),
-            ], 422);
+            ], 422)->withHeaders($this->getCorsHeaders($request));
         } catch (\Exception $e) {
             Log::error('Error creating news:', [
                 'error' => $e->getMessage(),
@@ -67,13 +69,14 @@ class NewsController extends Controller
             return response()->json([
                 'message' => 'Erreur lors de la création',
                 'error' => config('app.debug') ? $e->getMessage() : 'Une erreur interne est survenue',
-            ], 500);
+            ], 500)->withHeaders($this->getCorsHeaders($request));
         }
     }
 
-    public function show(News $news): JsonResponse
+    public function show(Request $request, News $news): JsonResponse
     {
-        return response()->json($news->load('user'));
+        return response()->json($news->load('user'))
+            ->withHeaders($this->getCorsHeaders($request));
     }
 
     public function update(NewsRequest $request, News $news): JsonResponse
@@ -90,16 +93,17 @@ class NewsController extends Controller
 
             $this->newsRepository->update($news, $data);
 
-            return response()->json($news->fresh()->load('user'));
+            return response()->json($news->fresh()->load('user'))
+                ->withHeaders($this->getCorsHeaders($request));
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'message' => 'Erreur de validation',
                 'errors' => $e->errors(),
-            ], 422);
+            ], 422)->withHeaders($this->getCorsHeaders($request));
         }
     }
 
-    public function destroy(News $news): JsonResponse
+    public function destroy(Request $request, News $news): JsonResponse
     {
         if ($news->image) {
             Storage::disk('public')->delete($news->image);
@@ -107,7 +111,8 @@ class NewsController extends Controller
 
         $this->newsRepository->delete($news);
 
-        return response()->json(['message' => 'Actualité supprimée']);
+        return response()->json(['message' => 'Actualité supprimée'])
+            ->withHeaders($this->getCorsHeaders($request));
     }
 }
 
