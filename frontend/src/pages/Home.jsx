@@ -226,7 +226,7 @@ const Home = () => {
   return (
     <Layout>
       {/* Hero Section - Modern & Premium */}
-      <section className="relative overflow-hidden text-white h-screen flex items-center">
+      <section className="relative overflow-hidden text-white min-h-screen flex items-center py-8 sm:py-12 md:py-0">
         {/* Animated Background */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -282,32 +282,32 @@ const Home = () => {
           </>
         )}
 
-        <div className="section-container relative z-10 text-center animate-fade-in">
+        <div className="section-container relative z-10 text-center animate-fade-in w-full px-4">
           {/* Badge */}
-          <div className="inline-flex items-center justify-center px-5 py-2.5 bg-white/15 backdrop-blur-xl rounded-full mb-8 text-sm font-semibold border border-white/20 shadow-lg animate-slide-down">
-            <span className="w-2.5 h-2.5 bg-success-400 rounded-full mr-3 animate-pulse shadow-lg shadow-success-400/50"></span>
-            <span>{rentreeText}</span>
+          <div className="inline-flex items-center justify-center px-3 sm:px-5 py-2 sm:py-2.5 bg-white/15 backdrop-blur-xl rounded-full mb-4 sm:mb-6 md:mb-8 text-xs sm:text-sm font-semibold border border-white/20 shadow-lg animate-slide-down">
+            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-success-400 rounded-full mr-2 sm:mr-3 animate-pulse shadow-lg shadow-success-400/50"></span>
+            <span className="text-[11px] sm:text-sm">{rentreeText}</span>
           </div>
 
           {/* Main Heading - Toujours affiché car les données de l'agence sont disponibles depuis le cache */}
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 text-balance animate-slide-up leading-tight">
-            <span className="block mb-2">{agency?.name || 'SBC Synergie Business et Consultation'}</span>
+          <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-3 sm:mb-4 md:mb-6 text-balance animate-slide-up leading-tight px-2">
+            <span className="block mb-1 sm:mb-2">{agency?.name || 'SBC Synergie Business et Consultation'}</span>
             {agency?.name && agency?.name !== 'SBC Synergie Business et Consultation' && (
-              <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-primary-100">
+              <span className="block text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-primary-100">
                 SBC Groupe
               </span>
             )}
           </h1>
 
           {/* Subtitle - Toujours affiché avec les données de l'agence (cache ou valeurs par défaut) */}
-          <p className="text-xl sm:text-2xl md:text-3xl mb-4 text-primary-100 font-light max-w-3xl mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-3 sm:mb-4 text-primary-100 font-light max-w-3xl mx-auto animate-slide-up px-2" style={{ animationDelay: '0.1s' }}>
             {agency?.description || defaultDescription}
           </p>
           
           {/* Hero Subtitle */}
           {agency?.hero_subtitle && (
             <p
-              className="text-lg sm:text-xl mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up"
+              className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 md:mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up px-2"
               style={{ animationDelay: '0.2s' }}
             >
               {agency.hero_subtitle}
@@ -316,11 +316,11 @@ const Home = () => {
 
           {/* CTA Buttons */}
           {!loading && (
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <Link to="/register">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-slide-up px-2" style={{ animationDelay: '0.3s' }}>
+            <Link to="/register" className="w-full sm:w-auto">
               <button 
-                className="inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
-                           px-8 py-4 text-base
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
+                           px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
                            bg-white text-primary-700 hover:bg-neutral-50 
                            shadow-2xl hover:shadow-glow-lg transform hover:scale-105 
                            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
@@ -330,10 +330,10 @@ const Home = () => {
                 <FiArrowRight className="w-4 h-4" />
               </button>
             </Link>
-            <Link to="/reviews">
+            <Link to="/reviews" className="w-full sm:w-auto">
               <button 
-                className="inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
-                           px-8 py-4 text-base
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
+                           px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
                            bg-transparent text-white border-2 border-white/40 
                            hover:bg-white/20 hover:border-white/60 
                            backdrop-blur-sm
@@ -348,7 +348,7 @@ const Home = () => {
 
           {/* Lawyer Card - Mobile: Below buttons */}
           {agency?.lawyer_card_enabled && (agency?.lawyer_first_name || agency?.lawyer_last_name) && (
-            <div className="md:hidden mt-6 w-full max-w-[280px] mx-auto animate-slide-up" style={{ animationDelay: '0.4s' }}>
+            <div className="md:hidden mt-4 sm:mt-6 w-full max-w-[280px] mx-auto animate-slide-up px-2" style={{ animationDelay: '0.4s' }}>
               <div className="bg-white/95 backdrop-blur-xl rounded-xl p-3 shadow-2xl border border-white/20">
                 <div className="flex flex-col items-center text-center space-y-2">
                   {/* Circular Image */}
@@ -387,7 +387,7 @@ const Home = () => {
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce-subtle">
+        <div className="hidden md:block absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce-subtle">
           <div className="w-6 h-10 border-2 border-white/40 rounded-full flex items-start justify-center p-2">
             <div className="w-1.5 h-3 bg-white/60 rounded-full"></div>
           </div>
