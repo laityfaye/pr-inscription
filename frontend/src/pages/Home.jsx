@@ -226,7 +226,7 @@ const Home = () => {
   return (
     <Layout>
       {/* Hero Section - Modern & Premium */}
-      <section className="relative overflow-hidden text-white min-h-screen flex items-center py-8 sm:py-12 md:py-0">
+      <section className="relative overflow-hidden text-white min-h-screen flex items-center pt-4 pb-8 sm:pt-6 sm:pb-12 md:py-0">
         {/* Animated Background */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -282,7 +282,7 @@ const Home = () => {
           </>
         )}
 
-        <div className="section-container relative z-10 text-center animate-fade-in w-full px-4">
+        <div className="section-container relative z-10 text-center animate-fade-in w-full px-4 pt-0 sm:pt-0 md:pt-0">
           {/* Badge */}
           <div className="inline-flex items-center justify-center px-3 sm:px-5 py-2 sm:py-2.5 bg-white/15 backdrop-blur-xl rounded-full mb-4 sm:mb-6 md:mb-8 text-xs sm:text-sm font-semibold border border-white/20 shadow-lg animate-slide-down">
             <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-success-400 rounded-full mr-2 sm:mr-3 animate-pulse shadow-lg shadow-success-400/50"></span>
