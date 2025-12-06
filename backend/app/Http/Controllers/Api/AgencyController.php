@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AgencyUpdateRequest;
 use App\Models\AgencySetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,75 +19,43 @@ class AgencyController extends Controller
         return response()->json($settings);
     }
 
-    public function update(Request $request): JsonResponse
+    public function update(AgencyUpdateRequest $request): JsonResponse
     {
         try {
-            // Vérifier l'authentification
-            if (!$request->user()) {
-                return response()->json(['message' => 'Non authentifié'], 401);
-            }
-
-            if (!$request->user()->isAdmin()) {
-                return response()->json(['message' => 'Non autorisé'], 403);
-            }
-
-            $request->validate([
-                'name' => ['nullable', 'string'],
-                'logo' => ['nullable', 'image'], // Aucune restriction de taille
-                'description' => ['nullable', 'string'],
-                'hero_subtitle' => ['nullable', 'string'],
-                'email' => ['nullable', 'email'],
-                'whatsapp' => ['nullable', 'string'],
-                'phone' => ['nullable', 'string'],
-                'address' => ['nullable', 'string'],
-                'registration_number' => ['nullable', 'string'],
-                'lawyer_card_enabled' => ['nullable', 'in:true,false,1,0,"true","false","1","0"'],
-                'lawyer_first_name' => ['nullable', 'string'],
-                'lawyer_last_name' => ['nullable', 'string'],
-                'lawyer_title' => ['nullable', 'string'],
-                'lawyer_image' => ['nullable', 'image'], // Aucune restriction de taille
-                'lawyer_phone' => ['nullable', 'string'],
-                'lawyer_email' => ['nullable', 'email'],
-            ]);
-
+            $validated = $request->validated();
             $settings = AgencySetting::getSettings();
             
-            // Préparer les données à mettre à jour
+            // Valider manuellement les emails s'ils sont présents
+            if (!empty($validated['email']) && !filter_var($validated['email'], FILTER_VALIDATE_EMAIL)) {
+                return response()->json([
+                    'message' => 'Erreur de validation',
+                    'errors' => ['email' => ['L\'email doit être une adresse email valide.']],
+                ], 422);
+            }
+            
+            if (!empty($validated['lawyer_email']) && !filter_var($validated['lawyer_email'], FILTER_VALIDATE_EMAIL)) {
+                return response()->json([
+                    'message' => 'Erreur de validation',
+                    'errors' => ['lawyer_email' => ['L\'email de l\'avocat doit être une adresse email valide.']],
+                ], 422);
+            }
+            
+            // Préparer les données à mettre à jour (conserver les valeurs booléennes false)
             $updateData = [];
-            
-            // Traiter chaque champ individuellement
-            // IMPORTANT: Avec FormData en PUT, Laravel ne parse pas toujours correctement
-            // Utiliser input() pour chaque champ au lieu de all()
-            $fields = ['name', 'description', 'hero_subtitle', 'email', 'whatsapp', 'phone', 'address', 'registration_number', 'lawyer_first_name', 'lawyer_last_name', 'lawyer_title', 'lawyer_phone', 'lawyer_email'];
-            
-            foreach ($fields as $field) {
-                // Vérifier si le champ existe dans la requête avec input() qui fonctionne mieux avec FormData
-                if ($request->exists($field)) {
-                    $value = $request->input($field);
-                    // Log pour debug
-                    Log::info("Champ {$field} reçu:", ['value' => $value, 'type' => gettype($value)]);
-                    // Traiter les valeurs : convertir chaînes vides en null pour les champs nullable
-                    if ($value === '' || $value === null) {
-                        $updateData[$field] = null;
-                    } else {
-                        $updateData[$field] = $value;
-                    }
-                } else {
-                    // Si le champ n'existe pas, essayer avec has()
-                    if ($request->has($field)) {
-                        $value = $request->input($field);
-                        Log::info("Champ {$field} trouvé avec has():", ['value' => $value]);
-                        $updateData[$field] = $value === '' || $value === null ? null : $value;
-                    }
+            foreach ($validated as $key => $value) {
+                if ($value !== null || is_bool($value)) {
+                    $updateData[$key] = $value;
                 }
             }
             
-            // Log pour debug
-            Log::info('Données brutes reçues (all):', $request->all());
-            Log::info('Données brutes reçues (input):', $request->input());
-            Log::info('Données à mettre à jour:', $updateData);
-
-            // Traiter le logo séparément (ne pas le mettre dans le tableau si pas de fichier)
+            // S'assurer que lawyer_card_enabled est dans les données
+            if (isset($validated['lawyer_card_enabled'])) {
+                $updateData['lawyer_card_enabled'] = $validated['lawyer_card_enabled'];
+            } else {
+                $updateData['lawyer_card_enabled'] = false;
+            }
+            
+            // Traiter le logo séparément
             if ($request->hasFile('logo')) {
                 if ($settings->logo) {
                     Storage::disk('public')->delete($settings->logo);
@@ -102,50 +71,20 @@ class AgencyController extends Controller
                 $updateData['lawyer_image'] = $request->file('lawyer_image')->store('agency', 'public');
             }
 
-            // Traiter lawyer_card_enabled (peut être une string "true"/"false" depuis FormData)
-            if ($request->has('lawyer_card_enabled')) {
-                $value = $request->input('lawyer_card_enabled');
-                // Convertir différentes représentations en booléen
-                if (is_string($value)) {
-                    $updateData['lawyer_card_enabled'] = in_array(strtolower($value), ['true', '1', 'on', 'yes'], true);
-                } else {
-                    $updateData['lawyer_card_enabled'] = (bool) $value;
-                }
-            } else {
-                // Si le champ n'est pas présent dans la requête, c'est qu'il est désactivé
-                $updateData['lawyer_card_enabled'] = false;
-            }
 
-            // Log pour debug
-            Log::info('Données à mettre à jour:', $updateData);
-
-            // Mettre à jour les champs seulement si on a des données
+            // Mettre à jour les champs
             if (!empty($updateData)) {
                 $settings->fill($updateData);
                 $settings->save();
-                
-                // Log pour vérifier la sauvegarde
-                Log::info('Paramètres sauvegardés:', $settings->toArray());
             }
 
-            // Recharger depuis la base de données pour obtenir les données à jour
-            $settings->refresh();
-            
             return response()->json($settings->fresh())->header('Cache-Control', 'no-cache, no-store, must-revalidate');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // Erreur de validation - retourner les erreurs avec headers CORS
-            return response()->json([
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
-            // Log l'erreur pour le débogage
             Log::error('Erreur lors de la mise à jour de l\'agence:', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
             
-            // Retourner une réponse d'erreur avec headers CORS
             return response()->json([
                 'message' => 'Une erreur est survenue lors de la mise à jour',
                 'error' => config('app.debug') ? $e->getMessage() : 'Erreur interne du serveur',
