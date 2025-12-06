@@ -5,12 +5,19 @@
 
 // Récupérer l'URL de base du backend
 const getBackendBaseUrl = () => {
-  // Priorité 1: Variable d'environnement explicite
+  // Priorité 1: Variable d'environnement explicite pour le backend
   if (import.meta.env.VITE_BACKEND_URL) {
     return import.meta.env.VITE_BACKEND_URL
   }
   
-  // Priorité 2: Détecter automatiquement depuis l'URL actuelle
+  // Priorité 2: Extraire l'URL de base depuis VITE_API_URL si disponible
+  // (ex: https://backend.sbcgroupe.ca/api -> https://backend.sbcgroupe.ca)
+  if (import.meta.env.VITE_API_URL) {
+    const apiUrl = import.meta.env.VITE_API_URL
+    return apiUrl.replace('/api', '').replace(/\/$/, '')
+  }
+  
+  // Priorité 3: Détecter automatiquement depuis l'URL actuelle
   const hostname = window.location.hostname
   const protocol = window.location.protocol
   
@@ -19,8 +26,12 @@ const getBackendBaseUrl = () => {
     return 'http://localhost:8000'
   }
   
-  // Sinon, utiliser l'IP/hostname actuel avec le port 8000
-  // Cela fonctionne pour les accès réseau (ex: 10.31.117.128:3000 -> 10.31.117.128:8000)
+  // En production, si on est sur sbcgroupe.ca, utiliser le sous-domaine backend
+  if (hostname === 'sbcgroupe.ca' || hostname === 'www.sbcgroupe.ca') {
+    return 'https://backend.sbcgroupe.ca'
+  }
+  
+  // Sinon, utiliser l'IP/hostname actuel avec le port 8000 (pour développement réseau local)
   return `${protocol}//${hostname}:8000`
 }
 
