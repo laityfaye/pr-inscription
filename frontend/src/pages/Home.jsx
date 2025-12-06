@@ -226,7 +226,7 @@ const Home = () => {
   return (
     <Layout>
       {/* Hero Section - Modern & Premium */}
-      <section className="relative overflow-hidden text-white min-h-screen flex items-center pt-4 pb-8 sm:pt-6 sm:pb-12 md:py-0">
+      <section className="relative overflow-hidden text-white min-h-screen flex items-center pt-2 pb-8 sm:pt-3 sm:pb-12 md:py-0">
         {/* Animated Background */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
