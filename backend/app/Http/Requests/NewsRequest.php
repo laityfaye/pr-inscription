@@ -3,79 +3,12 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
 
 class NewsRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return $this->user()?->isAdmin() ?? false;
-    }
-
-    /**
-     * Handle a failed validation attempt.
-     */
-    protected function failedValidation(Validator $validator)
-    {
-        $allowedOrigins = [
-            'https://sbcgroupe.ca',
-            'https://www.sbcgroupe.ca',
-            'http://localhost:3000',
-            'http://127.0.0.1:3000',
-        ];
-        
-        $origin = $this->header('Origin');
-        $corsHeaders = [];
-        
-        if (in_array($origin, $allowedOrigins)) {
-            $corsHeaders['Access-Control-Allow-Origin'] = $origin;
-        } elseif (!empty($allowedOrigins)) {
-            $corsHeaders['Access-Control-Allow-Origin'] = $allowedOrigins[0];
-        }
-        
-        $corsHeaders['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
-        $corsHeaders['Access-Control-Allow-Headers'] = 'Authorization, Content-Type, Accept, X-Requested-With';
-        $corsHeaders['Access-Control-Allow-Credentials'] = 'true';
-
-        throw new HttpResponseException(
-            response()->json([
-                'message' => 'Erreur de validation',
-                'errors' => $validator->errors(),
-            ], 422)->withHeaders($corsHeaders)
-        );
-    }
-
-    /**
-     * Handle a failed authorization attempt.
-     */
-    protected function failedAuthorization()
-    {
-        $allowedOrigins = [
-            'https://sbcgroupe.ca',
-            'https://www.sbcgroupe.ca',
-            'http://localhost:3000',
-            'http://127.0.0.1:3000',
-        ];
-        
-        $origin = $this->header('Origin');
-        $corsHeaders = [];
-        
-        if (in_array($origin, $allowedOrigins)) {
-            $corsHeaders['Access-Control-Allow-Origin'] = $origin;
-        } elseif (!empty($allowedOrigins)) {
-            $corsHeaders['Access-Control-Allow-Origin'] = $allowedOrigins[0];
-        }
-        
-        $corsHeaders['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
-        $corsHeaders['Access-Control-Allow-Headers'] = 'Authorization, Content-Type, Accept, X-Requested-With';
-        $corsHeaders['Access-Control-Allow-Credentials'] = 'true';
-
-        throw new HttpResponseException(
-            response()->json([
-                'message' => 'Non autorisé',
-            ], 403)->withHeaders($corsHeaders)
-        );
     }
 
     public function rules(): array

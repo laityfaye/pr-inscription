@@ -27,7 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
             $isApiRequest = $request->is('api/*') 
                 || $request->expectsJson() 
                 || str_starts_with($request->path(), 'api/')
-                || $request->header('Accept') === 'application/json';
+                || $request->header('Accept') === 'application/json'
+                || $request->header('Content-Type') === 'application/json'
+                || str_contains($request->header('Content-Type', ''), 'multipart/form-data');
             
             if ($isApiRequest) {
                 $allowedOrigins = [
@@ -58,6 +60,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'trace' => $e->getTraceAsString(),
                     'url' => $request->fullUrl(),
                     'method' => $request->method(),
+                    'path' => $request->path(),
                 ]);
                 
                 // Gérer les erreurs de validation
@@ -66,6 +69,14 @@ return Application::configure(basePath: dirname(__DIR__))
                         'message' => 'Erreur de validation',
                         'errors' => $e->errors(),
                     ], 422)->withHeaders($corsHeaders);
+                }
+                
+                // Gérer les erreurs d'autorisation
+                if ($e instanceof \Illuminate\Auth\AuthenticationException || 
+                    $e instanceof \Illuminate\Auth\Access\AuthorizationException) {
+                    return response()->json([
+                        'message' => 'Non autorisé',
+                    ], 403)->withHeaders($corsHeaders);
                 }
                 
                 // Retourner une réponse JSON avec headers CORS
