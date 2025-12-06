@@ -351,7 +351,7 @@ const Home = () => {
             >
               <button 
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
-                           px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
+                           px-4 sm:px-5 py-3 sm:py-4 text-sm sm:text-base
                            bg-white text-red-600
                            hover:bg-red-50 hover:text-red-700 
                            shadow-2xl hover:shadow-glow-lg transform hover:scale-105 
