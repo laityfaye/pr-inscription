@@ -158,7 +158,7 @@ const Footer = () => {
         {/* Bouton flottant pour afficher la carte de l'entreprise */}
         <button
           onClick={() => setShowCompanyCard(!showCompanyCard)}
-          className={`fixed bottom-6 right-6 z-40 w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-500 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all duration-300 group ring-4 ring-primary-500/20 hover:ring-primary-500/40 ${
+          className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-primary-500 to-primary-500 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all duration-300 group ring-4 ring-primary-500/20 hover:ring-primary-500/40 ${
             showCompanyCard ? 'rotate-45' : ''
           }`}
           aria-label="Informations sur l'entreprise"
@@ -173,10 +173,10 @@ const Footer = () => {
 
       {/* Carte de l'entreprise - Positionnée en bas à droite */}
       {showCompanyCard && (
-        <div className="fixed bottom-28 right-6 z-50 w-[420px] max-w-[calc(100vw-3rem)] animate-slide-up">
+        <div className="fixed bottom-28 right-2 sm:right-4 md:right-6 z-50 w-[calc(100vw-1rem)] sm:w-[400px] md:w-[420px] max-w-[calc(100vw-1rem)] sm:max-w-[calc(100vw-2rem)] md:max-w-[420px] animate-slide-up">
           <Card className="bg-white shadow-2xl border-2 border-primary-200 max-h-[85vh] overflow-hidden flex flex-col backdrop-blur-xl">
             {/* Header avec gradient animé */}
-            <div className="relative bg-gradient-to-r from-primary-600 via-primary-500 to-primary-800 px-6 py-8 min-h-[120px] text-white overflow-hidden">
+            <div className="relative bg-gradient-to-r from-primary-600 via-primary-500 to-primary-800 px-4 sm:px-6 py-6 sm:py-8 min-h-[100px] sm:min-h-[120px] text-white overflow-hidden">
               {/* Effet de brillance */}
               <div 
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent z-0"
@@ -196,13 +196,13 @@ const Footer = () => {
                 <div className="flex items-center gap-4">
                   <div className="relative z-20">
                     <div className="absolute inset-0 bg-white/30 rounded-xl blur-xl"></div>
-                    <div className="relative w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-                      <FiBriefcase className="w-7 h-7 text-white" />
+                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
+                      <FiBriefcase className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                     </div>
                   </div>
                   <div className="relative z-20 flex flex-col gap-1.5">
-                    <h3 className="text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">InnoSoft Creation</h3>
-                    <p className="text-white text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] leading-tight px-2 py-1 bg-black/10 rounded backdrop-blur-sm">Technologies de l'Information</p>
+                    <h3 className="text-xl sm:text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">InnoSoft Creation</h3>
+                    <p className="text-white text-[10px] sm:text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] leading-tight px-2 py-1 bg-black/10 rounded backdrop-blur-sm">Technologies de l'Information</p>
                   </div>
                 </div>
                 <button
@@ -216,7 +216,7 @@ const Footer = () => {
             </div>
 
             {/* Contenu */}
-            <div className="overflow-y-auto flex-1 p-6 space-y-5">
+            <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-4 sm:space-y-5">
               {/* Secteur d'activité */}
               <div className="bg-gradient-to-br from-blue-50 to-blue-100/30 p-4 rounded-xl border border-blue-200">
                 <h4 className="font-bold text-neutral-900 mb-2 flex items-center gap-2">
