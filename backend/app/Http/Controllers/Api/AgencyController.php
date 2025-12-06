@@ -9,7 +9,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 
 class AgencyController extends Controller
 {
@@ -23,15 +22,6 @@ class AgencyController extends Controller
     public function update(AgencyUpdateRequest $request): JsonResponse
     {
         try {
-            // Logger les informations sur le fichier logo avant validation
-            if ($request->hasFile('logo')) {
-                Log::info('Logo file detected before validation:', [
-                    'file_name' => $request->file('logo')->getClientOriginalName(),
-                    'file_size' => $request->file('logo')->getSize(),
-                    'mime_type' => $request->file('logo')->getMimeType(),
-                ]);
-            }
-            
             $validated = $request->validated();
             $settings = AgencySetting::getSettings();
             
@@ -67,32 +57,10 @@ class AgencyController extends Controller
             
             // Traiter le logo séparément
             if ($request->hasFile('logo')) {
-                try {
-                    $logoFile = $request->file('logo');
-                    Log::info('Logo upload attempt:', [
-                        'file_name' => $logoFile->getClientOriginalName(),
-                        'file_size' => $logoFile->getSize(),
-                        'mime_type' => $logoFile->getMimeType(),
-                        'is_valid' => $logoFile->isValid(),
-                    ]);
-                    
-                    if ($settings->logo) {
-                        Storage::disk('public')->delete($settings->logo);
-                    }
-                    $updateData['logo'] = $logoFile->store('agency', 'public');
-                    Log::info('Logo uploaded successfully:', ['path' => $updateData['logo']]);
-                } catch (\Exception $e) {
-                    Log::error('Error uploading logo:', [
-                        'message' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
-                    ]);
-                    return response()->json([
-                        'message' => 'Erreur lors de l\'upload du logo',
-                        'error' => config('app.debug') ? $e->getMessage() : 'Impossible de téléverser le logo',
-                    ], 500);
+                if ($settings->logo) {
+                    Storage::disk('public')->delete($settings->logo);
                 }
-            } else {
-                Log::info('No logo file in request');
+                $updateData['logo'] = $request->file('logo')->store('agency', 'public');
             }
 
             // Traiter l'image de l'avocat séparément
@@ -111,24 +79,10 @@ class AgencyController extends Controller
             }
 
             return response()->json($settings->fresh())->header('Cache-Control', 'no-cache, no-store, must-revalidate');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // Logger les erreurs de validation pour debug
-            Log::error('Erreur de validation agency (logo):', [
-                'errors' => $e->errors(),
-                'has_logo' => $request->hasFile('logo'),
-                'logo_size' => $request->hasFile('logo') ? $request->file('logo')->getSize() : null,
-            ]);
-            
-            return response()->json([
-                'message' => 'Erreur de validation',
-                'errors' => $e->errors(),
-            ], 422);
         } catch (\Exception $e) {
             Log::error('Erreur lors de la mise à jour de l\'agence:', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
             ]);
             
             return response()->json([
