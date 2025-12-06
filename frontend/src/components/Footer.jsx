@@ -201,7 +201,7 @@ const Footer = () => {
                     </div>
                   </div>
                   <div className="relative z-20 flex flex-col gap-1.5">
-                    <h3 className="text-xl sm:text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">InnoSoft Creation</h3>
+                    <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">InnoSoft Creation</h3>
                     <p className="text-white text-[10px] sm:text-xs font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] leading-tight px-2 py-1 bg-black/10 rounded backdrop-blur-sm">Technologies de l'Information</p>
                   </div>
                 </div>
