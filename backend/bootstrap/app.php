@@ -24,7 +24,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
             // Pour les requêtes API, toujours retourner JSON avec headers CORS
-            if ($request->is('api/*') || $request->expectsJson()) {
+            $isApiRequest = $request->is('api/*') 
+                || $request->expectsJson() 
+                || str_starts_with($request->path(), 'api/')
+                || $request->header('Accept') === 'application/json';
+            
+            if ($isApiRequest) {
                 $allowedOrigins = [
                     'https://sbcgroupe.ca',
                     'https://www.sbcgroupe.ca',
