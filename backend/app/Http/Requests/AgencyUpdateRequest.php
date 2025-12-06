@@ -14,69 +14,51 @@ class AgencyUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        try {
-            $dataToMerge = [];
-            
-            // Convertir les chaînes vides en null pour les champs nullable
-            $nullableFields = [
-                'name',
-                'description',
-                'hero_subtitle',
-                'email',
-                'whatsapp',
-                'phone',
-                'address',
-                'registration_number',
-                'lawyer_first_name',
-                'lawyer_last_name',
-                'lawyer_title',
-                'lawyer_phone',
-                'lawyer_email',
-            ];
-            
-            foreach ($nullableFields as $field) {
-                try {
-                    if ($this->has($field)) {
-                        $value = $this->input($field);
-                        if ($value === '' || (is_string($value) && trim($value) === '')) {
-                            $dataToMerge[$field] = null;
-                        }
-                    }
-                } catch (\Exception $e) {
-                    // Ignorer les erreurs pour ce champ et continuer
-                    Log::warning("Error processing field {$field} in prepareForValidation: " . $e->getMessage());
+        $dataToMerge = [];
+        
+        // Convertir les chaînes vides en null pour les champs nullable
+        $nullableFields = [
+            'name',
+            'description',
+            'hero_subtitle',
+            'email',
+            'whatsapp',
+            'phone',
+            'address',
+            'registration_number',
+            'lawyer_first_name',
+            'lawyer_last_name',
+            'lawyer_title',
+            'lawyer_phone',
+            'lawyer_email',
+        ];
+        
+        foreach ($nullableFields as $field) {
+            if ($this->has($field)) {
+                $value = $this->input($field);
+                if ($value === '' || (is_string($value) && trim($value) === '')) {
+                    $dataToMerge[$field] = null;
                 }
             }
-            
-            // Traiter lawyer_card_enabled - toujours le définir
-            try {
-                if ($this->has('lawyer_card_enabled')) {
-                    $value = $this->input('lawyer_card_enabled');
-                    if ($value === '' || $value === null || $value === false || $value === 'false' || $value === '0') {
-                        $dataToMerge['lawyer_card_enabled'] = false;
-                    } elseif (is_string($value)) {
-                        $dataToMerge['lawyer_card_enabled'] = in_array(strtolower($value), ['true', '1', 'on', 'yes'], true);
-                    } else {
-                        $dataToMerge['lawyer_card_enabled'] = (bool) $value;
-                    }
-                } else {
-                    // Si le champ n'est pas présent, le mettre à false
-                    $dataToMerge['lawyer_card_enabled'] = false;
-                }
-            } catch (\Exception $e) {
-                // En cas d'erreur, mettre à false par défaut
+        }
+        
+        // Traiter lawyer_card_enabled - toujours le définir
+        if ($this->has('lawyer_card_enabled')) {
+            $value = $this->input('lawyer_card_enabled');
+            if ($value === '' || $value === null || $value === false || $value === 'false' || $value === '0') {
                 $dataToMerge['lawyer_card_enabled'] = false;
-                Log::warning("Error processing lawyer_card_enabled in prepareForValidation: " . $e->getMessage());
+            } elseif (is_string($value)) {
+                $dataToMerge['lawyer_card_enabled'] = in_array(strtolower($value), ['true', '1', 'on', 'yes'], true);
+            } else {
+                $dataToMerge['lawyer_card_enabled'] = (bool) $value;
             }
-            
-            if (!empty($dataToMerge)) {
-                $this->merge($dataToMerge);
-            }
-        } catch (\Exception $e) {
-            // Si une erreur se produit dans prepareForValidation, logger mais continuer
-            Log::error('Error in AgencyUpdateRequest::prepareForValidation: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-            ]);
+        } else {
+            // Si le champ n'est pas présent, le mettre à false
+            $dataToMerge['lawyer_card_enabled'] = false;
+        }
+        
+        if (!empty($dataToMerge)) {
+            $this->merge($dataToMerge);
         }
     }
 

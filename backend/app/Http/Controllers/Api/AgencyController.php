@@ -25,43 +25,29 @@ class AgencyController extends Controller
         try {
             // Logger les informations sur le fichier logo avant validation
             if ($request->hasFile('logo')) {
-                try {
-                    $logoFile = $request->file('logo');
-                    Log::info('Logo file detected before validation:', [
-                        'file_name' => $logoFile->getClientOriginalName(),
-                        'file_size' => $logoFile->getSize(),
-                        'mime_type' => $logoFile->getMimeType(),
-                        'is_valid' => $logoFile->isValid(),
-                    ]);
-                } catch (\Exception $e) {
-                    Log::warning('Error logging logo file info: ' . $e->getMessage());
-                }
+                Log::info('Logo file detected before validation:', [
+                    'file_name' => $request->file('logo')->getClientOriginalName(),
+                    'file_size' => $request->file('logo')->getSize(),
+                    'mime_type' => $request->file('logo')->getMimeType(),
+                ]);
             }
             
             $validated = $request->validated();
             $settings = AgencySetting::getSettings();
-            
-            // Headers CORS pour toutes les réponses
-            $corsHeaders = [
-                'Access-Control-Allow-Origin' => $request->header('Origin', 'https://sbcgroupe.ca'),
-                'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers' => 'Authorization, Content-Type, Accept, X-Requested-With',
-                'Access-Control-Allow-Credentials' => 'true',
-            ];
             
             // Valider manuellement les emails s'ils sont présents
             if (!empty($validated['email']) && !filter_var($validated['email'], FILTER_VALIDATE_EMAIL)) {
                 return response()->json([
                     'message' => 'Erreur de validation',
                     'errors' => ['email' => ['L\'email doit être une adresse email valide.']],
-                ], 422)->withHeaders($corsHeaders);
+                ], 422);
             }
             
             if (!empty($validated['lawyer_email']) && !filter_var($validated['lawyer_email'], FILTER_VALIDATE_EMAIL)) {
                 return response()->json([
                     'message' => 'Erreur de validation',
                     'errors' => ['lawyer_email' => ['L\'email de l\'avocat doit être une adresse email valide.']],
-                ], 422)->withHeaders($corsHeaders);
+                ], 422);
             }
             
             // Préparer les données à mettre à jour (conserver les valeurs booléennes false)
@@ -103,7 +89,7 @@ class AgencyController extends Controller
                     return response()->json([
                         'message' => 'Erreur lors de l\'upload du logo',
                         'error' => config('app.debug') ? $e->getMessage() : 'Impossible de téléverser le logo',
-                    ], 500)->withHeaders($corsHeaders);
+                    ], 500);
                 }
             } else {
                 Log::info('No logo file in request');
@@ -124,9 +110,7 @@ class AgencyController extends Controller
                 $settings->save();
             }
 
-            return response()->json($settings->fresh())
-                ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-                ->withHeaders($corsHeaders);
+            return response()->json($settings->fresh())->header('Cache-Control', 'no-cache, no-store, must-revalidate');
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Logger les erreurs de validation pour debug
             Log::error('Erreur de validation agency (logo):', [
@@ -135,18 +119,10 @@ class AgencyController extends Controller
                 'logo_size' => $request->hasFile('logo') ? $request->file('logo')->getSize() : null,
             ]);
             
-            // Headers CORS pour les erreurs de validation
-            $corsHeaders = [
-                'Access-Control-Allow-Origin' => $request->header('Origin', 'https://sbcgroupe.ca'),
-                'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers' => 'Authorization, Content-Type, Accept, X-Requested-With',
-                'Access-Control-Allow-Credentials' => 'true',
-            ];
-            
             return response()->json([
                 'message' => 'Erreur de validation',
                 'errors' => $e->errors(),
-            ], 422)->withHeaders($corsHeaders);
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Erreur lors de la mise à jour de l\'agence:', [
                 'message' => $e->getMessage(),
@@ -155,18 +131,10 @@ class AgencyController extends Controller
                 'line' => $e->getLine(),
             ]);
             
-            // Headers CORS pour les erreurs 500
-            $corsHeaders = [
-                'Access-Control-Allow-Origin' => $request->header('Origin', 'https://sbcgroupe.ca'),
-                'Access-Control-Allow-Methods' => 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers' => 'Authorization, Content-Type, Accept, X-Requested-With',
-                'Access-Control-Allow-Credentials' => 'true',
-            ];
-            
             return response()->json([
                 'message' => 'Une erreur est survenue lors de la mise à jour',
                 'error' => config('app.debug') ? $e->getMessage() : 'Erreur interne du serveur',
-            ], 500)->withHeaders($corsHeaders);
+            ], 500);
         }
     }
 }
