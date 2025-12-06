@@ -240,44 +240,46 @@ const Home = () => {
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-20 animate-pulse-slow"></div>
         </div>
 
-        {/* Lawyer Card - Bottom Left */}
+        {/* Lawyer Card - Bottom Left (Desktop) / Below Buttons (Mobile) */}
         {agency?.lawyer_card_enabled && (agency?.lawyer_first_name || agency?.lawyer_last_name) && (
-          <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 md:bottom-8 md:left-8 z-20 animate-slide-up w-[calc(100%-1rem)] sm:w-auto" style={{ animationDelay: '0.5s' }}>
-            <div className="bg-white/95 backdrop-blur-xl rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 shadow-2xl border border-white/20 w-full sm:max-w-[200px] md:max-w-[220px]">
-              <div className="flex flex-col items-center text-center space-y-1.5 sm:space-y-2">
-                {/* Circular Image */}
-                {agency?.lawyer_image && (
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-xl opacity-50"></div>
-                    <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 rounded-full overflow-hidden border-2 border-white shadow-xl">
-                      <img 
-                        src={getImageUrl(agency.lawyer_image)} 
-                        alt={`${agency.lawyer_first_name || ''} ${agency.lawyer_last_name || ''}`.trim() || 'Avocat'} 
-                        className="w-full h-full object-cover"
-                      />
+          <>
+            {/* Desktop: Absolute position bottom left */}
+            <div className="hidden md:block absolute bottom-8 left-8 z-20 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+              <div className="bg-white/95 backdrop-blur-xl rounded-xl p-4 shadow-2xl border border-white/20 max-w-[220px]">
+                <div className="flex flex-col items-center text-center space-y-2">
+                  {/* Circular Image */}
+                  {agency?.lawyer_image && (
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-xl opacity-50"></div>
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-xl">
+                        <img 
+                          src={getImageUrl(agency.lawyer_image)} 
+                          alt={`${agency.lawyer_first_name || ''} ${agency.lawyer_last_name || ''}`.trim() || 'Avocat'} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     </div>
-                  </div>
-                )}
-                {/* Lawyer Info */}
-                <div className="w-full">
-                  <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-900 mb-0.5">
-                    {agency.lawyer_first_name || ''} {agency.lawyer_last_name || ''}
-                  </h3>
-                  {agency.lawyer_title && (
-                    <p className="text-[10px] sm:text-xs text-gray-600 mb-1.5 sm:mb-2 px-1 line-clamp-2">{agency.lawyer_title}</p>
                   )}
-                  {/* Appointment Button */}
-                  {/* #="/appointment" */}
-                  <Link to="/#" className="block w-full">
-                    <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-1.5 px-2 sm:py-2 sm:px-3 rounded-md sm:rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-1.5 text-[10px] sm:text-xs">
-                      <FiCalendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                      <span className="whitespace-nowrap">Prendre rendez-vous</span>
-                    </button>
-                  </Link>
+                  {/* Lawyer Info */}
+                  <div className="w-full">
+                    <h3 className="text-base font-bold text-gray-900 mb-0.5">
+                      {agency.lawyer_first_name || ''} {agency.lawyer_last_name || ''}
+                    </h3>
+                    {agency.lawyer_title && (
+                      <p className="text-xs text-gray-600 mb-2 px-1 line-clamp-2">{agency.lawyer_title}</p>
+                    )}
+                    {/* Appointment Button */}
+                    <Link to="/#" className="block w-full">
+                      <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-3 rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-1.5 text-xs">
+                        <FiCalendar className="w-3.5 h-3.5" />
+                        <span className="whitespace-nowrap">Prendre rendez-vous</span>
+                      </button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
 
         <div className="section-container relative z-10 text-center animate-fade-in">
@@ -341,6 +343,45 @@ const Home = () => {
                 Voir les témoignages
               </button>
             </Link>
+            </div>
+          )}
+
+          {/* Lawyer Card - Mobile: Below buttons */}
+          {agency?.lawyer_card_enabled && (agency?.lawyer_first_name || agency?.lawyer_last_name) && (
+            <div className="md:hidden mt-6 w-full max-w-[280px] mx-auto animate-slide-up" style={{ animationDelay: '0.4s' }}>
+              <div className="bg-white/95 backdrop-blur-xl rounded-xl p-3 shadow-2xl border border-white/20">
+                <div className="flex flex-col items-center text-center space-y-2">
+                  {/* Circular Image */}
+                  {agency?.lawyer_image && (
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-xl opacity-50"></div>
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-xl">
+                        <img 
+                          src={getImageUrl(agency.lawyer_image)} 
+                          alt={`${agency.lawyer_first_name || ''} ${agency.lawyer_last_name || ''}`.trim() || 'Avocat'} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {/* Lawyer Info */}
+                  <div className="w-full">
+                    <h3 className="text-sm font-bold text-gray-900 mb-0.5">
+                      {agency.lawyer_first_name || ''} {agency.lawyer_last_name || ''}
+                    </h3>
+                    {agency.lawyer_title && (
+                      <p className="text-xs text-gray-600 mb-2 px-1 line-clamp-2">{agency.lawyer_title}</p>
+                    )}
+                    {/* Appointment Button */}
+                    <Link to="/#" className="block w-full">
+                      <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-3 rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-1.5 text-xs">
+                        <FiCalendar className="w-3.5 h-3.5" />
+                        <span className="whitespace-nowrap">Prendre rendez-vous</span>
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
