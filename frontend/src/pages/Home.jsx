@@ -303,13 +303,12 @@ const Home = () => {
           </p>
           
           {/* Hero Subtitle */}
-          {agency?.hero_subtitle ? (
-            <p className="text-lg sm:text-xl mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          {agency?.hero_subtitle && (
+            <p
+              className="text-lg sm:text-xl mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up"
+              style={{ animationDelay: '0.2s' }}
+            >
               {agency.hero_subtitle}
-            </p>
-          ) : (
-            <p className="text-lg sm:text-xl mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              Transformez votre rêve d'études à l'étranger en réalité avec notre accompagnement expert
             </p>
           )}
 
