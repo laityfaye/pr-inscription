@@ -19,8 +19,12 @@ const getBackendBaseUrl = () => {
     return 'http://localhost:8000'
   }
   
-  // Sinon, utiliser l'IP/hostname actuel avec le port 8000
-  // Cela fonctionne pour les accès réseau (ex: 10.31.117.128:3000 -> 10.31.117.128:8000)
+  // En production, utiliser le sous-domaine backend
+  if (hostname === 'sbcgroupe.ca' || hostname === 'www.sbcgroupe.ca') {
+    return 'https://backend.sbcgroupe.ca'
+  }
+  
+  // Pour les autres cas (développement réseau), utiliser l'IP avec le port 8000
   return `${protocol}//${hostname}:8000`
 }
 
@@ -38,28 +42,22 @@ export const getImageUrl = (path) => {
   }
   
   // En développement, utiliser le proxy Vite pour /api/storage
-  // Cela fonctionne même si le backend n'est accessible que via localhost
   if (import.meta.env.DEV) {
-    // Utiliser /api/storage pour passer par le proxy Vite
     return `/api/storage/${path}`
   }
   
-  // En production, utiliser l'URL directe du backend
-  const baseUrl = getBackendBaseUrl()
-  const cleanBaseUrl = baseUrl.replace('/api', '').replace(/\/$/, '')
-  const imageUrl = `${cleanBaseUrl}/storage/${path}`
+  // En production, utiliser directement le sous-domaine backend
+  const hostname = window.location.hostname
   
-  // Debug en mode développement
-  if (import.meta.env.DEV && typeof window !== 'undefined') {
-    console.debug('[ImageUrl]', {
-      path,
-      imageUrl: `/api/storage/${path}`,
-      currentHostname: window.location.hostname,
-      mode: 'dev (via proxy)',
-    })
+  if (hostname === 'sbcgroupe.ca' || hostname === 'www.sbcgroupe.ca') {
+    // Utiliser directement le sous-domaine backend pour le storage
+    return `https://backend.sbcgroupe.ca/storage/${path}`
   }
   
-  return imageUrl
+  // Pour les autres cas (développement réseau), utiliser getBackendBaseUrl
+  const baseUrl = getBackendBaseUrl()
+  const cleanBaseUrl = baseUrl.replace('/api', '').replace(/\/$/, '')
+  return `${cleanBaseUrl}/storage/${path}`
 }
 
 /**

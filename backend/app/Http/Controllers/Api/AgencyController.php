@@ -25,11 +25,17 @@ class AgencyController extends Controller
         try {
             // Logger les informations sur le fichier logo avant validation
             if ($request->hasFile('logo')) {
-                Log::info('Logo file detected before validation:', [
-                    'file_name' => $request->file('logo')->getClientOriginalName(),
-                    'file_size' => $request->file('logo')->getSize(),
-                    'mime_type' => $request->file('logo')->getMimeType(),
-                ]);
+                try {
+                    $logoFile = $request->file('logo');
+                    Log::info('Logo file detected before validation:', [
+                        'file_name' => $logoFile->getClientOriginalName(),
+                        'file_size' => $logoFile->getSize(),
+                        'mime_type' => $logoFile->getMimeType(),
+                        'is_valid' => $logoFile->isValid(),
+                    ]);
+                } catch (\Exception $e) {
+                    Log::warning('Error logging logo file info: ' . $e->getMessage());
+                }
             }
             
             $validated = $request->validated();
