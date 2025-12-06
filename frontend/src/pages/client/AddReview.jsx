@@ -114,7 +114,7 @@ const AddReview = () => {
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                     rows="8"
                     className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
-                    placeholder="Partagez votre expérience avec TFKS... Comment s'est déroulé votre processus de préinscription ? Quels sont les points forts de notre service ?"
+                    placeholder="Partagez votre expérience avec SBC... Comment s'est déroulé votre processus de préinscription ? Quels sont les points forts de notre service ?"
                     required
                   />
                 </div>

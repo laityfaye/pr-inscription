@@ -17,8 +17,10 @@ import {
   FiGlobe,
   FiCalendar,
   FiStar,
-  FiHeart
+  FiHeart,
+  FiShare2
 } from 'react-icons/fi'
+import { FaFacebook, FaInstagram, FaTiktok } from 'react-icons/fa'
 import Card from './ui/Card'
 import Button from './ui/Button'
 
@@ -104,7 +106,7 @@ const Footer = () => {
               </ul>
             </div>
 
-            {/* Contact */}
+            {/* Contact & Réseaux sociaux */}
             <div>
               <h3 className="text-lg font-bold mb-5 flex items-center gap-2">
                 <FiMail className="w-5 h-5 text-primary-400" />
@@ -113,7 +115,7 @@ const Footer = () => {
               <p className="text-neutral-300 text-sm mb-4 leading-relaxed">
                 Pour toute question, n'hésitez pas à nous contacter. Notre équipe est à votre disposition.
               </p>
-              <div className="space-y-2">
+              <div className="space-y-2 mb-5">
                 <Link 
                   to="/#about-us" 
                   onClick={handleContactClick}
@@ -122,6 +124,52 @@ const Footer = () => {
                   <FiMail className="w-4 h-4" />
                   <span>Contact</span>
                 </Link>
+              </div>
+              
+              {/* Réseaux sociaux */}
+              <div className="mt-6">
+                <h4 className="text-sm font-semibold text-neutral-300 mb-3 flex items-center gap-2">
+                  <FiShare2 className="w-4 h-4" />
+                  Suivez-nous
+                </h4>
+                <div className="flex items-center gap-3">
+                  <a
+                    href="https://www.facebook.com/share/1a8FQCPus8/?mibextid=wwXIfr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 hover:shadow-lg group"
+                    aria-label="Facebook"
+                  >
+                    <FaFacebook className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </a>
+                  <a
+                    href="https://www.instagram.com/sbcgroupe2002?igsh=MTBva2ZkeXpwaWg1Yw%3D%3D&utm_source=qr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:from-purple-700 hover:via-pink-700 hover:to-orange-600 rounded-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 hover:shadow-lg group"
+                    aria-label="Instagram"
+                  >
+                    <FaInstagram className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/company/sbc-groupe/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-blue-700 hover:bg-blue-800 rounded-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 hover:shadow-lg group"
+                    aria-label="LinkedIn"
+                  >
+                    <FiLinkedin className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </a>
+                  <a
+                    href="https://www.tiktok.com/@sbc.groupe?_r=1&_t=ZM-9203V8ESdsS"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 bg-black hover:bg-neutral-800 rounded-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 hover:shadow-lg group"
+                    aria-label="TikTok"
+                  >
+                    <FaTiktok className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>

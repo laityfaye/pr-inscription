@@ -96,7 +96,12 @@ const Sidebar = ({ unreadCount = 0 }) => {
     }`}>
       {/* Logo */}
       <div className="p-6 border-b border-neutral-200">
-        <Link to={user?.role === 'admin' ? '/admin/dashboard' : '/client/dashboard'} className="flex items-center space-x-3 group">
+        <button
+          onClick={() => {
+            window.location.href = '/'
+          }}
+          className="w-full flex items-center space-x-3 group text-left"
+        >
           <div className="relative">
             {agency?.logo ? (
               <>
@@ -126,7 +131,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
             </div>
             <div className="text-[10px] text-neutral-500 font-medium">Dashboard</div>
           </div>
-        </Link>
+        </button>
       </div>
 
       {/* Navigation */}
