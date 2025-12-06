@@ -66,7 +66,7 @@ class AgencyUpdateRequest extends FormRequest
     {
         return [
             'name' => ['nullable', 'string', 'max:255'],
-            'logo' => ['nullable', 'image'],
+            'logo' => ['nullable', 'image'], // Aucune restriction de taille
             'description' => ['nullable', 'string'],
             'hero_subtitle' => ['nullable', 'string', 'max:500'],
             'email' => ['nullable', 'string', 'max:255'],
@@ -78,7 +78,7 @@ class AgencyUpdateRequest extends FormRequest
             'lawyer_first_name' => ['nullable', 'string', 'max:255'],
             'lawyer_last_name' => ['nullable', 'string', 'max:255'],
             'lawyer_title' => ['nullable', 'string', 'max:255'],
-            'lawyer_image' => ['nullable', 'image'],
+            'lawyer_image' => ['nullable', 'image'], // Aucune restriction de taille
             'lawyer_phone' => ['nullable', 'string', 'max:50'],
             'lawyer_email' => ['nullable', 'string', 'max:255'],
         ];
