@@ -49,14 +49,17 @@ class NewsController extends Controller
                 $file = $request->file('image');
                 $path = $file->store('news', 'public');
                 $data['image'] = $path;
-                Log::info('Image uploaded:', [
-                    'path' => $path, 
-                    'original_name' => $file->getClientOriginalName(),
-                    'size' => $file->getSize(),
-                    'mime' => $file->getMimeType()
-                ]);
-            } else {
-                Log::info('No image file in request');
+                // Logger seulement si possible (ne pas faire échouer la requête si le logging échoue)
+                try {
+                    Log::info('Image uploaded:', [
+                        'path' => $path, 
+                        'original_name' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'mime' => $file->getMimeType()
+                    ]);
+                } catch (\Exception $logError) {
+                    // Ignorer les erreurs de logging
+                }
             }
 
             $news = $this->newsRepository->create($data);
@@ -64,13 +67,19 @@ class NewsController extends Controller
             return response()->json($news->load('user'), 201)
                 ->withHeaders($this->getCorsHeaders($request));
         } catch (\Exception $e) {
-            Log::error('Error creating news:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'data' => $data ?? null,
-            ]);
+            // Logger seulement si possible (ne pas faire échouer la requête si le logging échoue)
+            try {
+                Log::error('Error creating news:', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'data' => $data ?? null,
+                ]);
+            } catch (\Exception $logError) {
+                // Ignorer les erreurs de logging - utiliser error_log comme fallback
+                error_log('Error creating news: ' . $e->getMessage());
+            }
             
             return response()->json([
                 'message' => 'Erreur lors de la création',
