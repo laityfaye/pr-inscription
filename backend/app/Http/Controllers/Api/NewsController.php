@@ -25,12 +25,18 @@ class NewsController extends Controller
             $news = $this->newsRepository->getPublished();
         }
 
-        return response()->json($news);
+        return response()->json($news)
+            ->withHeaders($this->getCorsHeaders($request));
     }
 
     public function store(NewsRequest $request): JsonResponse
     {
-        if (!$request->user()?->isAdmin()) {
+        if (!$request->user()) {
+            return response()->json(['message' => 'Non authentifié'], 401)
+                ->withHeaders($this->getCorsHeaders($request));
+        }
+
+        if (!$request->user()->isAdmin()) {
             return response()->json(['message' => 'Non autorisé'], 403)
                 ->withHeaders($this->getCorsHeaders($request));
         }
@@ -55,7 +61,8 @@ class NewsController extends Controller
 
             $news = $this->newsRepository->create($data);
 
-            return response()->json($news->load('user'), 201);
+            return response()->json($news->load('user'), 201)
+                ->withHeaders($this->getCorsHeaders($request));
         } catch (\Exception $e) {
             Log::error('Error creating news:', [
                 'error' => $e->getMessage(),
@@ -72,9 +79,10 @@ class NewsController extends Controller
         }
     }
 
-    public function show(News $news): JsonResponse
+    public function show(Request $request, News $news): JsonResponse
     {
-        return response()->json($news->load('user'));
+        return response()->json($news->load('user'))
+            ->withHeaders($this->getCorsHeaders($request));
     }
 
     public function update(NewsRequest $request, News $news): JsonResponse
@@ -95,7 +103,8 @@ class NewsController extends Controller
 
         $this->newsRepository->update($news, $data);
 
-        return response()->json($news->fresh()->load('user'));
+        return response()->json($news->fresh()->load('user'))
+            ->withHeaders($this->getCorsHeaders($request));
     }
 
     public function destroy(Request $request, News $news): JsonResponse
@@ -111,7 +120,8 @@ class NewsController extends Controller
 
         $this->newsRepository->delete($news);
 
-        return response()->json(['message' => 'Actualité supprimée']);
+        return response()->json(['message' => 'Actualité supprimée'])
+            ->withHeaders($this->getCorsHeaders($request));
     }
 }
 
