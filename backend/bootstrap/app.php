@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\ForceCorsHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,9 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
         
+        // Ajouter CORS en premier pour toutes les requêtes API
+        // Utiliser notre middleware personnalisé qui garantit les headers CORS
         $middleware->api(prepend: [
+            ForceCorsHeaders::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Http\Middleware\HandleCors::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
@@ -48,14 +51,23 @@ return Application::configure(basePath: dirname(__DIR__))
             return $corsHeaders;
         };
         
+        // Handler pour toutes les exceptions
         $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) use ($getCorsHeaders) {
             // Pour les requêtes API, toujours retourner JSON avec headers CORS
-            $isApiRequest = $request->is('api/*') 
-                || $request->expectsJson() 
-                || str_starts_with($request->path(), 'api/')
-                || $request->header('Accept') === 'application/json'
-                || $request->header('Content-Type') === 'application/json'
-                || str_contains($request->header('Content-Type', ''), 'multipart/form-data');
+            // Détecter les requêtes API de manière plus large
+            try {
+                $path = $request->path();
+                $isApiRequest = str_starts_with($path, 'api/')
+                    || $request->is('api/*')
+                    || $request->expectsJson()
+                    || $request->header('Accept') === 'application/json'
+                    || $request->header('Content-Type') === 'application/json'
+                    || str_contains($request->header('Content-Type', ''), 'multipart/form-data')
+                    || $request->header('X-Requested-With') === 'XMLHttpRequest';
+            } catch (\Exception $detectionError) {
+                // Si la détection échoue, supposer que c'est une requête API si l'URL contient /api/
+                $isApiRequest = str_contains($request->getRequestUri(), '/api/');
+            }
             
             if ($isApiRequest) {
                 $corsHeaders = $getCorsHeaders($request);
@@ -66,7 +78,6 @@ return Application::configure(basePath: dirname(__DIR__))
                         'exception' => get_class($e),
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
-                        'trace' => $e->getTraceAsString(),
                         'url' => $request->fullUrl(),
                         'method' => $request->method(),
                         'path' => $request->path(),
