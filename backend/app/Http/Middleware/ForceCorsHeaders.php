@@ -40,14 +40,30 @@ class ForceCorsHeaders
             return response('', 204)->withHeaders($corsHeaders);
         }
         
-        $response = $next($request);
-        
-        // Ajouter les headers CORS à toutes les réponses
-        foreach ($corsHeaders as $key => $value) {
-            $response->headers->set($key, $value, true);
+        try {
+            $response = $next($request);
+            
+            // Ajouter les headers CORS à toutes les réponses
+            foreach ($corsHeaders as $key => $value) {
+                $response->headers->set($key, $value, true);
+            }
+            
+            return $response;
+        } catch (\Throwable $e) {
+            // En cas d'exception, créer une réponse avec les headers CORS
+            $errorResponse = response()->json([
+                'message' => 'Une erreur est survenue',
+                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur interne est survenue',
+            ], 500);
+            
+            // Ajouter les headers CORS même en cas d'erreur
+            foreach ($corsHeaders as $key => $value) {
+                $errorResponse->headers->set($key, $value, true);
+            }
+            
+            // Re-lancer l'exception pour que le handler d'exceptions puisse la gérer
+            throw $e;
         }
-        
-        return $response;
     }
 }
 
