@@ -8,7 +8,7 @@ class NewsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isAdmin() ?? false;
+        return true;
     }
 
     public function rules(): array

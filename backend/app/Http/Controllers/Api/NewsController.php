@@ -30,6 +30,11 @@ class NewsController extends Controller
 
     public function store(NewsRequest $request): JsonResponse
     {
+        if (!$request->user()?->isAdmin()) {
+            return response()->json(['message' => 'Non autorisé'], 403)
+                ->withHeaders($this->getCorsHeaders($request));
+        }
+
         try {
             $data = $request->validated();
             $data['user_id'] = $request->user()->id;
@@ -63,7 +68,7 @@ class NewsController extends Controller
             return response()->json([
                 'message' => 'Erreur lors de la création',
                 'error' => config('app.debug') ? $e->getMessage() : 'Une erreur interne est survenue',
-            ], 500);
+            ], 500)->withHeaders($this->getCorsHeaders($request));
         }
     }
 
@@ -74,6 +79,11 @@ class NewsController extends Controller
 
     public function update(NewsRequest $request, News $news): JsonResponse
     {
+        if (!$request->user()?->isAdmin()) {
+            return response()->json(['message' => 'Non autorisé'], 403)
+                ->withHeaders($this->getCorsHeaders($request));
+        }
+
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
@@ -88,8 +98,13 @@ class NewsController extends Controller
         return response()->json($news->fresh()->load('user'));
     }
 
-    public function destroy(News $news): JsonResponse
+    public function destroy(Request $request, News $news): JsonResponse
     {
+        if (!$request->user()?->isAdmin()) {
+            return response()->json(['message' => 'Non autorisé'], 403)
+                ->withHeaders($this->getCorsHeaders($request));
+        }
+
         if ($news->image) {
             Storage::disk('public')->delete($news->image);
         }
