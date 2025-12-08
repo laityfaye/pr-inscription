@@ -5,7 +5,7 @@ import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-import { FiCheckCircle, FiXCircle, FiClock, FiDownload, FiFile, FiUser, FiSearch, FiFilter, FiEye, FiX, FiFolder, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { FiCheckCircle, FiXCircle, FiClock, FiDownload, FiFile, FiUser, FiSearch, FiFilter, FiEye, FiX, FiFolder, FiChevronDown, FiChevronUp, FiTrash2 } from 'react-icons/fi'
 
 const AdminDocuments = () => {
   const [documents, setDocuments] = useState([])
@@ -20,6 +20,10 @@ const AdminDocuments = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedClients, setExpandedClients] = useState(new Set())
   const [expandedFolders, setExpandedFolders] = useState(new Set())
+  const [showDeleteDocumentModal, setShowDeleteDocumentModal] = useState(false)
+  const [showDeleteDossierModal, setShowDeleteDossierModal] = useState(false)
+  const [documentToDelete, setDocumentToDelete] = useState(null)
+  const [dossierToDelete, setDossierToDelete] = useState(null)
 
   useEffect(() => {
     fetchDocuments()
@@ -124,6 +128,58 @@ const AdminDocuments = () => {
     } catch (error) {
       toast.error('Erreur lors du téléchargement')
     }
+  }
+
+  const handleDeleteDocument = async () => {
+    if (!documentToDelete) return
+
+    try {
+      await api.delete(`/documents/${documentToDelete.id}`)
+      toast.success('Document supprimé avec succès')
+      setShowDeleteDocumentModal(false)
+      setDocumentToDelete(null)
+      fetchDocuments()
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Erreur lors de la suppression')
+    }
+  }
+
+  const handleDeleteDossier = async () => {
+    if (!dossierToDelete) return
+
+    try {
+      const { dossier, documents } = dossierToDelete
+      let endpoint = ''
+      
+      if (dossier.type === 'preinscription') {
+        endpoint = `/inscriptions/${dossier.id}`
+      } else if (dossier.type === 'permis') {
+        endpoint = `/work-permit-applications/${dossier.id}`
+      } else if (dossier.type === 'residence') {
+        endpoint = `/residence-applications/${dossier.id}`
+      } else {
+        toast.error('Impossible de supprimer ce type de dossier')
+        return
+      }
+
+      await api.delete(endpoint)
+      toast.success('Dossier supprimé avec succès')
+      setShowDeleteDossierModal(false)
+      setDossierToDelete(null)
+      fetchDocuments()
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Erreur lors de la suppression du dossier')
+    }
+  }
+
+  const openDeleteDocumentModal = (doc) => {
+    setDocumentToDelete(doc)
+    setShowDeleteDocumentModal(true)
+  }
+
+  const openDeleteDossierModal = (dossier, documents) => {
+    setDossierToDelete({ dossier, documents })
+    setShowDeleteDossierModal(true)
   }
 
   // Nettoyer l'URL du blob quand le modal se ferme
@@ -395,12 +451,12 @@ const AdminDocuments = () => {
                         return (
                           <div key={dossierKey} className="border border-gray-200 rounded-lg overflow-hidden">
                             {/* En-tête Dossier */}
-                            <div 
-                              className={`bg-gradient-to-r ${dossierTypeColors[dossier.type]} p-3 cursor-pointer hover:opacity-90 transition-opacity`}
-                              onClick={() => toggleFolder(dossierKey)}
-                            >
+                            <div className={`bg-gradient-to-r ${dossierTypeColors[dossier.type]} p-3`}>
                               <div className="flex items-center justify-between text-white">
-                                <div className="flex items-center gap-2">
+                                <div 
+                                  className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity flex-1"
+                                  onClick={() => toggleFolder(dossierKey)}
+                                >
                                   <FiFolder className="w-4 h-4" />
                                   <span className="font-semibold">{dossier.label}</span>
                                   {dossier.data && (
@@ -413,11 +469,28 @@ const AdminDocuments = () => {
                                   <span className="text-sm bg-white/20 px-2 py-1 rounded">
                                     {dossierDocs.length} document{dossierDocs.length > 1 ? 's' : ''}
                                   </span>
-                                  {isFolderExpanded ? (
-                                    <FiChevronUp className="w-4 h-4" />
-                                  ) : (
-                                    <FiChevronDown className="w-4 h-4" />
+                                  {dossier.type !== 'none' && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        openDeleteDossierModal(dossier, dossierDocs)
+                                      }}
+                                      className="p-1.5 rounded hover:bg-white/20 transition-colors"
+                                      title="Supprimer le dossier"
+                                    >
+                                      <FiTrash2 className="w-4 h-4" />
+                                    </button>
                                   )}
+                                  <button
+                                    onClick={() => toggleFolder(dossierKey)}
+                                    className="p-1.5 rounded hover:bg-white/20 transition-colors"
+                                  >
+                                    {isFolderExpanded ? (
+                                      <FiChevronUp className="w-4 h-4" />
+                                    ) : (
+                                      <FiChevronDown className="w-4 h-4" />
+                                    )}
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -513,6 +586,16 @@ const AdminDocuments = () => {
                                               </Button>
                                             </>
                                           )}
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => openDeleteDocumentModal(doc)}
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            title="Supprimer le document"
+                                          >
+                                            <FiTrash2 className="mr-1" />
+                                            Supprimer
+                                          </Button>
                                         </div>
                                       </div>
                                     </div>
@@ -673,6 +756,94 @@ const AdminDocuments = () => {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Modal de confirmation de suppression de document */}
+      {showDeleteDocumentModal && documentToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <Card className="max-w-md w-full p-8 animate-scale-in">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <FiTrash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Supprimer le document</h2>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Êtes-vous sûr de vouloir supprimer le document <span className="font-semibold">{documentToDelete.name}</span> ?
+            </p>
+            <p className="text-sm text-red-600 mb-6">
+              ⚠️ Cette action est irréversible. Le document et son fichier seront définitivement supprimés.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowDeleteDocumentModal(false)
+                  setDocumentToDelete(null)
+                }}
+              >
+                Annuler
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleDeleteDocument}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <FiTrash2 className="mr-2" />
+                Supprimer
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Modal de confirmation de suppression de dossier */}
+      {showDeleteDossierModal && dossierToDelete && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <Card className="max-w-md w-full p-8 animate-scale-in">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <FiTrash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Supprimer le dossier</h2>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Êtes-vous sûr de vouloir supprimer le dossier <span className="font-semibold">{dossierToDelete.dossier.label}</span> ?
+            </p>
+            {dossierToDelete.documents.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-yellow-800 font-medium mb-2">
+                  ⚠️ Attention : Ce dossier contient {dossierToDelete.documents.length} document{dossierToDelete.documents.length > 1 ? 's' : ''}.
+                </p>
+                <p className="text-sm text-yellow-700">
+                  Tous les documents associés seront également supprimés.
+                </p>
+              </div>
+            )}
+            <p className="text-sm text-red-600 mb-6">
+              ⚠️ Cette action est irréversible. Le dossier et tous ses documents seront définitivement supprimés.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowDeleteDossierModal(false)
+                  setDossierToDelete(null)
+                }}
+              >
+                Annuler
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleDeleteDossier}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <FiTrash2 className="mr-2" />
+                Supprimer le dossier
+              </Button>
+            </div>
+          </Card>
         </div>
       )}
     </Layout>

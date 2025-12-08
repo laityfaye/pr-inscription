@@ -143,6 +143,17 @@ class ResidenceApplicationController extends Controller
             ], 400);
         }
 
+        // Charger les documents associés
+        $residenceApplication->load('documents');
+
+        // Supprimer les fichiers physiques des documents
+        foreach ($residenceApplication->documents as $document) {
+            if ($document->file_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($document->file_path);
+            }
+        }
+
+        // Supprimer la demande (les documents en base seront supprimés automatiquement par cascade)
         $residenceApplication->delete();
 
         return response()->json(['message' => 'Demande supprimée avec succès']);

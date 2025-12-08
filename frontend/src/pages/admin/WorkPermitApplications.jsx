@@ -5,7 +5,7 @@ import Badge from '../../components/ui/Badge'
 import Button from '../../components/ui/Button'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-import { FiCheckCircle, FiXCircle, FiClock, FiFile, FiDownload, FiEye, FiX, FiSearch, FiFilter, FiX as FiXIcon, FiBriefcase, FiUser, FiGlobe, FiBell, FiAlertCircle, FiArrowRight } from 'react-icons/fi'
+import { FiCheckCircle, FiXCircle, FiClock, FiFile, FiDownload, FiEye, FiX, FiSearch, FiFilter, FiX as FiXIcon, FiBriefcase, FiUser, FiGlobe, FiBell, FiAlertCircle, FiArrowRight, FiTrash2 } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 
 const AdminWorkPermitApplications = () => {
@@ -23,6 +23,8 @@ const AdminWorkPermitApplications = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [previewDocument, setPreviewDocument] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [applicationToDelete, setApplicationToDelete] = useState(null)
   
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
@@ -203,6 +205,29 @@ const AdminWorkPermitApplications = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || 'Erreur lors de la notification')
     }
+  }
+
+  const handleDeleteApplication = async () => {
+    if (!applicationToDelete) return
+
+    try {
+      await api.delete(`/work-permit-applications/${applicationToDelete.id}`)
+      toast.success('Demande de permis de travail supprimée avec succès')
+      setShowDeleteModal(false)
+      setApplicationToDelete(null)
+      fetchApplications()
+      if (showDetailsModal && applicationDetails && applicationDetails.id === applicationToDelete.id) {
+        setShowDetailsModal(false)
+        setApplicationDetails(null)
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Erreur lors de la suppression')
+    }
+  }
+
+  const openDeleteModal = (application) => {
+    setApplicationToDelete(application)
+    setShowDeleteModal(true)
   }
 
   const handleApproveDocument = async (document) => {
@@ -423,6 +448,15 @@ const AdminWorkPermitApplications = () => {
                       size="sm"
                     >
                       Modifier
+                    </Button>
+                    <Button
+                      onClick={() => openDeleteModal(application)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <FiTrash2 className="mr-1" />
+                      Supprimer
                     </Button>
                   </div>
                 </div>
@@ -758,9 +792,69 @@ const AdminWorkPermitApplications = () => {
                   >
                     Modifier le statut
                   </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setShowDetailsModal(false)
+                      openDeleteModal(applicationDetails)
+                    }}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <FiTrash2 className="mr-2" />
+                    Supprimer
+                  </Button>
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Modal de confirmation de suppression */}
+        {showDeleteModal && applicationToDelete && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+            <Card className="max-w-md w-full p-8 animate-scale-in">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <FiTrash2 className="w-6 h-6 text-red-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">Supprimer la demande</h2>
+              </div>
+              <p className="text-gray-600 mb-4">
+                Êtes-vous sûr de vouloir supprimer la demande de permis de travail du client <span className="font-semibold">{applicationToDelete.user?.name || 'inconnu'}</span> ?
+              </p>
+              {applicationToDelete.documents && applicationToDelete.documents.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-yellow-800 font-medium mb-2">
+                    ⚠️ Attention : Cette demande contient {applicationToDelete.documents.length} document{applicationToDelete.documents.length > 1 ? 's' : ''}.
+                  </p>
+                  <p className="text-sm text-yellow-700">
+                    Tous les documents associés seront également supprimés.
+                  </p>
+                </div>
+              )}
+              <p className="text-sm text-red-600 mb-6">
+                ⚠️ Cette action est irréversible. La demande et tous ses documents seront définitivement supprimés.
+              </p>
+              <div className="flex justify-end space-x-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setShowDeleteModal(false)
+                    setApplicationToDelete(null)
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleDeleteApplication}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <FiTrash2 className="mr-2" />
+                  Supprimer
+                </Button>
+              </div>
+            </Card>
           </div>
         )}
 

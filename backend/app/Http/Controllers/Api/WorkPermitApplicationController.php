@@ -159,6 +159,17 @@ class WorkPermitApplicationController extends Controller
             ], 400);
         }
 
+        // Charger les documents associés
+        $workPermitApplication->load('documents');
+
+        // Supprimer les fichiers physiques des documents
+        foreach ($workPermitApplication->documents as $document) {
+            if ($document->file_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($document->file_path);
+            }
+        }
+
+        // Supprimer la demande (les documents en base seront supprimés automatiquement par cascade)
         $workPermitApplication->delete();
 
         return response()->json(['message' => 'Demande supprimée avec succès']);

@@ -145,6 +145,17 @@ class InscriptionController extends Controller
             ], 400);
         }
 
+        // Charger les documents associés
+        $inscription->load('documents');
+
+        // Supprimer les fichiers physiques des documents
+        foreach ($inscription->documents as $document) {
+            if ($document->file_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($document->file_path);
+            }
+        }
+
+        // Supprimer l'inscription (les documents en base seront supprimés automatiquement par cascade)
         $inscription->delete();
 
         return response()->json(['message' => 'Préinscription supprimée avec succès']);
