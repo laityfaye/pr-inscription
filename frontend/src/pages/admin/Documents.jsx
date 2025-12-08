@@ -5,7 +5,7 @@ import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-import { FiCheckCircle, FiXCircle, FiClock, FiDownload, FiFile, FiUser, FiSearch, FiFilter, FiEye, FiX } from 'react-icons/fi'
+import { FiCheckCircle, FiXCircle, FiClock, FiDownload, FiFile, FiUser, FiSearch, FiFilter, FiEye, FiX, FiFolder, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 
 const AdminDocuments = () => {
   const [documents, setDocuments] = useState([])
@@ -18,6 +18,8 @@ const AdminDocuments = () => {
   const [rejectionReason, setRejectionReason] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [expandedClients, setExpandedClients] = useState(new Set())
+  const [expandedFolders, setExpandedFolders] = useState(new Set())
 
   useEffect(() => {
     fetchDocuments()
@@ -191,6 +193,39 @@ const AdminDocuments = () => {
     return types[type] || type
   }
 
+  const getDossierType = (doc) => {
+    if (doc.inscription_id) {
+      return {
+        type: 'preinscription',
+        label: 'Préinscription',
+        id: doc.inscription_id,
+        data: doc.inscription
+      }
+    }
+    if (doc.work_permit_application_id) {
+      return {
+        type: 'permis',
+        label: 'Permis de travail',
+        id: doc.work_permit_application_id,
+        data: doc.work_permit_application
+      }
+    }
+    if (doc.residence_application_id) {
+      return {
+        type: 'residence',
+        label: 'Résidence',
+        id: doc.residence_application_id,
+        data: doc.residence_application
+      }
+    }
+    return {
+      type: 'none',
+      label: 'Sans dossier',
+      id: null,
+      data: null
+    }
+  }
+
   const filteredDocuments = documents.filter((doc) => {
     const matchesStatus = !filterStatus || doc.status === filterStatus
     const matchesSearch =
@@ -200,6 +235,50 @@ const AdminDocuments = () => {
       getDocumentTypeLabel(doc.type).toLowerCase().includes(searchQuery.toLowerCase())
     return matchesStatus && matchesSearch
   })
+
+  // Organiser les documents par client et par dossier
+  const organizedDocuments = filteredDocuments.reduce((acc, doc) => {
+    const userId = doc.user_id
+    const dossier = getDossierType(doc)
+    const dossierKey = `${dossier.type}-${dossier.id || 'none'}`
+
+    if (!acc[userId]) {
+      acc[userId] = {
+        user: doc.user,
+        dossiers: {}
+      }
+    }
+
+    if (!acc[userId].dossiers[dossierKey]) {
+      acc[userId].dossiers[dossierKey] = {
+        dossier,
+        documents: []
+      }
+    }
+
+    acc[userId].dossiers[dossierKey].documents.push(doc)
+    return acc
+  }, {})
+
+  const toggleClient = (userId) => {
+    const newExpanded = new Set(expandedClients)
+    if (newExpanded.has(userId)) {
+      newExpanded.delete(userId)
+    } else {
+      newExpanded.add(userId)
+    }
+    setExpandedClients(newExpanded)
+  }
+
+  const toggleFolder = (key) => {
+    const newExpanded = new Set(expandedFolders)
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key)
+    } else {
+      newExpanded.add(key)
+    }
+    setExpandedFolders(newExpanded)
+  }
 
   return (
     <Layout>
@@ -255,7 +334,7 @@ const AdminDocuments = () => {
           <Card className="p-12 text-center">
             <p className="text-xl text-gray-600">Chargement...</p>
           </Card>
-        ) : filteredDocuments.length === 0 ? (
+        ) : Object.keys(organizedDocuments).length === 0 ? (
           <Card className="p-12 text-center">
             <FiFile className="mx-auto text-6xl text-gray-300 mb-4" />
             <p className="text-xl text-gray-600 mb-2">Aucun document</p>
@@ -266,106 +345,189 @@ const AdminDocuments = () => {
             </p>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {filteredDocuments.map((doc) => (
-              <Card key={doc.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-800 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                        <FiFile className="text-2xl text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-900 mb-2 truncate" title={doc.name}>
-                          {doc.name}
-                        </h3>
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <FiUser className="w-4 h-4" />
-                            <span>{doc.user?.name || 'Utilisateur inconnu'}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">Type:</span> {getDocumentTypeLabel(doc.type)}
-                          </div>
-                          <div>
-                            <span className="font-medium">Date d'upload:</span>{' '}
-                            {new Date(doc.created_at).toLocaleDateString('fr-FR', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </div>
-                          {doc.validated_at && (
-                            <div>
-                              <span className="font-medium">Validé le:</span>{' '}
-                              {new Date(doc.validated_at).toLocaleDateString('fr-FR', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                              {doc.validator && ` par ${doc.validator.name}`}
-                            </div>
-                          )}
-                          {doc.status === 'rejected' && doc.rejection_reason && (
-                            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                              <span className="font-medium text-red-800">Raison du rejet:</span>
-                              <p className="text-red-700 mt-1">{doc.rejection_reason}</p>
-                            </div>
-                          )}
+          <div className="space-y-6">
+            {Object.entries(organizedDocuments).map(([userId, { user, dossiers }]) => {
+              const isClientExpanded = expandedClients.has(parseInt(userId))
+              const dossierEntries = Object.entries(dossiers)
+
+              return (
+                <Card key={userId} className="overflow-hidden">
+                  {/* En-tête Client */}
+                  <div 
+                    className="bg-gradient-to-r from-primary-500 to-primary-700 p-4 cursor-pointer hover:from-primary-600 hover:to-primary-800 transition-colors"
+                    onClick={() => toggleClient(parseInt(userId))}
+                  >
+                    <div className="flex items-center justify-between text-white">
+                      <div className="flex items-center gap-3">
+                        <FiUser className="w-5 h-5" />
+                        <div>
+                          <h3 className="font-bold text-lg">{user?.name || 'Utilisateur inconnu'}</h3>
+                          <p className="text-sm text-primary-100">
+                            {user?.email || ''} • {filteredDocuments.filter(d => d.user_id === parseInt(userId)).length} document(s)
+                          </p>
                         </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
+                          {dossierEntries.length} dossier{dossierEntries.length > 1 ? 's' : ''}
+                        </span>
+                        {isClientExpanded ? (
+                          <FiChevronUp className="w-5 h-5" />
+                        ) : (
+                          <FiChevronDown className="w-5 h-5" />
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
-                    <div>{getStatusBadge(doc.status)}</div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => handleView(doc)}
-                      >
-                        <FiEye className="mr-2" />
-                        Visualiser
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleDownload(doc)}
-                      >
-                        <FiDownload className="mr-2" />
-                      </Button>
-                      {doc.status === 'pending' && (
-                        <>
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => handleApprove(doc)}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <FiCheckCircle className="mr-2" />
-                            Approuver
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openRejectModal(doc)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <FiXCircle className="mr-2" />
-                            Rejeter
-                          </Button>
-                        </>
-                      )}
+                  {/* Dossiers du client */}
+                  {isClientExpanded && (
+                    <div className="p-4 space-y-4">
+                      {dossierEntries.map(([dossierKey, { dossier, documents: dossierDocs }]) => {
+                        const isFolderExpanded = expandedFolders.has(dossierKey)
+                        const dossierTypeColors = {
+                          preinscription: 'from-blue-500 to-blue-600',
+                          permis: 'from-green-500 to-green-600',
+                          residence: 'from-purple-500 to-purple-600',
+                          none: 'from-gray-400 to-gray-500'
+                        }
+
+                        return (
+                          <div key={dossierKey} className="border border-gray-200 rounded-lg overflow-hidden">
+                            {/* En-tête Dossier */}
+                            <div 
+                              className={`bg-gradient-to-r ${dossierTypeColors[dossier.type]} p-3 cursor-pointer hover:opacity-90 transition-opacity`}
+                              onClick={() => toggleFolder(dossierKey)}
+                            >
+                              <div className="flex items-center justify-between text-white">
+                                <div className="flex items-center gap-2">
+                                  <FiFolder className="w-4 h-4" />
+                                  <span className="font-semibold">{dossier.label}</span>
+                                  {dossier.data && (
+                                    <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                                      ID: {dossier.id}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm bg-white/20 px-2 py-1 rounded">
+                                    {dossierDocs.length} document{dossierDocs.length > 1 ? 's' : ''}
+                                  </span>
+                                  {isFolderExpanded ? (
+                                    <FiChevronUp className="w-4 h-4" />
+                                  ) : (
+                                    <FiChevronDown className="w-4 h-4" />
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Documents du dossier */}
+                            {isFolderExpanded && (
+                              <div className="p-4 space-y-3 bg-gray-50">
+                                {dossierDocs.map((doc) => (
+                                  <Card key={doc.id} className="p-4 hover:shadow-md transition-shadow">
+                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                      <div className="flex-1">
+                                        <div className="flex items-start gap-3">
+                                          <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-800 rounded-lg flex items-center justify-center shadow flex-shrink-0">
+                                            <FiFile className="text-xl text-white" />
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-gray-900 mb-1 truncate" title={doc.name}>
+                                              {doc.name}
+                                            </h4>
+                                            <div className="space-y-1 text-sm text-gray-600">
+                                              <div>
+                                                <span className="font-medium">Type:</span> {getDocumentTypeLabel(doc.type)}
+                                              </div>
+                                              <div>
+                                                <span className="font-medium">Date d'upload:</span>{' '}
+                                                {new Date(doc.created_at).toLocaleDateString('fr-FR', {
+                                                  year: 'numeric',
+                                                  month: 'short',
+                                                  day: 'numeric',
+                                                  hour: '2-digit',
+                                                  minute: '2-digit',
+                                                })}
+                                              </div>
+                                              {doc.validated_at && (
+                                                <div>
+                                                  <span className="font-medium">Validé le:</span>{' '}
+                                                  {new Date(doc.validated_at).toLocaleDateString('fr-FR', {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                  })}
+                                                  {doc.validator && ` par ${doc.validator.name}`}
+                                                </div>
+                                              )}
+                                              {doc.status === 'rejected' && doc.rejection_reason && (
+                                                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs">
+                                                  <span className="font-medium text-red-800">Raison:</span>
+                                                  <p className="text-red-700 mt-1">{doc.rejection_reason}</p>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
+                                        <div>{getStatusBadge(doc.status)}</div>
+                                        <div className="flex gap-2 flex-wrap">
+                                          <Button
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={() => handleView(doc)}
+                                          >
+                                            <FiEye className="mr-1" />
+                                            Voir
+                                          </Button>
+                                          <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => handleDownload(doc)}
+                                          >
+                                            <FiDownload />
+                                          </Button>
+                                          {doc.status === 'pending' && (
+                                            <>
+                                              <Button
+                                                variant="primary"
+                                                size="sm"
+                                                onClick={() => handleApprove(doc)}
+                                                className="bg-green-600 hover:bg-green-700"
+                                              >
+                                                <FiCheckCircle className="mr-1" />
+                                                OK
+                                              </Button>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => openRejectModal(doc)}
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                              >
+                                                <FiXCircle className="mr-1" />
+                                                Rejeter
+                                              </Button>
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </Card>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                  )}
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>

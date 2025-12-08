@@ -58,7 +58,13 @@ class DocumentService
 
     public function getAllDocuments()
     {
-        return Document::with(['user', 'validator'])->orderBy('created_at', 'desc')->get();
+        return Document::with([
+            'user', 
+            'validator',
+            'inscription',
+            'workPermitApplication',
+            'residenceApplication'
+        ])->orderBy('created_at', 'desc')->get();
     }
 
     public function approve(Document $document, User $validator): Document
