@@ -123,8 +123,8 @@ const ClientDashboard = () => {
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                 <FiBriefcase className="text-3xl text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Permis de travail</h3>
-              <p className="text-gray-600 mb-4">Gérer vos demandes de permis</p>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">Demandes de visa</h3>
+              <p className="text-gray-600 mb-4">Gérer vos demandes de visa</p>
               <div className="flex items-center text-primary-600 font-medium">
                 <span>Accéder</span>
                 <FiArrowRight className="ml-2 w-4 h-4" />

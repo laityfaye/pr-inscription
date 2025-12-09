@@ -12,6 +12,7 @@ class WorkPermitApplication extends Model
     protected $fillable = [
         'user_id',
         'work_permit_country_id',
+        'visa_type',
         'status',
         'notes',
         'rejection_reason',

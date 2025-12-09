@@ -621,13 +621,13 @@ const Home = () => {
           <div className="section-container">
             <div className="text-center mb-20">
               <Badge variant="primary" size="lg" className="mb-6">
-                Permis de travail
+                Demandes de visa
               </Badge>
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
-                Obtenez votre permis de travail
+                Obtenez votre visa
               </h2>
               <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-                Explorez les opportunités de travail à l'étranger et démarrez votre carrière internationale
+                Explorez les opportunités de visa visiteur ou permis de travail à l'étranger et démarrez votre carrière internationale
               </p>
             </div>
 

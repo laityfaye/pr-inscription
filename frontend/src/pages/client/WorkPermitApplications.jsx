@@ -5,7 +5,7 @@ import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import api from '../../services/api'
 import toast from 'react-hot-toast'
-import { FiPlus, FiCheckCircle, FiClock, FiXCircle, FiBriefcase, FiCalendar, FiFileText, FiX, FiGlobe, FiFile, FiAlertCircle, FiEye, FiDownload, FiEdit, FiTrash2, FiArrowRight, FiUpload, FiUser, FiPhone, FiMapPin, FiBook, FiMessageCircle } from 'react-icons/fi'
+import { FiPlus, FiCheckCircle, FiClock, FiXCircle, FiBriefcase, FiCalendar, FiFileText, FiX, FiGlobe, FiFile, FiAlertCircle, FiEye, FiDownload, FiEdit, FiTrash2, FiArrowRight, FiUpload, FiUser, FiPhone, FiMapPin, FiBook, FiMessageCircle, FiInfo } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 
 const ClientWorkPermitApplications = () => {
@@ -17,8 +17,11 @@ const ClientWorkPermitApplications = () => {
   const [selectedApplication, setSelectedApplication] = useState(null)
   const [editingApplication, setEditingApplication] = useState(null)
   const [loadingDetails, setLoadingDetails] = useState(false)
+  const [visaTypeSelected, setVisaTypeSelected] = useState(false)
+  const [editVisaTypeSelected, setEditVisaTypeSelected] = useState(false)
   const [formData, setFormData] = useState({
     work_permit_country_id: '',
+    visa_type: 'work_permit',
     age: '',
     profession: '',
     experience_years: '',
@@ -52,12 +55,42 @@ const ClientWorkPermitApplications = () => {
       return
     }
 
+    if (!formData.visa_type || (formData.visa_type !== 'visitor_visa' && formData.visa_type !== 'work_permit')) {
+      toast.error('Veuillez sélectionner un type de demande')
+      console.error('Type de visa invalide:', formData.visa_type)
+      return
+    }
+
     try {
-      await api.post('/work-permit-applications', formData)
-      toast.success('Demande de permis de travail créée avec succès')
+      // Construire explicitement l'objet pour garantir que visa_type est inclus
+      const dataToSend = {
+        work_permit_country_id: formData.work_permit_country_id,
+        visa_type: formData.visa_type, // Utiliser directement la valeur, pas de fallback
+        age: formData.age || null,
+        profession: formData.profession || null,
+        experience_years: formData.experience_years || null,
+        current_employer: formData.current_employer || null,
+        phone_number: formData.phone_number || null,
+        address: formData.address || null,
+        education_level: formData.education_level || null,
+        language_skills: formData.language_skills || null,
+      }
+      
+      console.log('=== DEBUG CRÉATION DEMANDE ===')
+      console.log('formData complet:', formData)
+      console.log('visa_type sélectionné:', formData.visa_type)
+      console.log('Données envoyées au backend:', dataToSend)
+      console.log('=============================')
+      
+      const response = await api.post('/work-permit-applications', dataToSend)
+      console.log('Réponse du backend:', response.data)
+      
+      toast.success('Demande de visa créée avec succès')
       setShowModal(false)
+      setVisaTypeSelected(false)
       setFormData({
         work_permit_country_id: '',
+        visa_type: 'work_permit',
         age: '',
         profession: '',
         experience_years: '',
@@ -69,6 +102,8 @@ const ClientWorkPermitApplications = () => {
       })
       fetchData()
     } catch (error) {
+      console.error('Erreur complète:', error)
+      console.error('Réponse erreur:', error.response?.data)
       toast.error(error.response?.data?.message || 'Erreur lors de la création')
     }
   }
@@ -82,6 +117,7 @@ const ClientWorkPermitApplications = () => {
       setEditingApplication(null)
       setFormData({
         work_permit_country_id: '',
+        visa_type: 'work_permit',
         age: '',
         profession: '',
         experience_years: '',
@@ -101,7 +137,7 @@ const ClientWorkPermitApplications = () => {
   }
 
   const handleDelete = async (application) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette demande de permis de travail ?')) {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette demande de visa ?')) {
       return
     }
     try {
@@ -123,8 +159,10 @@ const ClientWorkPermitApplications = () => {
       return
     }
     setEditingApplication(application)
+    setEditVisaTypeSelected(true) // En mode édition, on affiche directement le formulaire complet
     setFormData({
       work_permit_country_id: application.work_permit_country_id || '',
+      visa_type: application.visa_type || 'work_permit',
       age: application.age || '',
       profession: application.profession || '',
       experience_years: application.experience_years || '',
@@ -235,14 +273,29 @@ const ClientWorkPermitApplications = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 mb-2">
-              Demandes de permis de travail
+              Demandes de visa
             </h1>
             <p className="text-sm sm:text-base text-neutral-600">
-              Gérez vos demandes de permis de travail
+              Gérez vos demandes de visa
             </p>
           </div>
           <Button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              setVisaTypeSelected(false)
+              setFormData({
+                work_permit_country_id: '',
+                visa_type: 'work_permit',
+                age: '',
+                profession: '',
+                experience_years: '',
+                current_employer: '',
+                phone_number: '',
+                address: '',
+                education_level: '',
+                language_skills: '',
+              })
+              setShowModal(true)
+            }}
             variant="primary"
             size="lg"
             icon={FiPlus}
@@ -261,7 +314,7 @@ const ClientWorkPermitApplications = () => {
               <div>
                 <p className="text-sm font-medium text-yellow-900">Aucun pays disponible</p>
                 <p className="text-sm text-yellow-700 mt-1">
-                  Aucun pays n'est actuellement configuré pour les demandes de permis de travail. Contactez l'administrateur.
+                  Aucun pays n'est actuellement configuré pour les demandes de visa. Contactez l'administrateur.
                 </p>
               </div>
             </div>
@@ -272,8 +325,8 @@ const ClientWorkPermitApplications = () => {
           {applications.length === 0 ? (
             <Card className="p-12 text-center">
               <FiBriefcase className="mx-auto text-6xl text-neutral-300 mb-4" />
-              <p className="text-neutral-600 text-lg mb-2">Aucune demande de permis de travail</p>
-              <p className="text-neutral-500 text-sm">Créez votre première demande de permis de travail</p>
+              <p className="text-neutral-600 text-lg mb-2">Aucune demande de visa</p>
+              <p className="text-neutral-500 text-sm">Créez votre première demande de visa</p>
             </Card>
           ) : (
             applications.map((application) => (
@@ -281,14 +334,41 @@ const ClientWorkPermitApplications = () => {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1 w-full">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <FiBriefcase className="text-xl sm:text-2xl text-white" />
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        application.visa_type === 'visitor_visa' 
+                          ? 'bg-gradient-to-br from-blue-500 to-blue-700' 
+                          : 'bg-gradient-to-br from-primary-500 to-primary-700'
+                      }`}>
+                        {application.visa_type === 'visitor_visa' ? (
+                          <FiGlobe className="text-xl sm:text-2xl text-white" />
+                        ) : (
+                          <FiBriefcase className="text-xl sm:text-2xl text-white" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                          <h3 className="text-base sm:text-lg font-bold text-neutral-900 truncate">
-                            Permis de travail - {application.country?.name || 'Pays inconnu'}
-                          </h3>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1 min-w-0">
+                            <h3 className="text-base sm:text-lg font-bold text-neutral-900 truncate">
+                              {application.country?.name || 'Pays inconnu'}
+                            </h3>
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              application.visa_type === 'visitor_visa'
+                                ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                : 'bg-primary-100 text-primary-800 border border-primary-200'
+                            }`}>
+                              {application.visa_type === 'visitor_visa' ? (
+                                <>
+                                  <FiGlobe className="w-3 h-3 mr-1" />
+                                  Visa Visiteur
+                                </>
+                              ) : (
+                                <>
+                                  <FiBriefcase className="w-3 h-3 mr-1" />
+                                  Permis de travail
+                                </>
+                              )}
+                            </span>
+                          </div>
                           <div className="flex-shrink-0 sm:ml-4">{getStatusBadge(application.status)}</div>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neutral-600">
@@ -371,7 +451,7 @@ const ClientWorkPermitApplications = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-neutral-900 flex items-center gap-2">
                   <FiBriefcase className="text-primary-600" />
-                  Modifier la demande de permis de travail
+                  Modifier la demande de visa
                 </h2>
                 <button
                   onClick={() => {
@@ -385,6 +465,64 @@ const ClientWorkPermitApplications = () => {
               </div>
 
               <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="space-y-6">
+                <div className="form-group">
+                  <label className="form-label">Type de demande *</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className={`relative flex flex-col items-center justify-center p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                      formData.visa_type === 'visitor_visa'
+                        ? 'border-primary-600 bg-primary-50 shadow-md'
+                        : 'border-neutral-200 hover:border-primary-300 hover:bg-neutral-50'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="visa_type_edit"
+                        value="visitor_visa"
+                        checked={formData.visa_type === 'visitor_visa'}
+                        onChange={(e) => setFormData({ ...formData, visa_type: e.target.value })}
+                        className="sr-only"
+                        required
+                      />
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
+                        formData.visa_type === 'visitor_visa'
+                          ? 'bg-primary-600'
+                          : 'bg-neutral-200'
+                      }`}>
+                        <FiGlobe className={`text-2xl ${formData.visa_type === 'visitor_visa' ? 'text-white' : 'text-neutral-500'}`} />
+                      </div>
+                      <span className={`text-base font-semibold ${formData.visa_type === 'visitor_visa' ? 'text-primary-700' : 'text-neutral-700'}`}>
+                        Visa Visiteur
+                      </span>
+                      <span className="text-xs text-neutral-500 mt-1 text-center">Pour visiter temporairement</span>
+                    </label>
+                    <label className={`relative flex flex-col items-center justify-center p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                      formData.visa_type === 'work_permit'
+                        ? 'border-primary-600 bg-primary-50 shadow-md'
+                        : 'border-neutral-200 hover:border-primary-300 hover:bg-neutral-50'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="visa_type_edit"
+                        value="work_permit"
+                        checked={formData.visa_type === 'work_permit'}
+                        onChange={(e) => setFormData({ ...formData, visa_type: e.target.value })}
+                        className="sr-only"
+                        required
+                      />
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
+                        formData.visa_type === 'work_permit'
+                          ? 'bg-primary-600'
+                          : 'bg-neutral-200'
+                      }`}>
+                        <FiBriefcase className={`text-2xl ${formData.visa_type === 'work_permit' ? 'text-white' : 'text-neutral-500'}`} />
+                      </div>
+                      <span className={`text-base font-semibold ${formData.visa_type === 'work_permit' ? 'text-primary-700' : 'text-neutral-700'}`}>
+                        Permis de travail
+                      </span>
+                      <span className="text-xs text-neutral-500 mt-1 text-center">Pour travailler à l'étranger</span>
+                    </label>
+                  </div>
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">Pays *</label>
                   <select
@@ -401,40 +539,9 @@ const ClientWorkPermitApplications = () => {
                     ))}
                   </select>
                   <p className="form-helper">
-                    Sélectionnez le pays pour lequel vous souhaitez demander un permis de travail
+                    Sélectionnez le pays pour lequel vous souhaitez faire votre demande
                   </p>
                 </div>
-
-                {formData.work_permit_country_id && (
-                  <div className="p-4 bg-neutral-50 rounded-lg">
-                    {(() => {
-                      const selectedCountry = countries.find(c => c.id === parseInt(formData.work_permit_country_id))
-                      if (!selectedCountry) return null
-                      return (
-                        <div className="space-y-3">
-                          {selectedCountry.description && (
-                            <div>
-                              <p className="text-sm font-medium text-neutral-700 mb-1">Description</p>
-                              <p className="text-sm text-neutral-600">{selectedCountry.description}</p>
-                            </div>
-                          )}
-                          {selectedCountry.eligibility_conditions && (
-                            <div>
-                              <p className="text-sm font-medium text-neutral-700 mb-1">Conditions d'éligibilité</p>
-                              <p className="text-sm text-neutral-600 whitespace-pre-wrap">{selectedCountry.eligibility_conditions}</p>
-                            </div>
-                          )}
-                          {selectedCountry.required_documents && (
-                            <div>
-                              <p className="text-sm font-medium text-neutral-700 mb-1">Documents requis</p>
-                              <p className="text-sm text-neutral-600 whitespace-pre-wrap">{selectedCountry.required_documents}</p>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })()}
-                  </div>
-                )}
 
                 {/* Informations personnelles */}
                 <div className="space-y-4 pt-4 border-t border-neutral-200">
@@ -548,6 +655,7 @@ const ClientWorkPermitApplications = () => {
                     setEditingApplication(null)
                     setFormData({
                       work_permit_country_id: '',
+                      visa_type: 'work_permit',
                       age: '',
                       profession: '',
                       experience_years: '',
@@ -557,6 +665,7 @@ const ClientWorkPermitApplications = () => {
                       education_level: '',
                       language_skills: '',
                     })
+                    setEditVisaTypeSelected(false)
                   }}>
                     Annuler
                   </Button>
@@ -573,7 +682,10 @@ const ClientWorkPermitApplications = () => {
         {showModal && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-            onClick={() => setShowModal(false)}
+            onClick={() => {
+              setShowModal(false)
+              setVisaTypeSelected(false)
+            }}
           >
             <Card
               className="max-w-2xl w-full max-h-[90vh] overflow-y-auto"
@@ -583,17 +695,119 @@ const ClientWorkPermitApplications = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-neutral-900 flex items-center gap-2">
                   <FiBriefcase className="text-primary-600" />
-                  Nouvelle demande de permis de travail
+                  Nouvelle demande de visa
                 </h2>
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false)
+                    setVisaTypeSelected(false)
+                  }}
                   className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
                 >
                   <FiX className="w-5 h-5 text-neutral-600" />
                 </button>
               </div>
 
-              <form onSubmit={(e) => { e.preventDefault(); handleCreate(); }} className="space-y-6">
+              {!visaTypeSelected ? (
+                /* Étape 1 : Sélection du type de demande */
+                <div className="space-y-6 animate-fade-in">
+                  <div className="text-center mb-8">
+                    <h3 className="text-xl font-semibold text-neutral-900 mb-2">
+                      Quel type de demande souhaitez-vous faire ?
+                    </h3>
+                    <p className="text-sm text-neutral-600">
+                      Sélectionnez le type de visa qui correspond à votre situation
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, visa_type: 'visitor_visa' }))
+                        setVisaTypeSelected(true)
+                      }}
+                      className="group relative flex flex-col items-center justify-center p-8 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-lg border-neutral-200 hover:border-primary-400 bg-white"
+                    >
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <FiGlobe className="text-3xl text-white" />
+                      </div>
+                      <h4 className="text-lg font-bold text-neutral-900 mb-2">Visa Visiteur</h4>
+                      <p className="text-sm text-neutral-600 text-center mb-4">
+                        Pour visiter temporairement un pays
+                      </p>
+                      <div className="flex items-center text-primary-600 text-sm font-medium">
+                        <span>Sélectionner</span>
+                        <FiArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </label>
+
+                    <label
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, visa_type: 'work_permit' }))
+                        setVisaTypeSelected(true)
+                      }}
+                      className="group relative flex flex-col items-center justify-center p-8 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-lg border-neutral-200 hover:border-primary-400 bg-white"
+                    >
+                      <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <FiBriefcase className="text-3xl text-white" />
+                      </div>
+                      <h4 className="text-lg font-bold text-neutral-900 mb-2">Permis de travail</h4>
+                      <p className="text-sm text-neutral-600 text-center mb-4">
+                        Pour travailler légalement à l'étranger
+                      </p>
+                      <div className="flex items-center text-primary-600 text-sm font-medium">
+                        <span>Sélectionner</span>
+                        <FiArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="pt-4 border-t border-neutral-200">
+                    <p className="text-xs text-center text-neutral-500">
+                      <FiInfo className="inline w-3 h-3 mr-1" />
+                      Vous pourrez modifier cette sélection plus tard si nécessaire
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* Étape 2 : Formulaire complet */
+                <form onSubmit={(e) => { 
+                  e.preventDefault()
+                  console.log('=== AVANT SOUMISSION ===')
+                  console.log('formData.visa_type:', formData.visa_type)
+                  console.log('Type de visa:', formData.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail')
+                  handleCreate()
+                }} className="space-y-6 animate-fade-in">
+                  {/* Badge du type sélectionné */}
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg border border-primary-200 mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        formData.visa_type === 'visitor_visa' ? 'bg-blue-500' : 'bg-primary-500'
+                      }`}>
+                        {formData.visa_type === 'visitor_visa' ? (
+                          <FiGlobe className="text-xl text-white" />
+                        ) : (
+                          <FiBriefcase className="text-xl text-white" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-neutral-600">Type sélectionné</p>
+                        <p className="text-base font-bold text-neutral-900">
+                          {formData.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'}
+                        </p>
+                        <p className="text-xs text-neutral-500 mt-1">Valeur: {formData.visa_type}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setVisaTypeSelected(false)}
+                      className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+                    >
+                      <FiX className="w-4 h-4" />
+                      Modifier
+                    </button>
+                  </div>
+
                 <div className="form-group">
                   <label className="form-label">Pays *</label>
                   <select
@@ -610,40 +824,9 @@ const ClientWorkPermitApplications = () => {
                     ))}
                   </select>
                   <p className="form-helper">
-                    Sélectionnez le pays pour lequel vous souhaitez demander un permis de travail
+                    Sélectionnez le pays pour lequel vous souhaitez faire votre demande
                   </p>
                 </div>
-
-                {formData.work_permit_country_id && (
-                  <div className="p-4 bg-neutral-50 rounded-lg">
-                    {(() => {
-                      const selectedCountry = countries.find(c => c.id === parseInt(formData.work_permit_country_id))
-                      if (!selectedCountry) return null
-                      return (
-                        <div className="space-y-3">
-                          {selectedCountry.description && (
-                            <div>
-                              <p className="text-sm font-medium text-neutral-700 mb-1">Description</p>
-                              <p className="text-sm text-neutral-600">{selectedCountry.description}</p>
-                            </div>
-                          )}
-                          {selectedCountry.eligibility_conditions && (
-                            <div>
-                              <p className="text-sm font-medium text-neutral-700 mb-1">Conditions d'éligibilité</p>
-                              <p className="text-sm text-neutral-600 whitespace-pre-wrap">{selectedCountry.eligibility_conditions}</p>
-                            </div>
-                          )}
-                          {selectedCountry.required_documents && (
-                            <div>
-                              <p className="text-sm font-medium text-neutral-700 mb-1">Documents requis</p>
-                              <p className="text-sm text-neutral-600 whitespace-pre-wrap">{selectedCountry.required_documents}</p>
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })()}
-                  </div>
-                )}
 
                 {/* Informations personnelles */}
                 <div className="space-y-4 pt-4 border-t border-neutral-200">
@@ -754,8 +937,10 @@ const ClientWorkPermitApplications = () => {
                 <div className="flex justify-end space-x-4 pt-6 border-t border-neutral-200">
                   <Button type="button" variant="secondary" onClick={() => {
                     setShowModal(false)
+                    setVisaTypeSelected(false)
                     setFormData({
                       work_permit_country_id: '',
+                      visa_type: 'work_permit',
                       age: '',
                       profession: '',
                       experience_years: '',
@@ -772,7 +957,8 @@ const ClientWorkPermitApplications = () => {
                     Créer la demande
                   </Button>
                 </div>
-              </form>
+                </form>
+              )}
             </Card>
           </div>
         )}
@@ -783,8 +969,10 @@ const ClientWorkPermitApplications = () => {
             <Card className="max-w-4xl w-full p-6 animate-scale-in my-4 max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Détails de la demande de permis de travail</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">{selectedApplication.country?.name || 'Permis de travail'}</p>
+                  <h2 className="text-xl font-bold text-gray-900">Détails de la demande de visa</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {selectedApplication.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'} - {selectedApplication.country?.name || 'N/A'}
+                  </p>
                 </div>
                 <button
                   onClick={() => {
@@ -806,6 +994,16 @@ const ClientWorkPermitApplications = () => {
 
                 {/* Informations générales */}
                 <div className="grid md:grid-cols-2 gap-3">
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                    <div className="flex items-center mb-2">
+                      <FiGlobe className="w-4 h-4 text-blue-600 mr-2" />
+                      <h3 className="text-sm font-semibold text-gray-900">Type de demande</h3>
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      {selectedApplication.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'}
+                    </p>
+                  </div>
+
                   <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
                     <div className="flex items-center mb-2">
                       <FiGlobe className="w-4 h-4 text-blue-600 mr-2" />

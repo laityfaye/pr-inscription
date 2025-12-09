@@ -67,7 +67,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
     { to: '/admin/dashboard', label: 'Tableau de bord', icon: FiHome },
     { to: '/admin/inscriptions', label: 'Préinscriptions', icon: FiFileText },
     // { to: '/admin/appointments', label: 'Rendez-vous', icon: FiCalendar },
-    { to: '/admin/work-permit-applications', label: 'Permis de travail', icon: FiBriefcase },
+    { to: '/admin/work-permit-applications', label: 'Demandes de visa', icon: FiBriefcase },
     { to: '/admin/residence-applications', label: 'Résidence Canada', icon: FiHome },
     { to: '/admin/users', label: 'Utilisateurs', icon: FiUsers },
     { to: '/admin/documents', label: 'Documents', icon: FiUpload },
@@ -81,7 +81,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
   const clientLinks = [
     { to: '/client/dashboard', label: 'Tableau de bord', icon: FiHome },
     { to: '/client/inscriptions', label: 'Mes préinscriptions', icon: FiFileText },
-    { to: '/client/work-permit-applications', label: 'Permis de travail', icon: FiBriefcase },
+    { to: '/client/work-permit-applications', label: 'Demandes de visa', icon: FiBriefcase },
     { to: '/client/residence-applications', label: 'Résidence Canada', icon: FiHome },
     { to: '/client/documents', label: 'Mes documents', icon: FiUpload },
     { to: '/client/chat', label: 'Messages', icon: FiBell, badge: unreadCount },

@@ -53,6 +53,7 @@ class WorkPermitApplicationController extends Controller
     {
         $request->validate([
             'work_permit_country_id' => ['required', 'exists:work_permit_countries,id'],
+            'visa_type' => ['required', 'in:visitor_visa,work_permit'],
             'age' => ['nullable', 'integer', 'min:18', 'max:100'],
             'profession' => ['nullable', 'string', 'max:255'],
             'experience_years' => ['nullable', 'integer', 'min:0', 'max:50'],
@@ -66,6 +67,7 @@ class WorkPermitApplicationController extends Controller
         $application = $this->service->create([
             'user_id' => $request->user()->id,
             'work_permit_country_id' => $request->work_permit_country_id,
+            'visa_type' => $request->visa_type,
             'age' => $request->age,
             'profession' => $request->profession,
             'experience_years' => $request->experience_years,
@@ -120,6 +122,7 @@ class WorkPermitApplicationController extends Controller
 
         $request->validate([
             'work_permit_country_id' => ['sometimes', 'required', 'exists:work_permit_countries,id'],
+            'visa_type' => ['sometimes', 'required', 'in:visitor_visa,work_permit'],
             'age' => ['nullable', 'integer', 'min:18', 'max:100'],
             'profession' => ['nullable', 'string', 'max:255'],
             'experience_years' => ['nullable', 'integer', 'min:0', 'max:50'],
@@ -132,6 +135,7 @@ class WorkPermitApplicationController extends Controller
 
         $workPermitApplication->update($request->only([
             'work_permit_country_id',
+            'visa_type',
             'age',
             'profession',
             'experience_years',

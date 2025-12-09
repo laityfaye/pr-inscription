@@ -346,7 +346,7 @@ const ClientDocuments = () => {
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
-            Permis ({documents.filter(d => d.work_permit_application_id).length})
+            Visa ({documents.filter(d => d.work_permit_application_id).length})
           </button>
           <button
             onClick={() => setActiveTab('residence')}
@@ -402,7 +402,7 @@ const ClientDocuments = () => {
                     {doc.work_permit_application_id && (
                       <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mb-2">
                         <FiBriefcase className="mr-1" />
-                        Permis de travail
+                        Demande de visa
                       </div>
                     )}
                     {doc.residence_application_id && (
@@ -540,7 +540,7 @@ const ClientDocuments = () => {
                 >
                   <option value="">Sélectionnez une catégorie</option>
                   <option value="inscription">Préinscription</option>
-                  <option value="work_permit">Permis de travail</option>
+                  <option value="work_permit">Demande de visa</option>
                   <option value="residence">Résidence Canada</option>
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
@@ -572,7 +572,7 @@ const ClientDocuments = () => {
               {documentCategory === 'work_permit' && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Demande de permis de travail <span className="text-red-500">*</span>
+                    Demande de visa <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={selectedWorkPermitId}
@@ -583,7 +583,7 @@ const ClientDocuments = () => {
                     <option value="">Sélectionnez une demande</option>
                     {workPermitApplications.map((app) => (
                       <option key={app.id} value={app.id}>
-                        {app.country?.name || 'Permis de travail'} - {new Date(app.created_at).toLocaleDateString('fr-FR')}
+                        {app.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'} - {app.country?.name || 'N/A'} - {new Date(app.created_at).toLocaleDateString('fr-FR')}
                       </option>
                     ))}
                   </select>
