@@ -29,6 +29,7 @@ const AdminWorkPermitApplications = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterCountry, setFilterCountry] = useState('')
+  const [filterVisaType, setFilterVisaType] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [showFilters, setShowFilters] = useState(false)
@@ -48,6 +49,7 @@ const AdminWorkPermitApplications = () => {
       const params = new URLSearchParams()
       if (filterStatus) params.append('status', filterStatus)
       if (filterCountry) params.append('work_permit_country_id', filterCountry)
+      if (filterVisaType) params.append('visa_type', filterVisaType)
       if (dateFrom) params.append('date_from', dateFrom)
       if (dateTo) params.append('date_to', dateTo)
       if (debouncedSearchQuery) params.append('search', debouncedSearchQuery)
@@ -59,7 +61,7 @@ const AdminWorkPermitApplications = () => {
       console.error('Error fetching work permit applications:', error)
       toast.error('Erreur lors du chargement des demandes')
     }
-  }, [filterStatus, filterCountry, dateFrom, dateTo, debouncedSearchQuery])
+  }, [filterStatus, filterCountry, filterVisaType, dateFrom, dateTo, debouncedSearchQuery])
 
   useEffect(() => {
     fetchCountries()
@@ -80,12 +82,13 @@ const AdminWorkPermitApplications = () => {
     setSearchQuery('')
     setFilterStatus('')
     setFilterCountry('')
+    setFilterVisaType('')
     setDateFrom('')
     setDateTo('')
     setShowFilters(false)
   }
 
-  const hasActiveFilters = filterStatus || filterCountry || dateFrom || dateTo || searchQuery
+  const hasActiveFilters = filterStatus || filterCountry || filterVisaType || dateFrom || dateTo || searchQuery
 
   const fetchApplicationDetails = async (applicationId) => {
     try {
@@ -337,7 +340,7 @@ const AdminWorkPermitApplications = () => {
               Filtres
               {hasActiveFilters && (
                 <Badge variant="primary" size="sm" className="ml-2">
-                  {[filterStatus, filterCountry, dateFrom, dateTo, searchQuery].filter(Boolean).length}
+                  {[filterStatus, filterCountry, filterVisaType, dateFrom, dateTo, searchQuery].filter(Boolean).length}
                 </Badge>
               )}
             </Button>
@@ -359,7 +362,15 @@ const AdminWorkPermitApplications = () => {
           </div>
 
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-6 border-t border-neutral-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 pt-6 border-t border-neutral-200">
+              <div className="form-group">
+                <label className="form-label">Type de demande</label>
+                <select value={filterVisaType} onChange={(e) => setFilterVisaType(e.target.value)} className="input">
+                  <option value="">Tous les types</option>
+                  <option value="visitor_visa">Visa Visiteur</option>
+                  <option value="work_permit">Permis de travail</option>
+                </select>
+              </div>
               <div className="form-group">
                 <label className="form-label">Statut</label>
                 <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="input">

@@ -37,6 +37,10 @@ class WorkPermitApplicationRepository
             $query->where('work_permit_country_id', $filters['work_permit_country_id']);
         }
 
+        if (!empty($filters['visa_type'])) {
+            $query->where('visa_type', $filters['visa_type']);
+        }
+
         if (!empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
         }

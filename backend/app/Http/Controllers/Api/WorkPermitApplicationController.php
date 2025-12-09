@@ -17,7 +17,7 @@ class WorkPermitApplicationController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $filters = $request->only(['status', 'work_permit_country_id', 'user_id', 'date_from', 'date_to', 'search']);
+        $filters = $request->only(['status', 'work_permit_country_id', 'user_id', 'visa_type', 'date_from', 'date_to', 'search']);
         $minimal = $request->query('minimal', false) === 'true' || $request->query('minimal') === '1';
         
         if ($request->user()->isAdmin()) {
