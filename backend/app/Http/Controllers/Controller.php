@@ -17,8 +17,8 @@ class Controller extends BaseController
     protected function getCorsHeaders(Request $request): array
     {
         $allowedOrigins = [
-            'https://sbcgroupe.ca',
-            'https://www.sbcgroupe.ca',
+            'https://tfksservice.innosft.com',
+            'https://tfksbackend.innosft.com',
             'http://localhost:3000',
             'http://127.0.0.1:3000',
         ];

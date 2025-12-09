@@ -59,6 +59,31 @@ const Home = () => {
   const [selectedWorkPermitCountry, setSelectedWorkPermitCountry] = useState(null)
   const [showWorkPermitDetails, setShowWorkPermitDetails] = useState(false)
   const [loadingWorkPermitDetails, setLoadingWorkPermitDetails] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+
+  // Images de groupes d'étudiants pour le carrousel
+  const studentImages = [
+    'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80',
+    'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    'https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+  ]
+
+  // Carrousel automatique des images
+  useEffect(() => {
+    if (studentImages.length === 0) return
+    
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % studentImages.length
+        return nextIndex
+      })
+    }, 5000) // Change d'image toutes les 5 secondes
+
+    return () => clearInterval(interval)
+  }, [studentImages.length])
 
   // Fonction helper pour gérer les clics sur les boutons de demande
   // Redirige vers /register si l'utilisateur n'est pas connecté, sinon vers la route normale
@@ -203,190 +228,180 @@ const Home = () => {
 
   return (
     <Layout>
-      {/* Hero Section - Modern & Premium */}
-      <section className="relative overflow-hidden text-white min-h-screen flex items-center pt-2 pb-8 sm:pt-3 sm:pb-12 md:py-0">
-        {/* Animated Background */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`,
-          }}
-        >
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-900/90 via-primary-800/85 to-accent-900/90"></div>
-          {/* Animated Pattern */}
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-20 animate-pulse-slow"></div>
-        </div>
-
-        {/* Lawyer Card - Bottom Left (Desktop) / Below Buttons (Mobile) */}
-        {agency?.lawyer_card_enabled && (agency?.lawyer_first_name || agency?.lawyer_last_name) && (
-          <>
-            {/* Desktop: Absolute position bottom left */}
-            <div className="hidden md:block absolute bottom-8 left-8 z-20 animate-slide-up" style={{ animationDelay: '0.5s' }}>
-              <div className="bg-white/95 backdrop-blur-xl rounded-xl p-4 shadow-2xl border border-white/20 max-w-[220px]">
-                <div className="flex flex-col items-center text-center space-y-2">
-                  {/* Circular Image */}
-                  {agency?.lawyer_image && (
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-xl opacity-50"></div>
-                      <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-xl">
-                        <img 
-                          src={getImageUrl(agency.lawyer_image)} 
-                          alt={`${agency.lawyer_first_name || ''} ${agency.lawyer_last_name || ''}`.trim() || 'Avocat'} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {/* Lawyer Info */}
-                  <div className="w-full">
-                    <h3 className="text-base font-bold text-gray-900 mb-0.5">
-                      {agency.lawyer_first_name || ''} {agency.lawyer_last_name || ''}
-                    </h3>
-                    {agency.lawyer_title && (
-                      <p className="text-xs text-gray-600 mb-2 px-1 line-clamp-2">{agency.lawyer_title}</p>
-                    )}
-                    {/* Appointment Button */}
-                    <Link to="/#" className="block w-full">
-                      <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-3 rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-1.5 text-xs">
-                        <FiCalendar className="w-3.5 h-3.5" />
-                        <span className="whitespace-nowrap">Prendre rendez-vous</span>
-                      </button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
+      {/* Hero Section - Study Travel Platform */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Image de fond par défaut - toujours visible en arrière-plan */}
+        {studentImages.length > 0 && (
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
+            style={{
+              backgroundImage: `url(${studentImages[currentImageIndex] || studentImages[0]})`,
+            }}
+          ></div>
         )}
 
-        <div className="section-container relative z-10 text-center animate-fade-in w-full px-4 pt-0 sm:pt-0 md:pt-0">
-          {/* Badge */}
-          <div className="inline-flex items-center justify-center px-3 sm:px-5 py-2 sm:py-2.5 bg-white/15 backdrop-blur-xl rounded-full mb-4 sm:mb-6 md:mb-8 text-xs sm:text-sm font-semibold border border-white/20 shadow-lg animate-slide-down">
-            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-success-400 rounded-full mr-2 sm:mr-3 animate-pulse shadow-lg shadow-success-400/50"></span>
-            <span className="text-[11px] sm:text-sm">{rentreeText}</span>
-          </div>
-
-          {/* Main Heading - Toujours affiché car les données de l'agence sont disponibles depuis le cache */}
-          <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-3 sm:mb-4 md:mb-6 text-balance animate-slide-up leading-tight px-2">
-            <span className="block mb-1 sm:mb-2">{agency?.name || 'SBC Synergie Business et Consultation'}</span>
-            {agency?.name && agency?.name !== 'SBC Synergie Business et Consultation' && (
-              <span className="block text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-primary-100">
-                SBC Groupe
-              </span>
-            )}
-          </h1>
-
-          {/* Subtitle - Toujours affiché avec les données de l'agence (cache ou valeurs par défaut) */}
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-3 sm:mb-4 text-primary-100 font-light max-w-3xl mx-auto animate-slide-up px-2" style={{ animationDelay: '0.1s' }}>
-            {agency?.description || defaultDescription}
-          </p>
-          
-          {/* Hero Subtitle */}
-          {agency?.hero_subtitle && (
-            <p
-              className="text-sm sm:text-base md:text-lg lg:text-xl mb-6 sm:mb-8 md:mb-12 text-primary-200 max-w-2xl mx-auto animate-slide-up px-2"
-              style={{ animationDelay: '0.2s' }}
-            >
-              {agency.hero_subtitle}
-            </p>
-          )}
-
-          {/* CTA Buttons */}
-          {!loading && (
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-slide-up px-2" style={{ animationDelay: '0.3s' }}>
-            <Link to="/register" className="w-full sm:w-auto">
-              <button 
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
-                           px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
-                           bg-white text-primary-700 hover:bg-neutral-50 
-                           shadow-2xl hover:shadow-glow-lg transform hover:scale-105 
-                           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
-                           whitespace-nowrap border-0"
-              >
-                Préinscription maintenant
-                <FiArrowRight className="w-4 h-4" />
-              </button>
-            </Link>
-            <Link to="/reviews" className="w-full sm:w-auto">
-              <button 
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
-                           px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
-                           bg-transparent text-white border-2 border-white/40 
-                           hover:bg-white/20 hover:border-white/60 
-                           backdrop-blur-sm
-                           focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent
-                           whitespace-nowrap"
-              >
-                Voir les témoignages
-              </button>
-            </Link>
-            <a 
-              href="https://assurancevisiteurs.ca/collaborations/sbc-voyage/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto"
-            >
-              <button 
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
-                           px-4 sm:px-5 py-3 sm:py-4 text-sm sm:text-base
-                           bg-white text-red-600
-                           hover:bg-red-50 hover:text-red-700 
-                           shadow-2xl hover:shadow-glow-lg transform hover:scale-105 
-                           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
-                           whitespace-nowrap border-0"
-              >
-                Assurance voyage
-                <FiArrowRight className="w-4 h-4" />
-              </button>
-            </a>
-            </div>
-          )}
-
-          {/* Lawyer Card - Mobile: Below buttons */}
-          {agency?.lawyer_card_enabled && (agency?.lawyer_first_name || agency?.lawyer_last_name) && (
-            <div className="md:hidden mt-4 sm:mt-6 w-full max-w-[280px] mx-auto animate-slide-up px-2" style={{ animationDelay: '0.4s' }}>
-              <div className="bg-white/95 backdrop-blur-xl rounded-xl p-3 shadow-2xl border border-white/20">
-                <div className="flex flex-col items-center text-center space-y-2">
-                  {/* Circular Image */}
-                  {agency?.lawyer_image && (
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-xl opacity-50"></div>
-                      <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-xl">
-                        <img 
-                          src={getImageUrl(agency.lawyer_image)} 
-                          alt={`${agency.lawyer_first_name || ''} ${agency.lawyer_last_name || ''}`.trim() || 'Avocat'} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {/* Lawyer Info */}
-                  <div className="w-full">
-                    <h3 className="text-sm font-bold text-gray-900 mb-0.5">
-                      {agency.lawyer_first_name || ''} {agency.lawyer_last_name || ''}
-                    </h3>
-                    {agency.lawyer_title && (
-                      <p className="text-xs text-gray-600 mb-2 px-1 line-clamp-2">{agency.lawyer_title}</p>
-                    )}
-                    {/* Appointment Button */}
-                    <Link to="/#" className="block w-full">
-                      <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-3 rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-1.5 text-xs">
-                        <FiCalendar className="w-3.5 h-3.5" />
-                        <span className="whitespace-nowrap">Prendre rendez-vous</span>
-                      </button>
-                    </Link>
-                  </div>
+        {/* Carrousel d'images d'étudiants en arrière-plan */}
+        {studentImages.length > 0 && (
+          <div className="absolute inset-0 z-0">
+            {studentImages.map((image, index) => {
+              const isActive = index === currentImageIndex
+              return (
+                <div
+                  key={index}
+                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                    isActive ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  style={{
+                    zIndex: isActive ? 1 : 0,
+                    pointerEvents: isActive ? 'auto' : 'none',
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{
+                      backgroundImage: `url(${image})`,
+                      transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                      transition: 'transform 10s ease-in-out',
+                    }}
+                  ></div>
                 </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Overlay pour la lisibilité */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/70 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-primary-900/30 via-transparent to-accent-900/30 z-10"></div>
+
+        {/* Main Content Container */}
+        <div className="section-container relative z-20 pt-12 pb-20 lg:pt-16 lg:pb-32">
+          <div className="max-w-5xl mx-auto text-center">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md border border-white/20 rounded-full mb-8 animate-fade-in shadow-lg">
+              <div className="relative">
+                <span className="absolute inset-0 bg-success-400 rounded-full animate-ping opacity-75"></span>
+                <span className="relative w-2 h-2 bg-success-500 rounded-full"></span>
+              </div>
+              <span className="text-sm font-medium text-primary-700">{rentreeText}</span>
+            </div>
+
+            {/* Main Heading */}
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 text-white leading-tight animate-slide-up drop-shadow-2xl">
+              <span className="block mb-3">Gérez vos</span>
+              <span className="block bg-gradient-to-r from-primary-300 via-primary-200 to-accent-300 bg-clip-text text-transparent">
+                Voyages d'Étude
+              </span>
+              <span className="block mt-3 text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-white/90">
+                {agency?.name || 'TFKS Synergie Business et Consultation'}
+              </span>
+            </h1>
+
+            {/* Description */}
+            <p className="text-xl sm:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed font-light animate-slide-up drop-shadow-lg" style={{ animationDelay: '0.1s' }}>
+              {agency?.description || defaultDescription}
+            </p>
+
+            {/* Hero Subtitle */}
+            {agency?.hero_subtitle && (
+              <p className="text-lg text-white/80 mb-12 max-w-2xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                {agency.hero_subtitle}
+              </p>
+            )}
+
+            {/* CTA Buttons */}
+            {!loading && (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                <Link to="/register" className="w-full sm:w-auto group">
+                  <button 
+                    className="w-full sm:w-auto relative inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-300 
+                               px-8 py-4 text-base
+                               bg-white text-primary-700 
+                               hover:bg-primary-50 
+                               shadow-2xl hover:shadow-2xl transform hover:-translate-y-0.5
+                               focus:outline-none focus:ring-4 focus:ring-white/50"
+                  >
+                    Commencer maintenant
+                    <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </Link>
+                <Link to="/reviews" className="w-full sm:w-auto">
+                  <button 
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-300 
+                               px-8 py-4 text-base
+                               bg-white/10 backdrop-blur-md text-white border-2 border-white/30 
+                               hover:bg-white/20 hover:border-white/50 
+                               shadow-lg hover:shadow-xl transform hover:-translate-y-0.5
+                               focus:outline-none focus:ring-4 focus:ring-white/30"
+                  >
+                    Voir les témoignages
+                  </button>
+                </Link>
+              </div>
+            )}
+
+            {/* Key Features - Study Travel Focused */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 animate-slide-up" style={{ animationDelay: '0.4s' }}>
+              <div className="p-6 bg-white/95 backdrop-blur-md border border-white/20 rounded-xl hover:shadow-2xl transition-all duration-300 group shadow-lg">
+                <div className="w-12 h-12 rounded-lg bg-primary-600 flex items-center justify-center mb-4 group-hover:bg-primary-700 transition-colors shadow-lg">
+                  <FiGlobe className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-neutral-900 mb-2">Destinations multiples</h3>
+                <p className="text-sm text-neutral-600">Explorez {countries.length || '15+'} pays pour vos études</p>
+              </div>
+
+              <div className="p-6 bg-white/95 backdrop-blur-md border border-white/20 rounded-xl hover:shadow-2xl transition-all duration-300 group shadow-lg">
+                <div className="w-12 h-12 rounded-lg bg-accent-600 flex items-center justify-center mb-4 group-hover:bg-accent-700 transition-colors shadow-lg">
+                  <FiFileText className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-neutral-900 mb-2">Gestion simplifiée</h3>
+                <p className="text-sm text-neutral-600">Suivez vos dossiers en temps réel</p>
+              </div>
+
+              <div className="p-6 bg-white/95 backdrop-blur-md border border-white/20 rounded-xl hover:shadow-2xl transition-all duration-300 group shadow-lg">
+                <div className="w-12 h-12 rounded-lg bg-success-600 flex items-center justify-center mb-4 group-hover:bg-success-700 transition-colors shadow-lg">
+                  <FiShield className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-neutral-900 mb-2">Accompagnement</h3>
+                <p className="text-sm text-neutral-600">Support expert à chaque étape</p>
+              </div>
+
+              <div className="p-6 bg-white/95 backdrop-blur-md border border-white/20 rounded-xl hover:shadow-2xl transition-all duration-300 group shadow-lg">
+                <div className="w-12 h-12 rounded-lg bg-warning-600 flex items-center justify-center mb-4 group-hover:bg-warning-700 transition-colors shadow-lg">
+                  <FiTrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-neutral-900 mb-2">Taux de réussite</h3>
+                <p className="text-sm text-neutral-600">95% de réussite dans nos accompagnements</p>
               </div>
             </div>
-          )}
+
+            {/* Statistics */}
+            <div className="flex flex-wrap justify-center gap-8 pt-8 border-t border-white/20 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-white mb-1 drop-shadow-lg">{clientsCount > 0 ? `${clientsCount}+` : '0+'}</div>
+                <div className="text-sm text-white/80 font-medium">Étudiants accompagnés</div>
+              </div>
+              <div className="w-px h-12 bg-white/30"></div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-white mb-1 drop-shadow-lg">{countries.length || '15+'}</div>
+                <div className="text-sm text-white/80 font-medium">Pays disponibles</div>
+              </div>
+              <div className="w-px h-12 bg-white/30"></div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-white mb-1 drop-shadow-lg">{reviews.length > 0 ? `${reviews.length}+` : '50+'}</div>
+                <div className="text-sm text-white/80 font-medium">Avis clients</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Scroll Indicator */}
-        <div className="hidden md:block absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce-subtle">
-          <div className="w-6 h-10 border-2 border-white/40 rounded-full flex items-start justify-center p-2">
-            <div className="w-1.5 h-3 bg-white/60 rounded-full"></div>
+        <div className="hidden lg:block absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+          <div className="flex flex-col items-center gap-2 text-white/80">
+            <span className="text-xs font-medium">Découvrir</span>
+            <div className="w-6 h-10 border-2 border-white/50 rounded-full flex items-start justify-center p-2 backdrop-blur-sm bg-white/10">
+              <div className="w-1.5 h-3 bg-white/80 rounded-full animate-bounce"></div>
+            </div>
           </div>
         </div>
       </section>
@@ -799,7 +814,7 @@ const Home = () => {
                 Votre partenaire de confiance
               </h2>
               <p className="text-xl text-neutral-600 max-w-4xl mx-auto leading-relaxed">
-                {agency.description || 'Voyager pour étudier est une étape majeure qui demande une organisation parfaite. Notre agence de voyage SBC est là pour transformer cette étape excitante en une expérience simple et sécurisée.'}
+                {agency.description || 'Voyager pour étudier est une étape majeure qui demande une organisation parfaite. Notre agence de voyage TFKS est là pour transformer cette étape excitante en une expérience simple et sécurisée.'}
               </p>
             </div>
 
@@ -1358,100 +1373,6 @@ const Home = () => {
         </div>
       )}
 
-      {/* Partners Section */}
-      <section className="py-24 bg-gradient-to-b from-neutral-50 via-white to-neutral-50 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-primary-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-500 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="section-container relative z-10">
-          <div className="text-center mb-16">
-            <Badge variant="primary" size="lg" className="mb-6">
-              Nos partenaires
-            </Badge>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
-              Institutions partenaires
-            </h2>
-            <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
-              Nous collaborons avec des établissements d'enseignement de renom au Canada pour vous offrir les meilleures opportunités
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-            {[
-              {
-                name: 'Collège Ellis',
-                image: '/images/partners/college-ellis.png',
-                alt: 'Logo Collège Ellis'
-              },
-              {
-                name: 'COLLÈGE de l\'île',
-                image: '/images/partners/college-de-lile.png',
-                alt: 'Logo COLLÈGE de l\'île'
-              },
-              {
-                name: 'COLLÈGE SUPÉRIEUR DE MONTRÉAL',
-                image: '/images/partners/college-superieur-montreal.png',
-                alt: 'Logo COLLÈGE SUPÉRIEUR DE MONTRÉAL'
-              },
-              {
-                name: 'Collège CDI',
-                image: '/images/partners/college-cdi.png',
-                alt: 'Logo Collège CDI'
-              },
-              {
-                name: 'CESTAR COLLÈGE',
-                image: '/images/partners/cestar-college.png',
-                alt: 'Logo CESTAR COLLÈGE, Campus Longueuil'
-              },
-              {
-                name: 'Collège National',
-                image: '/images/partners/college-national.png',
-                alt: 'Logo Collège National'
-              }
-            ].map((partner, index) => (
-              <Card
-                key={index}
-                interactive
-                className="p-6 sm:p-8 bg-white hover:shadow-2xl transition-all duration-300 group border-2 border-neutral-200 hover:border-primary-300 animate-slide-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="flex flex-col items-center justify-center h-full min-h-[180px] sm:min-h-[200px]">
-                  <div className="relative w-full h-32 sm:h-40 flex items-center justify-center mb-4 p-4">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-accent-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
-                    <img
-                      src={partner.image}
-                      alt={partner.alt}
-                      className="relative z-10 max-w-full max-h-full object-contain filter group-hover:brightness-110 transition-all duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        // Fallback si l'image n'est pas trouvée
-                        const fallback = e.target.nextElementSibling
-                        if (fallback) {
-                          e.target.style.display = 'none'
-                          fallback.style.display = 'flex'
-                        }
-                      }}
-                    />
-                    <div
-                      className="hidden items-center justify-center w-full h-full text-center"
-                      style={{ display: 'none' }}
-                    >
-                      <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-accent-100 rounded-xl flex items-center justify-center">
-                        <FiGlobe className="w-8 h-8 text-primary-600" />
-                      </div>
-                    </div>
-                  </div>
-                  <h3 className="text-xs sm:text-sm md:text-base font-semibold text-neutral-700 group-hover:text-primary-700 transition-colors text-center leading-tight px-2">
-                    {partner.name}
-                  </h3>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
     </Layout>
   )
 }

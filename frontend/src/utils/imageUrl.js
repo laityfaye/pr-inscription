@@ -26,9 +26,9 @@ const getBackendBaseUrl = () => {
     return 'http://localhost:8000'
   }
   
-  // En production, si on est sur sbcgroupe.ca, utiliser le sous-domaine backend
-  if (hostname === 'sbcgroupe.ca' || hostname === 'www.sbcgroupe.ca') {
-    return 'https://backend.sbcgroupe.ca'
+  // En production, si on est sur innosft.com, utiliser le sous-domaine backend
+  if (hostname === 'tfksservice.innosft.com' || hostname === 'tfksbackend.innosft.com' || hostname === 'innosft.com') {
+    return 'https://tfksbackend.innosft.com'
   }
   
   // Sinon, utiliser l'IP/hostname actuel avec le port 8000 (pour développement réseau local)

@@ -15,21 +15,11 @@ class DatabaseSeeder extends Seeder
         // Créer l'admin
         User::create([
             'name' => 'Administrateur',
-            'email' => 'laityfaye@gmail.com',
+            'email' => 'toubafallv@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
             'phone' => '789553756',
         ]);
-
-        // Créer un client de test
-        // User::create([
-        //     'name' => 'Client Test',
-        //     'email' => 'client@test.com',
-        //     'password' => Hash::make('password'),
-        //     'role' => 'client',
-        //     'phone' => '771801995',
-        //     'target_country' => 'France',
-        // ]);
 
         // Créer les pays
         $countries = [
@@ -47,9 +37,9 @@ class DatabaseSeeder extends Seeder
         AgencySetting::create([
             'name' => 'InnoSoft',
             'description' => 'Votre destination, notre mission. Nous vous accompagnons dans vos démarches de préinscription pour vos études à l\'étranger.',
-            'email' => 'massaersyll3@gmail.com',
-            'whatsapp' => '789553756',
-            'phone' => '789553756',
+            'email' => 'laityfaye@gmail.com',
+            'whatsapp' => '780186229',
+            'phone' => '780186229',
             'address' => 'Dakar, HLM FASS',
             'registration_number' => 'SN.DKR.2025.A.34574',
         ]);

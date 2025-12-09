@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Utiliser le sous-domaine backend pour les requêtes API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://backend.sbcgroupe.ca/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://tfksbackend.innosft.com/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,

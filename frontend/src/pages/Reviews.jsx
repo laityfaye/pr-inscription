@@ -40,7 +40,7 @@ const Reviews = () => {
             Avis de nos clients ⭐
           </h1>
           <p className="text-xl text-gray-600 mb-6">
-            Découvrez les expériences de nos clients avec SBC Groupe
+            Découvrez les expériences de nos clients avec TFKS
           </p>
           
           {/* Stats */}

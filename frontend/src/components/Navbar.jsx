@@ -142,7 +142,7 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
                     <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-accent-600 rounded-full blur opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
                     <div className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-full flex items-center justify-center transform group-hover:scale-105 transition-all duration-300 shadow-lg">
                       <span className="text-white font-bold text-base sm:text-lg lg:text-xl">
-                        SBC 
+                        TFKS 
                       </span>
                     </div>
                   </>
@@ -154,7 +154,7 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
                   {agencyLoading ? (
                     <span className="inline-block w-32 h-5 bg-neutral-200 rounded animate-pulse"></span>
                   ) : (
-                    'SBC Groupe'
+                    'TFKS'
                   )}
                 </div>
               </div>

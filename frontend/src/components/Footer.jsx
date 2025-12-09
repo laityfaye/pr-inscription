@@ -134,7 +134,7 @@ const Footer = () => {
                 </h4>
                 <div className="flex items-center gap-3">
                   <a
-                    href="https://www.facebook.com/share/1a8FQCPus8/?mibextid=wwXIfr"
+                    href="#"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 hover:shadow-lg group"
@@ -143,7 +143,7 @@ const Footer = () => {
                     <FaFacebook className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   </a>
                   <a
-                    href="https://www.instagram.com/sbcgroupe2002?igsh=MTBva2ZkeXpwaWg1Yw%3D%3D&utm_source=qr"
+                    href="#"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-10 h-10 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:from-purple-700 hover:via-pink-700 hover:to-orange-600 rounded-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 hover:shadow-lg group"
@@ -152,7 +152,7 @@ const Footer = () => {
                     <FaInstagram className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   </a>
                   <a
-                    href="https://www.linkedin.com/company/sbc-groupe/"
+                    href="#"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-10 h-10 bg-blue-700 hover:bg-blue-800 rounded-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 hover:shadow-lg group"
@@ -161,7 +161,7 @@ const Footer = () => {
                     <FiLinkedin className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   </a>
                   <a
-                    href="https://www.tiktok.com/@sbc.groupe?_r=1&_t=ZM-9203V8ESdsS"
+                    href="#"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-10 h-10 bg-black hover:bg-neutral-800 rounded-lg flex items-center justify-center text-white transition-all duration-200 hover:scale-110 hover:shadow-lg group"

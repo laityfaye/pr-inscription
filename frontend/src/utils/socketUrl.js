@@ -19,6 +19,11 @@ export const getSocketUrl = () => {
     return 'http://localhost:8000'
   }
   
+  // En production, utiliser le sous-domaine backend
+  if (hostname === 'tfksservice.innosft.com' || hostname === 'tfksbackend.innosft.com' || hostname === 'innosft.com') {
+    return 'https://tfksbackend.innosft.com'
+  }
+  
   // Sinon, utiliser l'IP/hostname actuel avec le port 8000
   // Cela fonctionne pour les accès réseau (ex: 10.31.117.128:3000 -> 10.31.117.128:8000)
   return `${protocol}//${hostname}:8000`
