@@ -259,9 +259,10 @@ const AdminDocuments = () => {
       }
     }
     if (doc.work_permit_application_id) {
+      const visaType = doc.work_permit_application?.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'
       return {
         type: 'permis',
-        label: 'Permis de travail',
+        label: `Demande de visa (${visaType})`,
         id: doc.work_permit_application_id,
         data: doc.work_permit_application
       }

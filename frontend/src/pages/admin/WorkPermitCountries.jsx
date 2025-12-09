@@ -162,10 +162,10 @@ const AdminWorkPermitCountries = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl lg:text-4xl font-bold text-neutral-900 mb-2">
-              Pays de permis de travail
+              Pays pour demandes de visa
             </h1>
             <p className="text-neutral-600">
-              Configurez les pays disponibles pour les demandes de permis de travail
+              Configurez les pays disponibles pour les demandes de visa (Visa Visiteur et Permis de travail)
             </p>
           </div>
           <Button
@@ -330,7 +330,7 @@ const AdminWorkPermitCountries = () => {
                     value={formData.eligibility_conditions}
                     onChange={(e) => setFormData({ ...formData, eligibility_conditions: e.target.value })}
                     rows="6"
-                    placeholder="Liste des conditions d'éligibilité pour obtenir un permis de travail..."
+                    placeholder="Liste des conditions d'éligibilité pour obtenir un visa..."
                     className="input resize-none"
                   />
                 </div>

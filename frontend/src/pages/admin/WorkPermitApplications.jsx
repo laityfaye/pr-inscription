@@ -212,7 +212,7 @@ const AdminWorkPermitApplications = () => {
 
     try {
       await api.delete(`/work-permit-applications/${applicationToDelete.id}`)
-      toast.success('Demande de permis de travail supprimée avec succès')
+      toast.success('Demande de visa supprimée avec succès')
       setShowDeleteModal(false)
       setApplicationToDelete(null)
       fetchApplications()
@@ -316,10 +316,10 @@ const AdminWorkPermitApplications = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl lg:text-4xl font-bold text-neutral-900 mb-2">
-              Demandes de permis de travail
+              Demandes de visa
             </h1>
             <p className="text-neutral-600">
-              Gérez toutes les demandes de permis de travail
+              Gérez toutes les demandes de visa (Visa Visiteur et Permis de travail)
             </p>
           </div>
           <div className="flex items-center space-x-3">
@@ -407,7 +407,7 @@ const AdminWorkPermitApplications = () => {
           {applications.length === 0 ? (
             <Card className="p-12 text-center">
               <FiBriefcase className="mx-auto text-6xl text-neutral-300 mb-4" />
-              <p className="text-neutral-600 text-lg">Aucune demande de permis de travail</p>
+              <p className="text-neutral-600 text-lg">Aucune demande de visa</p>
             </Card>
           ) : (
             applications.map((application) => (
@@ -415,14 +415,41 @@ const AdminWorkPermitApplications = () => {
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1 w-full">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-800 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <FiBriefcase className="text-xl sm:text-2xl text-white" />
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        application.visa_type === 'visitor_visa' 
+                          ? 'bg-gradient-to-br from-blue-500 to-blue-800' 
+                          : 'bg-gradient-to-br from-primary-500 to-primary-800'
+                      }`}>
+                        {application.visa_type === 'visitor_visa' ? (
+                          <FiGlobe className="text-xl sm:text-2xl text-white" />
+                        ) : (
+                          <FiBriefcase className="text-xl sm:text-2xl text-white" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                          <h3 className="text-base sm:text-lg font-bold text-neutral-900 truncate">
-                            {application.user?.name || 'Client inconnu'}
-                          </h3>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1 min-w-0">
+                            <h3 className="text-base sm:text-lg font-bold text-neutral-900 truncate">
+                              {application.user?.name || 'Client inconnu'}
+                            </h3>
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              application.visa_type === 'visitor_visa'
+                                ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                                : 'bg-primary-100 text-primary-800 border border-primary-200'
+                            }`}>
+                              {application.visa_type === 'visitor_visa' ? (
+                                <>
+                                  <FiGlobe className="w-3 h-3 mr-1" />
+                                  Visa Visiteur
+                                </>
+                              ) : (
+                                <>
+                                  <FiBriefcase className="w-3 h-3 mr-1" />
+                                  Permis de travail
+                                </>
+                              )}
+                            </span>
+                          </div>
                           <div className="flex-shrink-0 sm:ml-4">
                             {getStatusBadge(application.status)}
                           </div>
@@ -485,8 +512,11 @@ const AdminWorkPermitApplications = () => {
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-2xl lg:text-3xl font-bold text-neutral-900 mb-1">
-                      Détails de la demande de permis de travail
+                      Détails de la demande de visa
                     </h2>
+                    <p className="text-sm text-neutral-500 mt-1">
+                      {applicationDetails.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'} - {applicationDetails.country?.name || 'N/A'}
+                    </p>
                     <p className="text-sm text-neutral-500">Informations complètes et documents</p>
                   </div>
                   <button
@@ -507,6 +537,25 @@ const AdminWorkPermitApplications = () => {
                     <h3 className="text-xs font-semibold text-primary-600 uppercase tracking-wider mb-2">Client</h3>
                     <p className="text-lg font-bold text-neutral-900 mb-1">{applicationDetails.user?.name}</p>
                     <p className="text-sm text-neutral-600">{applicationDetails.user?.email}</p>
+                  </Card>
+                  <Card padding="lg" className={`bg-gradient-to-br ${applicationDetails.visa_type === 'visitor_visa' ? 'from-blue-50 to-transparent border-blue-100' : 'from-accent-50 to-transparent border-accent-100'}`}>
+                    <h3 className={`text-xs font-semibold uppercase tracking-wider mb-2 ${applicationDetails.visa_type === 'visitor_visa' ? 'text-blue-600' : 'text-accent-600'}`}>
+                      Type de demande
+                    </h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        applicationDetails.visa_type === 'visitor_visa' ? 'bg-blue-500' : 'bg-primary-500'
+                      }`}>
+                        {applicationDetails.visa_type === 'visitor_visa' ? (
+                          <FiGlobe className="text-white text-sm" />
+                        ) : (
+                          <FiBriefcase className="text-white text-sm" />
+                        )}
+                      </div>
+                      <p className="text-lg font-bold text-neutral-900">
+                        {applicationDetails.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'}
+                      </p>
+                    </div>
                   </Card>
                   <Card padding="lg" className="bg-gradient-to-br from-accent-50 to-transparent border-accent-100">
                     <h3 className="text-xs font-semibold text-accent-600 uppercase tracking-wider mb-2">Pays</h3>
@@ -829,7 +878,7 @@ const AdminWorkPermitApplications = () => {
                 <h2 className="text-2xl font-bold text-gray-900">Supprimer la demande</h2>
               </div>
               <p className="text-gray-600 mb-4">
-                Êtes-vous sûr de vouloir supprimer la demande de permis de travail du client <span className="font-semibold">{applicationToDelete.user?.name || 'inconnu'}</span> ?
+                Êtes-vous sûr de vouloir supprimer la demande de visa ({applicationToDelete.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'}) du client <span className="font-semibold">{applicationToDelete.user?.name || 'inconnu'}</span> ?
               </p>
               {applicationToDelete.documents && applicationToDelete.documents.length > 0 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">

@@ -369,7 +369,11 @@ const AdminChat = () => {
 
   const allApplications = selectedClient ? [
     ...applications.inscriptions.map(app => ({ ...app, type: 'inscription', label: `Préinscription - ${app.country?.name || 'N/A'}` })),
-    ...applications.workPermits.map(app => ({ ...app, type: 'work_permit', label: `Permis de travail - ${app.country?.name || 'N/A'}` })),
+    ...applications.workPermits.map(app => ({ 
+      ...app, 
+      type: 'work_permit', 
+      label: `${app.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'} - ${app.country?.name || 'N/A'}` 
+    })),
     ...applications.residences.map(app => ({ ...app, type: 'residence', label: 'Résidence Canada' })),
   ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : []
 

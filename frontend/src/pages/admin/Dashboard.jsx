@@ -130,7 +130,7 @@ const AdminDashboard = () => {
       gradient: 'from-accent-500 to-accent-600',
     },
     {
-      title: 'Permis de travail',
+      title: 'Demandes de visa',
       value: stats.workPermitApplications,
       icon: FiBriefcase,
       color: 'primary',
@@ -188,8 +188,8 @@ const AdminDashboard = () => {
       color: 'success',
     },
     {
-      title: 'Pays permis de travail',
-      description: 'Configurer les pays pour permis de travail',
+      title: 'Pays pour demandes de visa',
+      description: 'Configurer les pays disponibles pour les demandes de visa',
       link: '/admin/work-permit-countries',
       icon: FiGlobe,
       color: 'indigo',
