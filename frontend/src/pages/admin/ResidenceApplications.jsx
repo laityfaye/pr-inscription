@@ -383,37 +383,45 @@ const AdminResidenceApplications = () => {
             </Card>
           ) : (
             applications.map((application) => (
-              <Card key={application.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-800 rounded-xl flex items-center justify-center">
-                        <FiHome className="text-2xl text-white" />
+              <Card key={application.id} className="p-4 sm:p-6 hover:shadow-lg transition-shadow">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1 w-full">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-800 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <FiHome className="text-xl sm:text-2xl text-white" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-neutral-900 mb-1">
-                          {application.user?.name || 'Client inconnu'}
-                        </h3>
-                        <p className="text-sm text-neutral-600">{application.user?.email}</p>
-                        <div className="flex items-center gap-4 text-sm text-neutral-500 mt-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                          <h3 className="text-base sm:text-lg font-bold text-neutral-900 truncate">
+                            {application.user?.name || 'Client inconnu'}
+                          </h3>
+                          <div className="flex-shrink-0 sm:ml-4">
+                            {getStatusBadge(application.status)}
+                          </div>
+                        </div>
+                        <p className="text-xs sm:text-sm text-neutral-600 truncate mb-2">{application.user?.email}</p>
+                        <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neutral-500">
                           <span>{new Date(application.created_at).toLocaleDateString('fr-FR')}</span>
                         </div>
                       </div>
-                      {getStatusBadge(application.status)}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                     <Button
                       onClick={() => fetchApplicationDetails(application.id)}
                       variant="secondary"
                       size="sm"
+                      className="w-full sm:w-auto justify-center"
                     >
-                      Voir les détails
+                      <FiEye className="mr-1.5 sm:mr-2" />
+                      <span className="hidden sm:inline">Voir les détails</span>
+                      <span className="sm:hidden">Détails</span>
                     </Button>
                     <Button
                       onClick={() => openEditModal(application)}
                       variant="primary"
                       size="sm"
+                      className="w-full sm:w-auto justify-center"
                     >
                       Modifier
                     </Button>
@@ -421,10 +429,11 @@ const AdminResidenceApplications = () => {
                       onClick={() => openDeleteModal(application)}
                       variant="ghost"
                       size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto justify-center"
                     >
-                      <FiTrash2 className="mr-1" />
-                      Supprimer
+                      <FiTrash2 className="mr-1.5 sm:mr-2" />
+                      <span className="hidden sm:inline">Supprimer</span>
+                      <span className="sm:hidden">Suppr.</span>
                     </Button>
                   </div>
                 </div>
@@ -435,18 +444,18 @@ const AdminResidenceApplications = () => {
 
         {/* Modal Détails avec Documents */}
         {showDetailsModal && applicationDetails && (
-          <div className="modal-overlay" onClick={() => {
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={() => {
             setShowDetailsModal(false)
             setApplicationDetails(null)
           }}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="p-6 lg:p-8">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-2xl lg:text-3xl font-bold text-neutral-900 mb-1">
-                      Détails de la demande de résidence
+            <div className="modal-content max-w-4xl w-full max-h-[90vh] overflow-y-auto my-4" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 sm:p-6 lg:p-8">
+                <div className="flex justify-between items-start mb-4 sm:mb-6 gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-neutral-900 mb-1">
+                      Détails de la demande
                     </h2>
-                    <p className="text-sm text-neutral-500">Informations complètes et documents</p>
+                    <p className="text-xs sm:text-sm text-neutral-500">Informations complètes et documents</p>
                   </div>
                   <button
                     onClick={() => {

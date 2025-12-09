@@ -352,23 +352,23 @@ const AdminDocuments = () => {
         </div>
 
         {/* Filters */}
-        <Card className="p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <Card className="p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="relative sm:col-span-2 lg:col-span-1">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
               <Input
                 type="text"
                 placeholder="Rechercher..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-9 sm:pl-10 text-sm sm:text-base"
               />
             </div>
             <div>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="input w-full"
+                className="input w-full text-sm sm:text-base"
               >
                 <option value="">Tous les statuts</option>
                 <option value="pending">En attente</option>
@@ -376,8 +376,8 @@ const AdminDocuments = () => {
                 <option value="rejected">Rejetés</option>
               </select>
             </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <FiFilter className="mr-2" />
+            <div className="flex items-center text-xs sm:text-sm text-gray-600 sm:justify-end">
+              <FiFilter className="mr-2 w-4 h-4" />
               <span>
                 {filteredDocuments.length} document{filteredDocuments.length > 1 ? 's' : ''}
               </span>
@@ -410,27 +410,27 @@ const AdminDocuments = () => {
                 <Card key={userId} className="overflow-hidden">
                   {/* En-tête Client */}
                   <div 
-                    className="bg-gradient-to-r from-primary-500 to-primary-700 p-4 cursor-pointer hover:from-primary-600 hover:to-primary-800 transition-colors"
+                    className="bg-gradient-to-r from-primary-500 to-primary-700 p-3 sm:p-4 cursor-pointer hover:from-primary-600 hover:to-primary-800 transition-colors"
                     onClick={() => toggleClient(parseInt(userId))}
                   >
-                    <div className="flex items-center justify-between text-white">
-                      <div className="flex items-center gap-3">
-                        <FiUser className="w-5 h-5" />
-                        <div>
-                          <h3 className="font-bold text-lg">{user?.name || 'Utilisateur inconnu'}</h3>
-                          <p className="text-sm text-primary-100">
+                    <div className="flex items-center justify-between text-white gap-3">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <FiUser className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-base sm:text-lg truncate">{user?.name || 'Utilisateur inconnu'}</h3>
+                          <p className="text-xs sm:text-sm text-primary-100 truncate">
                             {user?.email || ''} • {filteredDocuments.filter(d => d.user_id === parseInt(userId)).length} document(s)
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs sm:text-sm bg-white/20 px-2 sm:px-3 py-1 rounded-full whitespace-nowrap">
                           {dossierEntries.length} dossier{dossierEntries.length > 1 ? 's' : ''}
                         </span>
                         {isClientExpanded ? (
-                          <FiChevronUp className="w-5 h-5" />
+                          <FiChevronUp className="w-4 h-4 sm:w-5 sm:h-5" />
                         ) : (
-                          <FiChevronDown className="w-5 h-5" />
+                          <FiChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
                         )}
                       </div>
                     </div>
@@ -451,23 +451,23 @@ const AdminDocuments = () => {
                         return (
                           <div key={dossierKey} className="border border-gray-200 rounded-lg overflow-hidden">
                             {/* En-tête Dossier */}
-                            <div className={`bg-gradient-to-r ${dossierTypeColors[dossier.type]} p-3`}>
-                              <div className="flex items-center justify-between text-white">
+                            <div className={`bg-gradient-to-r ${dossierTypeColors[dossier.type]} p-2 sm:p-3`}>
+                              <div className="flex items-center justify-between text-white gap-2">
                                 <div 
-                                  className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity flex-1"
+                                  className="flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity flex-1 min-w-0"
                                   onClick={() => toggleFolder(dossierKey)}
                                 >
-                                  <FiFolder className="w-4 h-4" />
-                                  <span className="font-semibold">{dossier.label}</span>
+                                  <FiFolder className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                  <span className="font-semibold text-sm sm:text-base truncate">{dossier.label}</span>
                                   {dossier.data && (
-                                    <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                                    <span className="text-xs bg-white/20 px-1.5 sm:px-2 py-0.5 rounded flex-shrink-0">
                                       ID: {dossier.id}
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  <span className="text-sm bg-white/20 px-2 py-1 rounded">
-                                    {dossierDocs.length} document{dossierDocs.length > 1 ? 's' : ''}
+                                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                                  <span className="text-xs sm:text-sm bg-white/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded whitespace-nowrap">
+                                    {dossierDocs.length} doc{dossierDocs.length > 1 ? 's' : ''}
                                   </span>
                                   {dossier.type !== 'none' && (
                                     <button
@@ -475,20 +475,20 @@ const AdminDocuments = () => {
                                         e.stopPropagation()
                                         openDeleteDossierModal(dossier, dossierDocs)
                                       }}
-                                      className="p-1.5 rounded hover:bg-white/20 transition-colors"
+                                      className="p-1 sm:p-1.5 rounded hover:bg-white/20 transition-colors"
                                       title="Supprimer le dossier"
                                     >
-                                      <FiTrash2 className="w-4 h-4" />
+                                      <FiTrash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                                     </button>
                                   )}
                                   <button
                                     onClick={() => toggleFolder(dossierKey)}
-                                    className="p-1.5 rounded hover:bg-white/20 transition-colors"
+                                    className="p-1 sm:p-1.5 rounded hover:bg-white/20 transition-colors"
                                   >
                                     {isFolderExpanded ? (
-                                      <FiChevronUp className="w-4 h-4" />
+                                      <FiChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
                                     ) : (
-                                      <FiChevronDown className="w-4 h-4" />
+                                      <FiChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                                     )}
                                   </button>
                                 </div>
@@ -497,20 +497,20 @@ const AdminDocuments = () => {
 
                             {/* Documents du dossier */}
                             {isFolderExpanded && (
-                              <div className="p-4 space-y-3 bg-gray-50">
+                              <div className="p-3 sm:p-4 space-y-3 bg-gray-50">
                                 {dossierDocs.map((doc) => (
-                                  <Card key={doc.id} className="p-4 hover:shadow-md transition-shadow">
-                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                      <div className="flex-1">
-                                        <div className="flex items-start gap-3">
-                                          <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-800 rounded-lg flex items-center justify-center shadow flex-shrink-0">
-                                            <FiFile className="text-xl text-white" />
+                                  <Card key={doc.id} className="p-3 sm:p-4 hover:shadow-md transition-shadow">
+                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-start gap-2 sm:gap-3">
+                                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary-500 to-primary-800 rounded-lg flex items-center justify-center shadow flex-shrink-0">
+                                            <FiFile className="text-lg sm:text-xl text-white" />
                                           </div>
                                           <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-gray-900 mb-1 truncate" title={doc.name}>
+                                            <h4 className="font-bold text-sm sm:text-base text-gray-900 mb-1 truncate" title={doc.name}>
                                               {doc.name}
                                             </h4>
-                                            <div className="space-y-1 text-sm text-gray-600">
+                                            <div className="space-y-1 text-xs sm:text-sm text-gray-600">
                                               <div>
                                                 <span className="font-medium">Type:</span> {getDocumentTypeLabel(doc.type)}
                                               </div>
@@ -546,23 +546,25 @@ const AdminDocuments = () => {
                                         </div>
                                       </div>
 
-                                      <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-                                        <div>{getStatusBadge(doc.status)}</div>
-                                        <div className="flex gap-2 flex-wrap">
+                                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                                        <div className="flex-shrink-0">{getStatusBadge(doc.status)}</div>
+                                        <div className="flex flex-wrap gap-2 flex-1 sm:flex-initial">
                                           <Button
                                             variant="primary"
                                             size="sm"
                                             onClick={() => handleView(doc)}
+                                            className="flex-1 sm:flex-initial justify-center text-xs sm:text-sm"
                                           >
-                                            <FiEye className="mr-1" />
+                                            <FiEye className="mr-1 w-3 h-3 sm:w-4 sm:h-4" />
                                             Voir
                                           </Button>
                                           <Button
                                             variant="secondary"
                                             size="sm"
                                             onClick={() => handleDownload(doc)}
+                                            className="flex-1 sm:flex-initial justify-center text-xs sm:text-sm"
                                           >
-                                            <FiDownload />
+                                            <FiDownload className="w-3 h-3 sm:w-4 sm:h-4" />
                                           </Button>
                                           {doc.status === 'pending' && (
                                             <>
@@ -570,18 +572,18 @@ const AdminDocuments = () => {
                                                 variant="primary"
                                                 size="sm"
                                                 onClick={() => handleApprove(doc)}
-                                                className="bg-green-600 hover:bg-green-700"
+                                                className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-initial justify-center text-xs sm:text-sm"
                                               >
-                                                <FiCheckCircle className="mr-1" />
+                                                <FiCheckCircle className="mr-1 w-3 h-3 sm:w-4 sm:h-4" />
                                                 OK
                                               </Button>
                                               <Button
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => openRejectModal(doc)}
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-initial justify-center text-xs sm:text-sm"
                                               >
-                                                <FiXCircle className="mr-1" />
+                                                <FiXCircle className="mr-1 w-3 h-3 sm:w-4 sm:h-4" />
                                                 Rejeter
                                               </Button>
                                             </>
@@ -590,11 +592,12 @@ const AdminDocuments = () => {
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => openDeleteDocumentModal(doc)}
-                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-1 sm:flex-initial justify-center text-xs sm:text-sm"
                                             title="Supprimer le document"
                                           >
-                                            <FiTrash2 className="mr-1" />
-                                            Supprimer
+                                            <FiTrash2 className="mr-1 w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="hidden sm:inline">Supprimer</span>
+                                            <span className="sm:hidden">Suppr.</span>
                                           </Button>
                                         </div>
                                       </div>
@@ -617,28 +620,28 @@ const AdminDocuments = () => {
 
       {/* Reject Modal */}
       {showRejectModal && selectedDocument && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <Card className="max-w-md w-full p-8 animate-scale-in">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Rejeter le document</h2>
-            <p className="text-gray-600 mb-4">
-              Document: <span className="font-semibold">{selectedDocument.name}</span>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in overflow-y-auto">
+          <Card className="max-w-md w-full p-4 sm:p-6 lg:p-8 animate-scale-in my-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Rejeter le document</h2>
+            <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
+              Document: <span className="font-semibold break-words">{selectedDocument.name}</span>
             </p>
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <div className="mb-4 sm:mb-6">
+              <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
                 Raison du rejet <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="Expliquez pourquoi ce document est rejeté (minimum 10 caractères)..."
-                className="input w-full min-h-[120px] resize-none"
+                className="input w-full min-h-[100px] sm:min-h-[120px] resize-none text-sm sm:text-base"
                 rows={5}
               />
               <p className="text-xs text-gray-500 mt-1">
                 {rejectionReason.length}/10 caractères minimum
               </p>
             </div>
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 sm:space-x-4">
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -646,6 +649,7 @@ const AdminDocuments = () => {
                   setRejectionReason('')
                   setSelectedDocument(null)
                 }}
+                className="w-full sm:w-auto order-2 sm:order-1"
               >
                 Annuler
               </Button>
@@ -653,7 +657,7 @@ const AdminDocuments = () => {
                 variant="primary"
                 onClick={handleReject}
                 disabled={!rejectionReason.trim() || rejectionReason.trim().length < 10}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-red-600 hover:bg-red-700 w-full sm:w-auto order-1 sm:order-2"
               >
                 Rejeter
               </Button>
@@ -664,13 +668,13 @@ const AdminDocuments = () => {
 
       {/* Modal de prévisualisation */}
       {showPreviewModal && previewDocument && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col animate-scale-in">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col animate-scale-in my-2 sm:my-4">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-6 border-b border-gray-200 gap-3 sm:gap-0">
               <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold text-gray-900 truncate">{previewDocument.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">
+                <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 truncate">{previewDocument.name}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 break-words">
                   {getDocumentTypeLabel(previewDocument.type)} •{' '}
                   {previewDocument.size
                     ? (previewDocument.size / 1024 / 1024).toFixed(2) + ' MB'
@@ -678,14 +682,16 @@ const AdminDocuments = () => {
                   {previewDocument.user && ` • Client: ${previewDocument.user.name}`}
                 </p>
               </div>
-              <div className="flex items-center gap-2 ml-4">
+              <div className="flex items-center gap-2 sm:ml-4 flex-shrink-0">
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => handleDownload(previewDocument)}
                   icon={FiDownload}
+                  className="text-xs sm:text-sm"
                 >
-                  Télécharger
+                  <span className="hidden sm:inline">Télécharger</span>
+                  <span className="sm:hidden">Tél.</span>
                 </Button>
                 <button
                   onClick={() => {
