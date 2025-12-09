@@ -91,63 +91,41 @@ const Home = () => {
         })
       }
       
-      // Vérifier si l'utilisateur est connecté pour certaines données
-      const token = localStorage.getItem('token')
-      const isAuthenticated = user || token
-      
-      // Toujours charger les pays et permis de travail (même sans authentification)
-      // Les autres données nécessitent une authentification
+      // Toujours charger les données publiques (pays, actualités, avis, paramètres, stats)
+      // même lorsque l'utilisateur n'est pas connecté
       const promises = [
         safeGet('/countries', []),
         safeGet('/work-permit-countries', []),
+        safeGet('/news', []),
+        safeGet('/reviews', []),
+        safeGet('/settings/rentree_text', { value: null }),
+        safeGet('/settings/agency_default_description', { value: null }),
+        safeGet('/stats', { clients_count: 0 })
       ]
-      
-      // Ajouter les autres requêtes seulement si l'utilisateur est connecté
-      if (isAuthenticated) {
-        promises.push(
-          safeGet('/news', []),
-          safeGet('/reviews', []),
-          safeGet('/settings/rentree_text', { value: null }),
-          safeGet('/settings/agency_default_description', { value: null }),
-          safeGet('/stats', { clients_count: 0 })
-        )
-      } else {
-        // Si non connecté, utiliser des valeurs par défaut pour les autres données
-        promises.push(
-          Promise.resolve({ data: [] }), // news
-          Promise.resolve({ data: [] }), // reviews
-          Promise.resolve({ data: { value: null } }), // rentree_text
-          Promise.resolve({ data: { value: null } }), // agency_default_description
-          Promise.resolve({ data: { clients_count: 0 } }) // stats
-        )
-      }
-      
+
       const [countriesRes, workPermitCountriesRes, newsRes, reviewsRes, rentreeTextRes, defaultDescRes, statsRes] = await Promise.all(promises)
       
       // Mettre à jour les états
       setCountries(countriesRes.data)
       setWorkPermitCountries(workPermitCountriesRes.data || [])
+
+      // Mettre à jour les autres données publiques
+      setNews((newsRes.data || []).slice(0, 3))
+      setReviews(reviewsRes.data || [])
       
-      // Mettre à jour les autres données seulement si elles ont été chargées
-      if (isAuthenticated) {
-        setNews(newsRes.data.slice(0, 3))
-        // Ne pas limiter les avis pour le carrousel, il gère lui-même l'affichage
-        setReviews(reviewsRes.data)
-        
-        // Mettre à jour le texte de rentrée
-        if (rentreeTextRes.data?.value) {
-          setRentreeText(rentreeTextRes.data.value)
-        }
-        
-        // Mettre à jour la description par défaut
-        if (defaultDescRes.data?.value) {
-          setDefaultDescription(defaultDescRes.data.value)
-        }
-        
-        // Mettre à jour le nombre de clients
-        if (statsRes.data?.clients_count !== undefined) {
-          setClientsCount(statsRes.data.clients_count)
-        }
+      // Mettre à jour le texte de rentrée
+      if (rentreeTextRes.data?.value) {
+        setRentreeText(rentreeTextRes.data.value)
+      }
+      
+      // Mettre à jour la description par défaut
+      if (defaultDescRes.data?.value) {
+        setDefaultDescription(defaultDescRes.data.value)
+      }
+      
+      // Mettre à jour le nombre de clients
+      if (statsRes.data?.clients_count !== undefined) {
+        setClientsCount(statsRes.data.clients_count)
       }
     } catch (error) {
       console.error('Error fetching non-critical data:', error)
