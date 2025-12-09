@@ -71,6 +71,11 @@ const ClientDocuments = () => {
       return
     }
 
+    if (!documentCategory) {
+      toast.error('Veuillez sélectionner une catégorie de demande')
+      return
+    }
+
     if (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId) {
       toast.error('Veuillez sélectionner une demande')
       return
@@ -291,66 +296,67 @@ const ClientDocuments = () => {
     <Layout>
       <div className="section-container py-8 lg:py-12">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 animate-fade-in">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-10 animate-fade-in gap-4">
           <div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 sm:mb-3">
               Mes documents 📄
             </h1>
-            <p className="text-xl text-gray-600">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600">
               Gérez tous vos documents en un seul endroit
             </p>
           </div>
           <Button
             variant="primary"
             onClick={() => setShowModal(true)}
-            className="mt-4 sm:mt-0"
+            className="w-full sm:w-auto justify-center"
           >
-            <FiUpload className="mr-2" />
-            Uploader un document
+            <FiUpload className="mr-2 w-4 h-4" />
+            <span className="hidden sm:inline">Uploader un document</span>
+            <span className="sm:hidden">Uploader</span>
           </Button>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 flex flex-wrap gap-2 border-b border-gray-200">
+        <div className="mb-4 sm:mb-6 flex flex-wrap gap-1 sm:gap-2 border-b border-gray-200 overflow-x-auto">
           <button
             onClick={() => setActiveTab('all')}
-            className={`px-4 py-2 font-semibold text-sm transition-colors border-b-2 ${
+            className={`px-2 sm:px-4 py-2 font-semibold text-xs sm:text-sm transition-colors border-b-2 whitespace-nowrap ${
               activeTab === 'all'
                 ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
-            Tous les documents ({documents.length})
+            Tous ({documents.length})
           </button>
           <button
             onClick={() => setActiveTab('inscription')}
-            className={`px-4 py-2 font-semibold text-sm transition-colors border-b-2 ${
+            className={`px-2 sm:px-4 py-2 font-semibold text-xs sm:text-sm transition-colors border-b-2 whitespace-nowrap ${
               activeTab === 'inscription'
                 ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
-            Préinscriptions ({documents.filter(d => d.inscription_id).length})
+            Préinscr. ({documents.filter(d => d.inscription_id).length})
           </button>
           <button
             onClick={() => setActiveTab('work_permit')}
-            className={`px-4 py-2 font-semibold text-sm transition-colors border-b-2 ${
+            className={`px-2 sm:px-4 py-2 font-semibold text-xs sm:text-sm transition-colors border-b-2 whitespace-nowrap ${
               activeTab === 'work_permit'
                 ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
-            Permis de travail ({documents.filter(d => d.work_permit_application_id).length})
+            Permis ({documents.filter(d => d.work_permit_application_id).length})
           </button>
           <button
             onClick={() => setActiveTab('residence')}
-            className={`px-4 py-2 font-semibold text-sm transition-colors border-b-2 ${
+            className={`px-2 sm:px-4 py-2 font-semibold text-xs sm:text-sm transition-colors border-b-2 whitespace-nowrap ${
               activeTab === 'residence'
                 ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
-            Résidence Canada ({documents.filter(d => d.residence_application_id).length})
+            Résidence ({documents.filter(d => d.residence_application_id).length})
           </button>
         </div>
 
@@ -366,23 +372,23 @@ const ClientDocuments = () => {
             </Button>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {getFilteredDocuments().map((doc, index) => {
               const DocIcon = getDocumentIcon(doc.type)
               return (
                 <Card
                   key={doc.id}
                   hover
-                  className="p-6 animate-slide-up"
+                  className="p-4 sm:p-6 animate-slide-up"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg">
-                      <DocIcon className="text-2xl text-white" />
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                      <DocIcon className="text-xl sm:text-2xl text-white" />
                     </div>
                   </div>
                   
-                  <h3 className="font-bold text-gray-900 mb-2 truncate" title={doc.name}>
+                  <h3 className="font-bold text-sm sm:text-base text-gray-900 mb-2 truncate" title={doc.name}>
                     {doc.name}
                   </h3>
                   
@@ -444,7 +450,7 @@ const ClientDocuments = () => {
                     )}
                   </div>
 
-                  <div className="flex space-x-2 pt-4 border-t border-gray-100">
+                  <div className="flex flex-wrap gap-2 pt-3 sm:pt-4 border-t border-gray-100">
                     <Button
                       variant="primary"
                       size="sm"
@@ -519,7 +525,7 @@ const ClientDocuments = () => {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Catégorie de demande <span className="text-gray-500 font-normal">(optionnel)</span>
+                  Catégorie de demande <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={documentCategory}
@@ -530,8 +536,9 @@ const ClientDocuments = () => {
                     setSelectedResidenceId('')
                   }}
                   className="input w-full"
+                  required
                 >
-                  <option value="">Document général</option>
+                  <option value="">Sélectionnez une catégorie</option>
                   <option value="inscription">Préinscription</option>
                   <option value="work_permit">Permis de travail</option>
                   <option value="residence">Résidence Canada</option>
@@ -697,7 +704,7 @@ const ClientDocuments = () => {
               <Button
                 variant="primary"
                 onClick={handleUpload}
-                disabled={!file || !type || loading || (file && file.size > MAX_FILE_SIZE) || (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId)}
+                disabled={!file || !type || !documentCategory || loading || (file && file.size > MAX_FILE_SIZE) || (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId)}
                 loading={loading}
               >
                 {loading ? 'Upload...' : 'Uploader'}

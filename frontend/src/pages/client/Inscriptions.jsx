@@ -203,22 +203,23 @@ const ClientInscriptions = () => {
     <Layout>
       <div className="section-container py-8 lg:py-12">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 animate-fade-in">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-10 animate-fade-in gap-4">
           <div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 sm:mb-3">
               Mes préinscriptions 🌍
             </h1>
-            <p className="text-xl text-gray-600">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600">
               Gérez toutes vos demandes de préinscription
             </p>
           </div>
           <Button
             variant="primary"
             onClick={() => setShowModal(true)}
-            className="mt-4 sm:mt-0"
+            className="w-full sm:w-auto justify-center"
           >
-            <FiPlus className="mr-2" />
-            Nouvelle préinscription
+            <FiPlus className="mr-2 w-4 h-4" />
+            <span className="hidden sm:inline">Nouvelle préinscription</span>
+            <span className="sm:hidden">Nouvelle</span>
           </Button>
         </div>
 
@@ -242,20 +243,20 @@ const ClientInscriptions = () => {
                 className="p-6 animate-slide-up"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                   {/* Left side */}
-                  <div className="flex items-start space-x-4 flex-1">
-                    <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                      <FiGlobe className="text-2xl text-white" />
+                  <div className="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                      <FiGlobe className="text-xl sm:text-2xl text-white" />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
                           {inscription.country?.name}
                         </h3>
-                        {getStatusBadge(inscription.status)}
+                        <div className="flex-shrink-0">{getStatusBadge(inscription.status)}</div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mt-3">
+                      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 mt-2 sm:mt-3">
                         <div className="flex items-center">
                           <FiCalendar className="mr-2" />
                           <span>
@@ -295,7 +296,7 @@ const ClientInscriptions = () => {
                   </div>
 
                   {/* Right side - Actions */}
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                     {inscription.status === 'pending' && (
                       <>
                         <Button 
@@ -304,13 +305,13 @@ const ClientInscriptions = () => {
                           onClick={() => handleEdit(inscription)}
                           icon={FiEdit}
                           title="Modifier"
-                          className="!p-2"
+                          className="w-full sm:w-auto justify-center !p-2 sm:!p-2"
                         />
                         <Button 
                           variant="ghost" 
                           size="sm"
                           onClick={() => handleDelete(inscription)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 !p-2"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto justify-center !p-2 sm:!p-2"
                           icon={FiTrash2}
                           title="Supprimer"
                         />
@@ -321,9 +322,11 @@ const ClientInscriptions = () => {
                       size="sm"
                       onClick={() => fetchInscriptionDetails(inscription.id)}
                       disabled={loadingDetails}
+                      className="w-full sm:w-auto justify-center"
                     >
-                      Voir les détails
-                      <FiArrowRight className="ml-2" />
+                      <span className="hidden sm:inline">Voir les détails</span>
+                      <span className="sm:hidden">Détails</span>
+                      <FiArrowRight className="ml-2 w-3 h-3 sm:w-4 sm:h-4" />
                     </Button>
                   </div>
                 </div>

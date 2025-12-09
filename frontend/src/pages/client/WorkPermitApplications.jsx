@@ -232,12 +232,12 @@ const ClientWorkPermitApplications = () => {
   return (
     <Layout>
       <div className="section-container py-8 lg:py-12">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-4">
           <div>
-            <h1 className="text-3xl lg:text-4xl font-bold text-neutral-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-neutral-900 mb-2">
               Demandes de permis de travail
             </h1>
-            <p className="text-neutral-600">
+            <p className="text-sm sm:text-base text-neutral-600">
               Gérez vos demandes de permis de travail
             </p>
           </div>
@@ -247,8 +247,10 @@ const ClientWorkPermitApplications = () => {
             size="lg"
             icon={FiPlus}
             disabled={countries.length === 0}
+            className="w-full sm:w-auto justify-center"
           >
-            Nouvelle demande
+            <span className="hidden sm:inline">Nouvelle demande</span>
+            <span className="sm:hidden">Nouvelle</span>
           </Button>
         </div>
 
@@ -275,18 +277,21 @@ const ClientWorkPermitApplications = () => {
             </Card>
           ) : (
             applications.map((application) => (
-              <Card key={application.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center">
-                        <FiBriefcase className="text-2xl text-white" />
+              <Card key={application.id} className="p-4 sm:p-6 hover:shadow-lg transition-shadow">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1 w-full">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <FiBriefcase className="text-xl sm:text-2xl text-white" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-neutral-900 mb-1">
-                          Permis de travail - {application.country?.name || 'Pays inconnu'}
-                        </h3>
-                        <div className="flex items-center gap-4 text-sm text-neutral-600">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                          <h3 className="text-base sm:text-lg font-bold text-neutral-900 truncate">
+                            Permis de travail - {application.country?.name || 'Pays inconnu'}
+                          </h3>
+                          <div className="flex-shrink-0 sm:ml-4">{getStatusBadge(application.status)}</div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-neutral-600">
                           <span className="flex items-center gap-1">
                             <FiCalendar className="w-4 h-4" />
                             {new Date(application.created_at).toLocaleDateString('fr-FR')}
@@ -299,7 +304,6 @@ const ClientWorkPermitApplications = () => {
                           )}
                         </div>
                       </div>
-                      {getStatusBadge(application.status)}
                     </div>
                     {application.rejection_reason && (
                       <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -313,7 +317,7 @@ const ClientWorkPermitApplications = () => {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                     {application.status === 'pending' && (
                       <>
                         <Button
@@ -322,13 +326,13 @@ const ClientWorkPermitApplications = () => {
                           size="sm"
                           icon={FiEdit}
                           title="Modifier"
-                          className="!p-2"
+                          className="w-full sm:w-auto justify-center !p-2 sm:!p-2"
                         />
                         <Button
                           onClick={() => handleDelete(application)}
                           variant="ghost"
                           size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 !p-2"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 w-full sm:w-auto justify-center !p-2 sm:!p-2"
                           icon={FiTrash2}
                           title="Supprimer"
                         />
@@ -338,8 +342,10 @@ const ClientWorkPermitApplications = () => {
                       onClick={() => fetchApplicationDetails(application.id)}
                       variant="secondary"
                       size="sm"
+                      className="w-full sm:w-auto justify-center"
                     >
-                      Voir les détails
+                      <span className="hidden sm:inline">Voir les détails</span>
+                      <span className="sm:hidden">Détails</span>
                     </Button>
                   </div>
                 </div>

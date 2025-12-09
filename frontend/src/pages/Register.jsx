@@ -12,7 +12,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '+221',
+    phone: '',
     target_country: '',
     password: '',
     password_confirmation: '',
@@ -113,63 +113,14 @@ const Register = () => {
                 icon={FiMail}
               />
 
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Téléphone
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <FiPhone className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="tel"
-                    className="input pl-12"
-                    placeholder="+221 XX XXX XX XX"
-                    value={formData.phone}
-                    onChange={(e) => {
-                      let value = e.target.value.trim()
-                      
-                      // Si le champ est vide, mettre +221
-                      if (value === '') {
-                        setFormData({ ...formData, phone: '+221' })
-                        return
-                      }
-                      
-                      // Si ça commence déjà par +221, garder tel quel
-                      if (value.startsWith('+221')) {
-                        setFormData({ ...formData, phone: value })
-                        return
-                      }
-                      
-                      // Si ça commence par + mais pas +221, remplacer le préfixe
-                      if (value.startsWith('+')) {
-                        const rest = value.substring(1).replace(/\D/g, '') // Garder seulement les chiffres
-                        setFormData({ ...formData, phone: '+221' + rest })
-                        return
-                      }
-                      
-                      // Si ça ne commence pas par +, ajouter +221 et garder seulement les chiffres
-                      const digits = value.replace(/\D/g, '') // Garder seulement les chiffres
-                      setFormData({ ...formData, phone: '+221' + digits })
-                    }}
-                    onBlur={(e) => {
-                      // S'assurer que le préfixe est toujours présent à la perte de focus
-                      let value = e.target.value.trim()
-                      if (!value.startsWith('+221')) {
-                        if (value === '' || value === '+') {
-                          setFormData({ ...formData, phone: '+221' })
-                        } else {
-                          const digits = value.replace(/\D/g, '')
-                          setFormData({ ...formData, phone: '+221' + digits })
-                        }
-                      }
-                    }}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  Format: +221 XX XXX XX XX
-                </p>
-              </div>
+              <Input
+                type="tel"
+                label="Téléphone"
+                placeholder="+XXX XX XXX XX XX"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                icon={FiPhone}
+              />
               <Input
                 type="password"
                 label="Mot de passe"
