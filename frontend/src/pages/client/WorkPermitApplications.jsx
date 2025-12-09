@@ -57,15 +57,13 @@ const ClientWorkPermitApplications = () => {
 
     if (!formData.visa_type || (formData.visa_type !== 'visitor_visa' && formData.visa_type !== 'work_permit')) {
       toast.error('Veuillez sélectionner un type de demande')
-      console.error('Type de visa invalide:', formData.visa_type)
       return
     }
 
     try {
-      // Construire explicitement l'objet pour garantir que visa_type est inclus
       const dataToSend = {
         work_permit_country_id: formData.work_permit_country_id,
-        visa_type: formData.visa_type, // Utiliser directement la valeur, pas de fallback
+        visa_type: formData.visa_type,
         age: formData.age || null,
         profession: formData.profession || null,
         experience_years: formData.experience_years || null,
@@ -76,15 +74,7 @@ const ClientWorkPermitApplications = () => {
         language_skills: formData.language_skills || null,
       }
       
-      console.log('=== DEBUG CRÉATION DEMANDE ===')
-      console.log('formData complet:', formData)
-      console.log('visa_type sélectionné:', formData.visa_type)
-      console.log('Données envoyées au backend:', dataToSend)
-      console.log('=============================')
-      
-      const response = await api.post('/work-permit-applications', dataToSend)
-      console.log('Réponse du backend:', response.data)
-      
+      await api.post('/work-permit-applications', dataToSend)
       toast.success('Demande de visa créée avec succès')
       setShowModal(false)
       setVisaTypeSelected(false)
@@ -102,8 +92,6 @@ const ClientWorkPermitApplications = () => {
       })
       fetchData()
     } catch (error) {
-      console.error('Erreur complète:', error)
-      console.error('Réponse erreur:', error.response?.data)
       toast.error(error.response?.data?.message || 'Erreur lors de la création')
     }
   }
@@ -771,13 +759,7 @@ const ClientWorkPermitApplications = () => {
                 </div>
               ) : (
                 /* Étape 2 : Formulaire complet */
-                <form onSubmit={(e) => { 
-                  e.preventDefault()
-                  console.log('=== AVANT SOUMISSION ===')
-                  console.log('formData.visa_type:', formData.visa_type)
-                  console.log('Type de visa:', formData.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail')
-                  handleCreate()
-                }} className="space-y-6 animate-fade-in">
+                <form onSubmit={(e) => { e.preventDefault(); handleCreate(); }} className="space-y-6 animate-fade-in">
                   {/* Badge du type sélectionné */}
                   <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg border border-primary-200 mb-6">
                     <div className="flex items-center gap-3">
@@ -795,7 +777,6 @@ const ClientWorkPermitApplications = () => {
                         <p className="text-base font-bold text-neutral-900">
                           {formData.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'}
                         </p>
-                        <p className="text-xs text-neutral-500 mt-1">Valeur: {formData.visa_type}</p>
                       </div>
                     </div>
                     <button
