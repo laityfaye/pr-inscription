@@ -36,6 +36,7 @@ import AdminDocuments from './pages/admin/Documents'
 import AdminWorkPermitCountries from './pages/admin/WorkPermitCountries'
 import AdminWorkPermitApplications from './pages/admin/WorkPermitApplications'
 import AdminResidenceApplications from './pages/admin/ResidenceApplications'
+import AdminStudyPermitRenewalApplications from './pages/admin/StudyPermitRenewalApplications'
 import AdminAppointments from './pages/admin/Appointments'
 
 function App() {
@@ -218,6 +219,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminResidenceApplications />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/study-permit-renewal-applications"
+              element={
+                <AdminRoute>
+                  <AdminStudyPermitRenewalApplications />
                 </AdminRoute>
               }
             />

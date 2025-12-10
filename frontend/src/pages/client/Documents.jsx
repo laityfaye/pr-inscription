@@ -1104,7 +1104,7 @@ const ClientDocuments = () => {
                         disabled={loading || (file && file.size > MAX_FILE_SIZE)}
                         loading={loading}
                       >
-                        {loading ? 'Upload...' : 'Uploader'}
+                        {loading ? 'Upload...' : 'Confirmer'}
                       </Button>
                     </div>
                   </>
@@ -1128,7 +1128,7 @@ const ClientDocuments = () => {
                         variant="ghost"
                         onClick={() => setWantToRename(true)}
                       >
-                        Modifier le nom
+                        Retour
                       </Button>
                       <Button
                         variant="primary"
@@ -1136,25 +1136,10 @@ const ClientDocuments = () => {
                         disabled={loading || (file && file.size > MAX_FILE_SIZE)}
                         loading={loading}
                       >
-                        {loading ? 'Upload...' : 'Uploader'}
+                        {loading ? 'Upload...' : 'Confirmer'}
                       </Button>
                     </div>
                   </>
-                )}
-
-                {/* Bouton Précédent toujours visible */}
-                {wantToRename !== 'confirmed' && (
-                  <div className="flex justify-start pt-4 border-t">
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setUploadStep(3)
-                        setWantToRename(null)
-                      }}
-                    >
-                      Précédent
-                    </Button>
-                  </div>
                 )}
               </div>
             )}

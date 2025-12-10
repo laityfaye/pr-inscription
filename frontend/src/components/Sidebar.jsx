@@ -69,6 +69,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
     // { to: '/admin/appointments', label: 'Rendez-vous', icon: FiCalendar },
     { to: '/admin/work-permit-applications', label: 'Demandes de visa', icon: FiBriefcase },
     { to: '/admin/residence-applications', label: 'Résidence Canada', icon: FiHome },
+    { to: '/admin/study-permit-renewal-applications', label: 'CAQ/Permis d\'études', icon: FiFileText },
     { to: '/admin/users', label: 'Utilisateurs', icon: FiUsers },
     { to: '/admin/documents', label: 'Documents', icon: FiUpload },
     { to: '/admin/chat', label: 'Messages', icon: FiBell, badge: unreadCount },

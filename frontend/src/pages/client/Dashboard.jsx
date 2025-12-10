@@ -4,7 +4,7 @@ import Layout from '../../components/Layout'
 import Card from '../../components/ui/Card'
 import { useAuth } from '../../contexts/AuthContext'
 import api from '../../services/api'
-import { FiFileText, FiMessageSquare, FiUpload, FiCheckCircle, FiClock, FiXCircle, FiStar, FiArrowRight, FiBriefcase, FiHome } from 'react-icons/fi'
+import { FiFileText, FiMessageSquare, FiUpload, FiCheckCircle, FiClock, FiXCircle, FiStar, FiArrowRight, FiBriefcase, FiHome, FiBook } from 'react-icons/fi'
 
 const ClientDashboard = () => {
   const { user } = useAuth()
@@ -138,6 +138,19 @@ const ClientDashboard = () => {
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-900">Résidence Canada</h3>
               <p className="text-gray-600 mb-4">Demande de résidence</p>
+              <div className="flex items-center text-primary-600 font-medium">
+                <span>Accéder</span>
+                <FiArrowRight className="ml-2 w-4 h-4" />
+              </div>
+            </Card>
+          </Link>
+          <Link to="/client/study-permit-renewal-applications">
+            <Card hover className="p-8 animate-slide-up" style={{ animationDelay: '0.55s' }}>
+              <div className="w-16 h-16 bg-gradient-to-br from-accent-500 to-accent-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                <FiBook className="text-3xl text-white" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">CAQ/Permis d'études</h3>
+              <p className="text-gray-600 mb-4">Renouvellement</p>
               <div className="flex items-center text-primary-600 font-medium">
                 <span>Accéder</span>
                 <FiArrowRight className="ml-2 w-4 h-4" />
