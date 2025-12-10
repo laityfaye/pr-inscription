@@ -228,16 +228,17 @@ const Home = () => {
 
   return (
     <Layout>
-{/* Hero Section - Design Premium Exceptionnel */}
-<section className="relative min-h-screen flex items-center justify-center overflow-hidden isolate">
-  {/* Image par défaut - TOUJOURS visible en arrière-plan */}
+{/* Hero Section - Design Premium Exceptionnel - Responsive */}
+<section className="relative min-h-[85vh] sm:min-h-screen flex items-center justify-center overflow-hidden isolate">
+  {/* Image par défaut - TOUJOURS visible en arrière-plan - Optimisée mobile */}
   <div className="absolute inset-0 z-0">
     <div 
-      className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+      className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 sm:scale-105 transition-transform duration-[30000ms] ease-out"
       style={{
         backgroundImage: `url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920&q=80')`,
+        filter: 'brightness(0.85) saturate(1.1)',
       }}
-    ></div>
+    />
   </div>
 
   {/* Carrousel d'images avec transitions cinématiques */}
@@ -272,7 +273,7 @@ const Home = () => {
     </div>
   )}
 
-  {/* Grille géométrique animée */}
+  {/* Grille géométrique animée - Responsive */}
   <div 
     className="absolute inset-0 z-[1] opacity-[0.15] pointer-events-none"
     style={{
@@ -280,26 +281,26 @@ const Home = () => {
         linear-gradient(to right, rgba(59, 130, 246, 0.12) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(59, 130, 246, 0.12) 1px, transparent 1px)
       `,
-      backgroundSize: '80px 80px',
+      backgroundSize: 'clamp(40px, 8vw, 80px) clamp(40px, 8vw, 80px)',
     }}
   />
 
-  {/* Overlay multi-couches premium */}
-  <div className="absolute inset-0 z-10 bg-gradient-to-b from-white/92 via-blue-50/75 to-white/92" />
-  <div className="absolute inset-0 z-10 bg-gradient-to-tr from-blue-100/50 via-transparent to-purple-100/30" />
-  <div className="absolute inset-0 z-10 bg-gradient-to-bl from-transparent via-transparent to-blue-50/40" />
-  <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(59,130,246,0.12)_100%)]" />
-  <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(139,92,246,0.08)_0%,transparent_100%)]" />
+  {/* Overlay multi-couches premium - Plus opaque sur mobile */}
+  <div className="absolute inset-0 z-10 bg-gradient-to-b from-white/95 sm:from-white/92 via-blue-50/80 sm:via-blue-50/75 to-white/95 sm:to-white/92" />
+  <div className="absolute inset-0 z-10 bg-gradient-to-tr from-blue-100/60 sm:from-blue-100/50 via-transparent to-purple-100/40 sm:to-purple-100/30" />
+  <div className="absolute inset-0 z-10 bg-gradient-to-bl from-transparent via-transparent to-blue-50/50 sm:to-blue-50/40" />
+  <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(59,130,246,0.15)_100%)] sm:bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(59,130,246,0.12)_100%)]" />
+  <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(139,92,246,0.1)_0%,transparent_100%)] sm:bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(139,92,246,0.08)_0%,transparent_100%)]" />
 
-  {/* Particules flottantes animées */}
+  {/* Particules flottantes animées - Réduites sur mobile */}
   <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
-    {[...Array(6)].map((_, i) => (
+    {[...Array(4)].map((_, i) => (
       <div
         key={i}
-        className="absolute rounded-full blur-3xl opacity-20"
+        className="absolute rounded-full blur-3xl opacity-20 hidden sm:block"
         style={{
-          width: `${200 + i * 100}px`,
-          height: `${200 + i * 100}px`,
+          width: `clamp(100px, ${15 + i * 5}vw, ${200 + i * 100}px)`,
+          height: `clamp(100px, ${15 + i * 5}vw, ${200 + i * 100}px)`,
           background: `linear-gradient(135deg, rgba(59, 130, 246, ${0.3 - i * 0.05}), rgba(139, 92, 246, ${0.2 - i * 0.03}))`,
           top: `${10 + i * 15}%`,
           left: `${5 + i * 12}%`,
@@ -311,39 +312,39 @@ const Home = () => {
   </div>
 
   {/* Contenu principal */}
-  <div className="section-container relative z-20 pt-20 pb-32 lg:pt-28 lg:pb-40">
-    <div className="max-w-7xl mx-auto">
+  <div className="section-container relative z-20 pt-12 pb-20 sm:pt-16 sm:pb-24 lg:pt-28 lg:pb-40">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6">
       
-      {/* Badge Premium avec animation */}
-      <div className="flex justify-center mb-10 lg:mb-14 animate-fade-in">
-        <div className="group relative inline-flex items-center gap-3 px-7 py-3.5 bg-white/95 backdrop-blur-2xl border border-blue-300/50 rounded-full shadow-2xl shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-700 hover:scale-105">
+      {/* Badge Premium avec animation - Responsive */}
+      <div className="flex justify-center mb-6 sm:mb-8 lg:mb-14 animate-fade-in">
+        <div className="group relative inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 lg:px-7 py-2.5 sm:py-3 lg:py-3.5 bg-white/95 backdrop-blur-2xl border border-blue-300/50 rounded-full shadow-2xl shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-700 hover:scale-105 max-w-[90vw]">
           {/* Glow effect */}
           <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-700" />
           
           {/* Indicateur animé */}
-          <div className="relative flex items-center justify-center">
+          <div className="relative flex items-center justify-center flex-shrink-0">
             <span className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-20" style={{ animationDuration: '2s' }} />
             <span className="absolute inset-0 bg-blue-600 rounded-full animate-pulse opacity-30" />
-            <span className="relative w-3 h-3 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-full shadow-lg shadow-blue-500/50" />
+            <span className="relative w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 rounded-full shadow-lg shadow-blue-500/50" />
           </div>
           
-          <span className="text-sm font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-purple-700 uppercase">
+          <span className="text-xs sm:text-sm font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-purple-700 uppercase truncate">
             {rentreeText}
           </span>
           
-          <FiArrowRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1.5 transition-transform duration-300" />
+          <FiArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 group-hover:translate-x-1.5 transition-transform duration-300 flex-shrink-0" />
         </div>
       </div>
 
-      {/* Titre principal */}
-      <div className="text-center mb-10 animate-slide-up">
-        <h1 className="relative">
+      {/* Titre principal - Optimisé mobile */}
+      <div className="text-center mb-6 sm:mb-8 lg:mb-10 animate-slide-up">
+        <h1 className="relative px-2">
           {/* Ligne décorative supérieure animée */}
-          <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-blue-500/60 to-transparent animate-fade-in" style={{ animationDelay: '0.1s' }} />
+          <div className="absolute -top-6 sm:-top-8 lg:-top-10 left-1/2 -translate-x-1/2 w-20 sm:w-24 lg:w-32 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-blue-500/60 to-transparent animate-fade-in" style={{ animationDelay: '0.1s' }} />
           
           {/* Sous-titre élégant */}
           <span 
-            className="block text-base sm:text-lg md:text-xl font-light tracking-[0.3em] text-blue-700/80 uppercase mb-8 lg:mb-10 animate-slide-up" 
+            className="block text-xs sm:text-sm md:text-base lg:text-lg font-light tracking-[0.2em] sm:tracking-[0.3em] text-blue-700/80 uppercase mb-4 sm:mb-6 lg:mb-10 animate-slide-up" 
             style={{ animationDelay: '0.15s' }}
           >
             Votre avenir commence ici
@@ -351,14 +352,14 @@ const Home = () => {
           
           {/* Titre principal - Partie 1 */}
           <span 
-            className="block text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-3 leading-[0.92] tracking-tighter animate-slide-up text-slate-900 drop-shadow-2xl" 
+            className="block text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-2 sm:mb-3 leading-[0.92] tracking-tighter animate-slide-up text-slate-900 drop-shadow-2xl" 
             style={{ animationDelay: '0.2s' }}
           >
             Gérez vos
           </span>
           
           {/* Voyages d'Étude - avec gradient animé premium */}
-          <span className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[7rem] font-black leading-[0.88] tracking-tighter mb-8 lg:mb-10 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-[11rem] font-black leading-[0.88] tracking-tighter mb-4 sm:mb-6 lg:mb-10 animate-slide-up" style={{ animationDelay: '0.3s' }}>
             <span 
               className="inline-block relative"
               style={{ 
@@ -367,7 +368,7 @@ const Home = () => {
                 animation: 'gradient 10s ease infinite',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                filter: 'drop-shadow(0 4px 12px rgba(37, 99, 235, 0.25))',
+                filter: 'drop-shadow(0 2px 8px rgba(37, 99, 235, 0.25))',
               }}
             >
               Voyages d'Étude
@@ -381,65 +382,65 @@ const Home = () => {
           
           {/* Nom de l'agence */}
           <span 
-            className="block text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-light text-slate-800 leading-tight mt-6 lg:mt-8 animate-slide-up" 
+            className="block text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-light text-slate-800 leading-tight mt-4 sm:mt-6 lg:mt-8 animate-slide-up px-2" 
             style={{ animationDelay: '0.4s' }}
           >
-            <span className="inline-block bg-gradient-to-r from-slate-800 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+            <span className="inline-block bg-gradient-to-r from-slate-800 via-blue-800 to-purple-800 bg-clip-text text-transparent break-words">
               {agency?.name || 'TFKS Touba Fall Khidma Services'}
             </span>
           </span>
           
           {/* Ligne décorative inférieure */}
           <div 
-            className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-blue-500/60 to-transparent animate-fade-in" 
+            className="absolute -bottom-4 sm:-bottom-6 lg:-bottom-8 left-1/2 -translate-x-1/2 w-24 sm:w-32 lg:w-40 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-blue-500/60 to-transparent animate-fade-in" 
             style={{ animationDelay: '0.5s' }}
           />
         </h1>
       </div>
 
-      {/* Description premium */}
-      <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-slate-700 mb-10 lg:mb-12 max-w-5xl mx-auto leading-relaxed text-center font-light tracking-wide animate-slide-up" style={{ animationDelay: '0.5s' }}>
+      {/* Description premium - Responsive */}
+      <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-slate-700 mb-6 sm:mb-8 lg:mb-12 max-w-5xl mx-auto leading-relaxed text-center font-light tracking-wide animate-slide-up px-4" style={{ animationDelay: '0.5s' }}>
         {agency?.description || defaultDescription}
       </p>
 
-      {/* Sous-titre optionnel */}
+      {/* Sous-titre optionnel - Responsive */}
       {agency?.hero_subtitle && (
-        <div className="flex items-center justify-center gap-4 mb-16 lg:mb-20 animate-slide-up" style={{ animationDelay: '0.6s' }}>
-          <div className="w-16 h-px bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
-          <p className="text-base sm:text-lg lg:text-xl text-slate-600 max-w-3xl text-center leading-relaxed font-light italic">
+        <div className="flex items-center justify-center gap-2 sm:gap-4 mb-10 sm:mb-12 lg:mb-20 animate-slide-up px-4" style={{ animationDelay: '0.6s' }}>
+          <div className="w-8 sm:w-12 lg:w-16 h-px bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 max-w-3xl text-center leading-relaxed font-light italic">
             {agency.hero_subtitle}
           </p>
-          <div className="w-16 h-px bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+          <div className="w-8 sm:w-12 lg:w-16 h-px bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
         </div>
       )}
 
-      {/* Call-to-Action Premium */}
+      {/* Call-to-Action Premium - Responsive */}
       {!loading && (
-        <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center items-center mb-24 lg:mb-28 animate-slide-up" style={{ animationDelay: '0.7s' }}>
-          <Link to="/register" className="w-full sm:w-auto group">
-            <button className="relative w-full sm:w-auto inline-flex items-center justify-center gap-3 font-bold rounded-2xl transition-all duration-500 px-12 py-6 text-lg lg:text-xl overflow-hidden bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 hover:from-blue-700 hover:via-blue-600 hover:to-purple-700 text-white shadow-2xl shadow-blue-500/40 hover:shadow-blue-500/60 transform hover:-translate-y-1.5 hover:scale-[1.03] active:scale-[0.97] focus:outline-none focus:ring-4 focus:ring-blue-500/50">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 lg:gap-6 justify-center items-center mb-12 sm:mb-16 lg:mb-28 animate-slide-up px-4" style={{ animationDelay: '0.7s' }}>
+          <Link to="/register" className="w-full sm:w-auto group max-w-sm sm:max-w-none">
+            <button className="relative w-full sm:w-auto inline-flex items-center justify-center gap-2 sm:gap-3 font-bold rounded-xl sm:rounded-2xl transition-all duration-500 px-6 sm:px-8 lg:px-12 py-4 sm:py-5 lg:py-6 text-base sm:text-lg lg:text-xl overflow-hidden bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 hover:from-blue-700 hover:via-blue-600 hover:to-purple-700 text-white shadow-2xl shadow-blue-500/40 hover:shadow-blue-500/60 transform hover:-translate-y-1 sm:hover:-translate-y-1.5 hover:scale-[1.02] sm:hover:scale-[1.03] active:scale-[0.97] focus:outline-none focus:ring-4 focus:ring-blue-500/50">
               <span className="relative z-10">Commencer maintenant</span>
-              <FiArrowRight className="relative z-10 w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" />
+              <FiArrowRight className="relative z-10 w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-2 transition-transform duration-300 flex-shrink-0" />
               
               {/* Effet shimmer premium */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               
               {/* Glow effect */}
-              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 opacity-0 group-hover:opacity-40 blur-2xl transition-opacity duration-700" />
+              <div className="absolute -inset-1 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 opacity-0 group-hover:opacity-40 blur-2xl transition-opacity duration-700" />
             </button>
           </Link>
           
-          <Link to="/reviews" className="w-full sm:w-auto group">
-            <button className="w-full sm:w-auto inline-flex items-center justify-center gap-3 font-semibold rounded-2xl transition-all duration-500 px-12 py-6 text-lg lg:text-xl bg-white/90 backdrop-blur-2xl text-blue-700 border-2 border-blue-300/60 hover:bg-white hover:border-blue-400/80 shadow-xl hover:shadow-2xl shadow-blue-500/15 transform hover:-translate-y-1 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-400/40">
-              <FiStar className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-              <span>Voir les témoignages</span>
+          <Link to="/reviews" className="w-full sm:w-auto group max-w-sm sm:max-w-none">
+            <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 sm:gap-3 font-semibold rounded-xl sm:rounded-2xl transition-all duration-500 px-6 sm:px-8 lg:px-12 py-4 sm:py-5 lg:py-6 text-base sm:text-lg lg:text-xl bg-white/90 backdrop-blur-2xl text-blue-700 border-2 border-blue-300/60 hover:bg-white hover:border-blue-400/80 shadow-xl hover:shadow-2xl shadow-blue-500/15 transform hover:-translate-y-1 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-blue-400/40">
+              <FiStar className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+              <span className="whitespace-nowrap">Voir les témoignages</span>
             </button>
           </Link>
         </div>
       )}
 
-      {/* Cartes de fonctionnalités premium */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6 mb-20 lg:mb-24 animate-slide-up" style={{ animationDelay: '0.8s' }}>
+      {/* Cartes de fonctionnalités premium - Responsive */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 mb-12 sm:mb-16 lg:mb-24 animate-slide-up px-2 sm:px-0" style={{ animationDelay: '0.8s' }}>
         {[
           { icon: FiGlobe, title: 'Destinations multiples', description: `Explorez ${countries.length || '15+'} pays pour vos études`, color: 'from-blue-500 to-blue-600' },
           { icon: FiFileText, title: 'Gestion simplifiée', description: 'Suivez vos dossiers en temps réel', color: 'from-purple-500 to-purple-600' },
@@ -450,43 +451,43 @@ const Home = () => {
           return (
             <div 
               key={index}
-              className="group relative p-8 lg:p-10 bg-white/95 backdrop-blur-2xl border border-blue-200/60 rounded-3xl hover:border-blue-300/80 transition-all duration-700 hover:-translate-y-3 hover:shadow-2xl hover:shadow-blue-500/20 overflow-hidden"
+              className="group relative p-5 sm:p-6 lg:p-8 xl:p-10 bg-white/95 backdrop-blur-2xl border border-blue-200/60 rounded-2xl sm:rounded-3xl hover:border-blue-300/80 transition-all duration-700 hover:-translate-y-2 sm:hover:-translate-y-3 hover:shadow-2xl hover:shadow-blue-500/20 overflow-hidden"
               style={{ animationDelay: `${0.8 + index * 0.1}s` }}
             >
               {/* Background glow animé */}
-              <div className={`absolute -inset-1 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-700 rounded-3xl`} />
+              <div className={`absolute -inset-1 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-700 rounded-2xl sm:rounded-3xl`} />
               
               {/* Effet de brillance au survol */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               
               {/* Contenu */}
               <div className="relative z-10">
-                <div className={`w-16 h-16 lg:w-18 lg:h-18 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 shadow-xl shadow-blue-500/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700`}>
-                  <Icon className="w-8 h-8 text-white" strokeWidth={2.5} />
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 sm:mb-5 lg:mb-6 shadow-xl shadow-blue-500/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700`}>
+                  <Icon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                 </div>
                 
-                <h3 className="font-bold text-slate-900 text-xl mb-3 group-hover:text-blue-700 transition-colors duration-300">
+                <h3 className="font-bold text-slate-900 text-lg sm:text-xl mb-2 sm:mb-3 group-hover:text-blue-700 transition-colors duration-300">
                   {feature.title}
                 </h3>
                 
-                <p className="text-sm lg:text-base text-slate-600 leading-relaxed group-hover:text-slate-700 transition-colors duration-300">
+                <p className="text-xs sm:text-sm lg:text-base text-slate-600 leading-relaxed group-hover:text-slate-700 transition-colors duration-300">
                   {feature.description}
                 </p>
               </div>
               
               {/* Accent décoratif */}
-              <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl ${feature.color} opacity-0 group-hover:opacity-10 rounded-bl-3xl transition-opacity duration-700`} />
+              <div className={`absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-bl ${feature.color} opacity-0 group-hover:opacity-10 rounded-bl-2xl sm:rounded-bl-3xl transition-opacity duration-700`} />
             </div>
           );
         })}
       </div>
 
-      {/* Statistiques premium */}
+      {/* Statistiques premium - Responsive */}
       <div className="relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 sm:w-4/5 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent" />
         
         <div 
-          className="flex flex-wrap justify-center gap-12 lg:gap-20 pt-16 lg:pt-20 animate-slide-up" 
+          className="flex flex-wrap justify-center gap-6 sm:gap-8 lg:gap-12 xl:gap-20 pt-10 sm:pt-12 lg:pt-16 xl:pt-20 animate-slide-up px-4" 
           style={{ animationDelay: '0.9s' }}
         >
           {[
@@ -498,19 +499,19 @@ const Home = () => {
             return (
               <div 
                 key={index} 
-                className="text-center group cursor-default"
+                className="text-center group cursor-default flex-1 min-w-[120px] sm:min-w-[140px]"
                 style={{ animationDelay: `${0.9 + index * 0.1}s` }}
               >
-                <div className="relative inline-flex items-center justify-center mb-4">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500`} />
-                  <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
-                    <Icon className="w-8 h-8 text-white" strokeWidth={2.5} />
+                <div className="relative inline-flex items-center justify-center mb-3 sm:mb-4">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500`} />
+                  <div className={`relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
+                    <Icon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
                   </div>
                 </div>
-                <div className={`text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br ${stat.gradient} mb-3 drop-shadow-sm group-hover:scale-105 transition-transform duration-300`}>
+                <div className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br ${stat.gradient} mb-2 sm:mb-3 drop-shadow-sm group-hover:scale-105 transition-transform duration-300`}>
                   {stat.value}
                 </div>
-                <div className="text-sm lg:text-base text-slate-600 font-semibold tracking-wide uppercase">
+                <div className="text-xs sm:text-sm lg:text-base text-slate-600 font-semibold tracking-wide uppercase leading-tight">
                   {stat.label}
                 </div>
               </div>
