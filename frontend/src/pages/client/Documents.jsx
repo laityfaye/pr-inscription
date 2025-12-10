@@ -1030,7 +1030,7 @@ const ClientDocuments = () => {
                       </Button>
                     </div>
                   </>
-                ) : wantToRename ? (
+                ) : wantToRename === true ? (
                   // Afficher le champ de renommage
                   <>
                     <div>
@@ -1073,12 +1073,42 @@ const ClientDocuments = () => {
                         }}
                         disabled={!customName.trim()}
                       >
-                        Continuer
+                        Confirmer
+                      </Button>
+                    </div>
+                  </>
+                ) : wantToRename === 'confirmed' ? (
+                  // Récapitulatif final si renommage confirmé
+                  <>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">Récapitulatif:</p>
+                      <div className="space-y-1 text-xs text-gray-600">
+                        <p><strong>Catégorie:</strong> {getAvailableCategories().find(c => c.value === documentCategory)?.label || 'N/A'}</p>
+                        <p><strong>Type:</strong> {documentTypes.find(dt => dt.value === type)?.label || 'N/A'}</p>
+                        <p><strong>Fichier:</strong> {file?.name || 'N/A'}</p>
+                        <p><strong>Nom personnalisé:</strong> {customName}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-4 pt-4 border-t">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setWantToRename(true)}
+                      >
+                        Retour
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={handleUpload}
+                        disabled={loading || (file && file.size > MAX_FILE_SIZE)}
+                        loading={loading}
+                      >
+                        {loading ? 'Upload...' : 'Confirmer'}
                       </Button>
                     </div>
                   </>
                 ) : (
-                  // Afficher le récapitulatif et permettre l'upload
+                  // Afficher le récapitulatif et permettre l'upload (quand on garde le nom)
                   <>
                     {/* Récapitulatif */}
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1095,38 +1125,6 @@ const ClientDocuments = () => {
                       <Button
                         variant="ghost"
                         onClick={() => setWantToRename(null)}
-                      >
-                        Retour
-                      </Button>
-                      <Button
-                        variant="primary"
-                        onClick={handleUpload}
-                        disabled={loading || (file && file.size > MAX_FILE_SIZE)}
-                        loading={loading}
-                      >
-                        {loading ? 'Upload...' : 'Confirmer'}
-                      </Button>
-                    </div>
-                  </>
-                )}
-
-                {/* Récapitulatif final si renommage confirmé */}
-                {wantToRename === 'confirmed' && (
-                  <>
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="text-sm font-semibold text-gray-700 mb-2">Récapitulatif:</p>
-                      <div className="space-y-1 text-xs text-gray-600">
-                        <p><strong>Catégorie:</strong> {getAvailableCategories().find(c => c.value === documentCategory)?.label || 'N/A'}</p>
-                        <p><strong>Type:</strong> {documentTypes.find(dt => dt.value === type)?.label || 'N/A'}</p>
-                        <p><strong>Fichier:</strong> {file?.name || 'N/A'}</p>
-                        <p><strong>Nom personnalisé:</strong> {customName}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end space-x-4 pt-4 border-t">
-                      <Button
-                        variant="ghost"
-                        onClick={() => setWantToRename(true)}
                       >
                         Retour
                       </Button>
