@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ResidenceApplicationController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StorageController;
+use App\Http\Controllers\Api\StudyPermitRenewalApplicationController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WorkPermitApplicationController;
 use App\Http\Controllers\Api\WorkPermitCountryController;
@@ -123,6 +124,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('residence-applications', ResidenceApplicationController::class);
     Route::patch('/residence-applications/{residenceApplication}/status', [ResidenceApplicationController::class, 'updateStatus'])->middleware('admin');
     Route::post('/residence-applications/{residenceApplication}/notify-client', [ResidenceApplicationController::class, 'notifyClient'])->middleware('admin');
+
+    // Demandes de renouvellement CAQ/Permis d'études
+    Route::apiResource('study-permit-renewal-applications', StudyPermitRenewalApplicationController::class);
+    Route::patch('/study-permit-renewal-applications/{studyPermitRenewalApplication}/status', [StudyPermitRenewalApplicationController::class, 'updateStatus'])->middleware('admin');
+    Route::post('/study-permit-renewal-applications/{studyPermitRenewalApplication}/notify-client', [StudyPermitRenewalApplicationController::class, 'notifyClient'])->middleware('admin');
 
     // Rendez-vous
     Route::post('/appointments', [AppointmentController::class, 'store']);
