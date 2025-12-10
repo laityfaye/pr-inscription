@@ -55,10 +55,11 @@ export const getImageUrl = (path) => {
     return `/api/storage/${path}`
   }
   
-  // En production, utiliser l'URL directe du backend
+  // En production, utiliser l'URL via l'API (plus sécurisé et ne nécessite pas de lien symbolique)
   const baseUrl = getBackendBaseUrl()
-  const cleanBaseUrl = baseUrl.replace('/api', '').replace(/\/$/, '')
-  const imageUrl = `${cleanBaseUrl}/storage/${path}`
+  const cleanBaseUrl = baseUrl.replace(/\/$/, '')
+  // Utiliser /api/storage pour passer par le StorageController
+  const imageUrl = `${cleanBaseUrl}/api/storage/${path}`
   
   // Debug en mode développement
   if (import.meta.env.DEV && typeof window !== 'undefined') {

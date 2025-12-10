@@ -21,7 +21,8 @@ class StorageController extends Controller
         
         // Vérifier que le fichier existe
         if (!Storage::disk('public')->exists($path)) {
-            return response()->json(['message' => 'Fichier introuvable'], 404);
+            return response()->json(['message' => 'Fichier introuvable'], 404)
+                ->withHeaders($this->getCorsHeaders($request));
         }
         
         // Obtenir le chemin complet du fichier
@@ -31,10 +32,12 @@ class StorageController extends Controller
         $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
         
         // Retourner le fichier avec les en-têtes appropriés
-        return response()->file($filePath, [
+        $headers = array_merge([
             'Content-Type' => $mimeType,
             'Cache-Control' => 'public, max-age=31536000', // Cache 1 an
-        ]);
+        ], $this->getCorsHeaders($request));
+        
+        return response()->file($filePath, $headers);
     }
 }
 
