@@ -1086,7 +1086,7 @@ const ClientDocuments = () => {
                         <p><strong>Catégorie:</strong> {getAvailableCategories().find(c => c.value === documentCategory)?.label || 'N/A'}</p>
                         <p><strong>Type:</strong> {documentTypes.find(dt => dt.value === type)?.label || 'N/A'}</p>
                         <p><strong>Fichier:</strong> {file?.name || 'N/A'}</p>
-                        <p><strong>Nom personnalisé:</strong> {customName}</p>
+                        <p><strong>Nom du document:</strong> {customName || file?.name || 'N/A'}</p>
                       </div>
                     </div>
 
