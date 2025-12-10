@@ -28,6 +28,7 @@ const ClientDocuments = () => {
   const [selectedStudyPermitRenewalId, setSelectedStudyPermitRenewalId] = useState('')
   const [loading, setLoading] = useState(false)
   const [uploadStep, setUploadStep] = useState(1) // 1: Catégorie, 2: Type, 3: Fichier, 4: Nom
+  const [wantToRename, setWantToRename] = useState(null) // null: pas encore demandé, true: oui, false: non
   const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB en bytes
 
   useEffect(() => {
@@ -243,6 +244,7 @@ const ClientDocuments = () => {
       setSelectedResidenceId('')
       setSelectedStudyPermitRenewalId('')
       setUploadStep(1)
+      setWantToRename(null)
       fetchDocuments()
     } catch (error) {
       console.error('Upload error:', error)
@@ -669,6 +671,7 @@ const ClientDocuments = () => {
                   setSelectedResidenceId('')
                   setSelectedStudyPermitRenewalId('')
                   setUploadStep(1)
+                  setWantToRename(null)
                 }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -972,9 +975,9 @@ const ClientDocuments = () => {
                         toast.error(`Le fichier dépasse la taille maximale de ${(MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB`)
                         return
                       }
-                      // Pré-remplir le nom avec le nom du fichier sans extension
-                      const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, '')
-                      setCustomName(fileNameWithoutExt)
+                      // Réinitialiser l'état de renommage
+                      setWantToRename(null)
+                      setCustomName('')
                       setUploadStep(4)
                     }}
                     disabled={!file || file.size > MAX_FILE_SIZE}
@@ -988,54 +991,171 @@ const ClientDocuments = () => {
             {/* Phase 4: Renommer le document */}
             {uploadStep === 4 && (
               <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Nom du document
-                    <span className="text-gray-500 font-normal ml-1">(optionnel)</span>
-                  </label>
-                  <Input
-                    type="text"
-                    value={customName}
-                    onChange={(e) => setCustomName(e.target.value)}
-                    placeholder={file ? file.name.replace(/\.[^/.]+$/, '') : 'Nom du document'}
-                    className="w-full"
-                    maxLength={255}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {customName.length}/255 caractères. Si vide, le nom du fichier sera utilisé.
-                  </p>
-                  <p className="text-xs text-blue-600 mt-1">
-                    💡 Astuce: Utilisez un nom descriptif (ex: "Passeport_Jean_Dupont_2024")
-                  </p>
-                </div>
+                {wantToRename === null ? (
+                  // Question: Voulez-vous renommer le document ?
+                  <>
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Voulez-vous renommer le document ?
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-6">
+                        Le fichier sera nommé: <strong>{file?.name || 'N/A'}</strong>
+                      </p>
+                    </div>
 
-                {/* Récapitulatif */}
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Récapitulatif:</p>
-                  <div className="space-y-1 text-xs text-gray-600">
-                    <p><strong>Catégorie:</strong> {getAvailableCategories().find(c => c.value === documentCategory)?.label || 'N/A'}</p>
-                    <p><strong>Type:</strong> {documentTypes.find(dt => dt.value === type)?.label || 'N/A'}</p>
-                    <p><strong>Fichier:</strong> {file?.name || 'N/A'}</p>
-                    {customName && <p><strong>Nom personnalisé:</strong> {customName}</p>}
+                    <div className="flex justify-center gap-4">
+                      <Button
+                        variant="secondary"
+                        size="lg"
+                        onClick={() => {
+                          setWantToRename(false)
+                          setCustomName('')
+                        }}
+                        className="min-w-[120px]"
+                      >
+                        Non, garder le nom
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="lg"
+                        onClick={() => {
+                          setWantToRename(true)
+                          // Pré-remplir le nom avec le nom du fichier sans extension
+                          const fileNameWithoutExt = file?.name.replace(/\.[^/.]+$/, '') || ''
+                          setCustomName(fileNameWithoutExt)
+                        }}
+                        className="min-w-[120px]"
+                      >
+                        Oui, renommer
+                      </Button>
+                    </div>
+                  </>
+                ) : wantToRename ? (
+                  // Afficher le champ de renommage
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Nom du document <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        type="text"
+                        value={customName}
+                        onChange={(e) => setCustomName(e.target.value)}
+                        placeholder={file ? file.name.replace(/\.[^/.]+$/, '') : 'Nom du document'}
+                        className="w-full"
+                        maxLength={255}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {customName.length}/255 caractères
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        💡 Astuce: Utilisez un nom descriptif (ex: "Passeport_Jean_Dupont_2024")
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end space-x-4 pt-4 border-t">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setWantToRename(null)}
+                      >
+                        Retour
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={() => {
+                          if (!customName.trim()) {
+                            toast.error('Veuillez entrer un nom pour le document')
+                            return
+                          }
+                          // Passer à l'affichage du récapitulatif (on reste sur step 4 mais on change l'affichage)
+                          setWantToRename('confirmed')
+                        }}
+                        disabled={!customName.trim()}
+                      >
+                        Continuer
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  // Afficher le récapitulatif et permettre l'upload
+                  <>
+                    {/* Récapitulatif */}
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">Récapitulatif:</p>
+                      <div className="space-y-1 text-xs text-gray-600">
+                        <p><strong>Catégorie:</strong> {getAvailableCategories().find(c => c.value === documentCategory)?.label || 'N/A'}</p>
+                        <p><strong>Type:</strong> {documentTypes.find(dt => dt.value === type)?.label || 'N/A'}</p>
+                        <p><strong>Fichier:</strong> {file?.name || 'N/A'}</p>
+                        <p><strong>Nom du document:</strong> {file?.name || 'N/A'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-4 pt-4 border-t">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setWantToRename(null)}
+                      >
+                        Retour
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={handleUpload}
+                        disabled={loading || (file && file.size > MAX_FILE_SIZE)}
+                        loading={loading}
+                      >
+                        {loading ? 'Upload...' : 'Uploader'}
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+                {/* Récapitulatif final si renommage confirmé */}
+                {wantToRename === 'confirmed' && (
+                  <>
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">Récapitulatif:</p>
+                      <div className="space-y-1 text-xs text-gray-600">
+                        <p><strong>Catégorie:</strong> {getAvailableCategories().find(c => c.value === documentCategory)?.label || 'N/A'}</p>
+                        <p><strong>Type:</strong> {documentTypes.find(dt => dt.value === type)?.label || 'N/A'}</p>
+                        <p><strong>Fichier:</strong> {file?.name || 'N/A'}</p>
+                        <p><strong>Nom personnalisé:</strong> {customName}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-4 pt-4 border-t">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setWantToRename(true)}
+                      >
+                        Modifier le nom
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={handleUpload}
+                        disabled={loading || (file && file.size > MAX_FILE_SIZE)}
+                        loading={loading}
+                      >
+                        {loading ? 'Upload...' : 'Uploader'}
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+                {/* Bouton Précédent toujours visible */}
+                {wantToRename !== 'confirmed' && (
+                  <div className="flex justify-start pt-4 border-t">
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setUploadStep(3)
+                        setWantToRename(null)
+                      }}
+                    >
+                      Précédent
+                    </Button>
                   </div>
-                </div>
-
-                <div className="flex justify-end space-x-4 pt-4 border-t">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setUploadStep(3)}
-                  >
-                    Précédent
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={handleUpload}
-                    disabled={loading || (file && file.size > MAX_FILE_SIZE)}
-                    loading={loading}
-                  >
-                    {loading ? 'Upload...' : 'Uploader'}
-                  </Button>
-                </div>
+                )}
               </div>
             )}
           </Card>
