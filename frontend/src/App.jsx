@@ -21,6 +21,7 @@ import ClientChat from './pages/client/Chat'
 import AddReview from './pages/client/AddReview'
 import ClientResidenceApplications from './pages/client/ResidenceApplications'
 import ClientWorkPermitApplications from './pages/client/WorkPermitApplications'
+import ClientStudyPermitRenewalApplications from './pages/client/StudyPermitRenewalApplications'
 
 // Pages admin
 import AdminDashboard from './pages/admin/Dashboard'
@@ -111,6 +112,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ClientWorkPermitApplications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/study-permit-renewal-applications"
+              element={
+                <ProtectedRoute>
+                  <ClientStudyPermitRenewalApplications />
                 </ProtectedRoute>
               }
             />

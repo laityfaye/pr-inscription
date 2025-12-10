@@ -707,6 +707,86 @@ const Home = () => {
         </section>
       )}
 
+      {/* Study Permit Renewal Section */}
+      <section className="py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
+        <div className="section-container">
+          <div className="text-center mb-20">
+            <Badge variant="primary" size="lg" className="mb-6">
+              Renouvellement
+            </Badge>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
+              Renouvellement CAQ ou Permis d'études
+            </h2>
+            <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+              Renouvelez votre CAQ ou votre permis d'études au Canada en toute simplicité
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <Card interactive className="p-8 md:p-12 animate-slide-up">
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl blur-xl opacity-50"></div>
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-accent-500 to-accent-800 rounded-2xl flex items-center justify-center shadow-xl">
+                    <FiFileText className="text-4xl md:text-5xl text-white" />
+                  </div>
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
+                    Renouvelez votre CAQ ou Permis d'études
+                  </h3>
+                  <p className="text-neutral-600 mb-6 leading-relaxed">
+                    Vous êtes déjà au Canada et votre CAQ ou permis d'études arrive à expiration ? 
+                    Notre équipe vous accompagne dans le processus de renouvellement pour continuer vos études en toute sérénité.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-neutral-900">Processus simplifié</p>
+                        <p className="text-sm text-neutral-600">Renouvellement rapide et efficace</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-neutral-900">Accompagnement expert</p>
+                        <p className="text-sm text-neutral-600">Notre équipe connaît les procédures</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-neutral-900">Suivi personnalisé</p>
+                        <p className="text-sm text-neutral-600">Un conseiller dédié à votre dossier</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-neutral-900">Délais respectés</p>
+                        <p className="text-sm text-neutral-600">Soumission dans les temps</p>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="primary" 
+                    size="lg" 
+                    icon={FiArrowRight} 
+                    iconPosition="right" 
+                    fullWidth 
+                    className="md:w-auto"
+                    onClick={(e) => handleApplicationClick(e, '/client/study-permit-renewal-applications')}
+                  >
+                    Faire une demande de renouvellement
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Residence Application Section */}
       <section className="py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
         <div className="section-container">

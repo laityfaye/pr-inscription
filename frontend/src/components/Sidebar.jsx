@@ -83,6 +83,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
     { to: '/client/inscriptions', label: 'Mes préinscriptions', icon: FiFileText },
     { to: '/client/work-permit-applications', label: 'Demandes de visa', icon: FiBriefcase },
     { to: '/client/residence-applications', label: 'Résidence Canada', icon: FiHome },
+    { to: '/client/study-permit-renewal-applications', label: 'Renouvellement CAQ/Permis', icon: FiFileText },
     { to: '/client/documents', label: 'Mes documents', icon: FiUpload },
     { to: '/client/chat', label: 'Messages', icon: FiBell, badge: unreadCount },
     { to: '/client/review/add', label: 'Laisser un avis', icon: FiStar },
