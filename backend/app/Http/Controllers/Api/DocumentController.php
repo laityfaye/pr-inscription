@@ -98,6 +98,22 @@ class DocumentController extends Controller
                     ], 422);
                 }
             }
+            
+            if (!empty($validated['study_permit_renewal_application_id'])) {
+                $studyPermitRenewal = \App\Models\StudyPermitRenewalApplication::find($validated['study_permit_renewal_application_id']);
+                if (!$studyPermitRenewal) {
+                    return response()->json([
+                        'message' => 'La demande de renouvellement CAQ/Permis d\'études sélectionnée n\'existe pas.',
+                        'errors' => ['study_permit_renewal_application_id' => ['La demande de renouvellement CAQ/Permis d\'études sélectionnée n\'existe pas.']]
+                    ], 422);
+                }
+                if ($studyPermitRenewal->user_id !== $user->id) {
+                    return response()->json([
+                        'message' => 'La demande de renouvellement CAQ/Permis d\'études sélectionnée ne vous appartient pas.',
+                        'errors' => ['study_permit_renewal_application_id' => ['La demande de renouvellement CAQ/Permis d\'études sélectionnée ne vous appartient pas.']]
+                    ], 422);
+                }
+            }
 
             $document = $this->documentService->upload(
                 $user,
@@ -106,7 +122,8 @@ class DocumentController extends Controller
                 $validated['inscription_id'] ?? null,
                 $validated['name'] ?? null,
                 $validated['work_permit_application_id'] ?? null,
-                $validated['residence_application_id'] ?? null
+                $validated['residence_application_id'] ?? null,
+                $validated['study_permit_renewal_application_id'] ?? null
             );
 
             return response()->json($document, 201);

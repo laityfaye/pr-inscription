@@ -12,7 +12,8 @@ const ClientDocuments = () => {
   const [inscriptions, setInscriptions] = useState([])
   const [workPermitApplications, setWorkPermitApplications] = useState([])
   const [residenceApplications, setResidenceApplications] = useState([])
-  const [activeTab, setActiveTab] = useState('all') // all, inscription, work_permit, residence
+  const [studyPermitRenewalApplications, setStudyPermitRenewalApplications] = useState([])
+  const [activeTab, setActiveTab] = useState('all') // all, inscription, work_permit, residence, study_permit_renewal
   const [showModal, setShowModal] = useState(false)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [previewDocument, setPreviewDocument] = useState(null)
@@ -20,10 +21,11 @@ const ClientDocuments = () => {
   const [file, setFile] = useState(null)
   const [type, setType] = useState('')
   const [customName, setCustomName] = useState('')
-  const [documentCategory, setDocumentCategory] = useState('') // inscription, work_permit, residence
+  const [documentCategory, setDocumentCategory] = useState('') // inscription, work_permit, residence, study_permit_renewal
   const [selectedInscriptionId, setSelectedInscriptionId] = useState('')
   const [selectedWorkPermitId, setSelectedWorkPermitId] = useState('')
   const [selectedResidenceId, setSelectedResidenceId] = useState('')
+  const [selectedStudyPermitRenewalId, setSelectedStudyPermitRenewalId] = useState('')
   const [loading, setLoading] = useState(false)
   const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB en bytes
 
@@ -33,16 +35,18 @@ const ClientDocuments = () => {
 
   const fetchData = async () => {
     try {
-      const [documentsRes, inscriptionsRes, workPermitRes, residenceRes] = await Promise.all([
+      const [documentsRes, inscriptionsRes, workPermitRes, residenceRes, studyPermitRenewalRes] = await Promise.all([
         api.get('/documents'),
         api.get('/inscriptions').catch(() => ({ data: [] })),
         api.get('/work-permit-applications').catch(() => ({ data: [] })),
         api.get('/residence-applications').catch(() => ({ data: [] })),
+        api.get('/study-permit-renewal-applications').catch(() => ({ data: [] })),
       ])
       setDocuments(documentsRes.data)
       setInscriptions(inscriptionsRes.data)
       setWorkPermitApplications(workPermitRes.data)
       setResidenceApplications(residenceRes.data)
+      setStudyPermitRenewalApplications(studyPermitRenewalRes.data)
     } catch (error) {
       console.error('Error fetching data:', error)
     }
@@ -76,7 +80,7 @@ const ClientDocuments = () => {
       return
     }
 
-    if (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId) {
+    if (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId && !selectedStudyPermitRenewalId) {
       toast.error('Veuillez sélectionner une demande')
       return
     }
@@ -97,6 +101,9 @@ const ClientDocuments = () => {
     if (documentCategory === 'residence' && selectedResidenceId) {
       formData.append('residence_application_id', selectedResidenceId)
     }
+    if (documentCategory === 'study_permit_renewal' && selectedStudyPermitRenewalId) {
+      formData.append('study_permit_renewal_application_id', selectedStudyPermitRenewalId)
+    }
 
     try {
       await api.post('/documents', formData, {
@@ -111,6 +118,7 @@ const ClientDocuments = () => {
       setSelectedInscriptionId('')
       setSelectedWorkPermitId('')
       setSelectedResidenceId('')
+      setSelectedStudyPermitRenewalId('')
       fetchDocuments()
     } catch (error) {
       console.error('Upload error:', error)
@@ -256,6 +264,9 @@ const ClientDocuments = () => {
     if (activeTab === 'residence') {
       return documents.filter(doc => doc.residence_application_id !== null)
     }
+    if (activeTab === 'study_permit_renewal') {
+      return documents.filter(doc => doc.study_permit_renewal_application_id !== null)
+    }
     return documents
   }
 
@@ -358,6 +369,16 @@ const ClientDocuments = () => {
           >
             Résidence ({documents.filter(d => d.residence_application_id).length})
           </button>
+          <button
+            onClick={() => setActiveTab('study_permit_renewal')}
+            className={`px-2 sm:px-4 py-2 font-semibold text-xs sm:text-sm transition-colors border-b-2 whitespace-nowrap ${
+              activeTab === 'study_permit_renewal'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            CAQ/Permis ({documents.filter(d => d.study_permit_renewal_application_id).length})
+          </button>
         </div>
 
         {/* Documents Grid */}
@@ -409,6 +430,12 @@ const ClientDocuments = () => {
                       <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mb-2">
                         <FiHome className="mr-1" />
                         Résidence Canada
+                      </div>
+                    )}
+                    {doc.study_permit_renewal_application_id && (
+                      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-accent-100 text-accent-800 mb-2">
+                        <FiFileText className="mr-1" />
+                        CAQ/Permis d'études
                       </div>
                     )}
                     <div className="flex items-center text-sm text-gray-600">
@@ -534,6 +561,7 @@ const ClientDocuments = () => {
                     setSelectedInscriptionId('')
                     setSelectedWorkPermitId('')
                     setSelectedResidenceId('')
+                    setSelectedStudyPermitRenewalId('')
                   }}
                   className="input w-full"
                   required
@@ -542,6 +570,7 @@ const ClientDocuments = () => {
                   <option value="inscription">Préinscription</option>
                   <option value="work_permit">Demande de visa</option>
                   <option value="residence">Résidence Canada</option>
+                  <option value="study_permit_renewal">CAQ/Permis d'études</option>
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
                   Sélectionnez la catégorie pour lier ce document à une demande spécifique
@@ -605,6 +634,27 @@ const ClientDocuments = () => {
                     {residenceApplications.map((app) => (
                       <option key={app.id} value={app.id}>
                         Résidence Canada - {new Date(app.created_at).toLocaleDateString('fr-FR')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {documentCategory === 'study_permit_renewal' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Demande de renouvellement CAQ/Permis d'études <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={selectedStudyPermitRenewalId}
+                    onChange={(e) => setSelectedStudyPermitRenewalId(e.target.value)}
+                    className="input w-full"
+                    required
+                  >
+                    <option value="">Sélectionnez une demande</option>
+                    {studyPermitRenewalApplications.map((app) => (
+                      <option key={app.id} value={app.id}>
+                        CAQ/Permis - {app.country || 'Canada'} - {new Date(app.created_at).toLocaleDateString('fr-FR')}
                       </option>
                     ))}
                   </select>
@@ -696,6 +746,7 @@ const ClientDocuments = () => {
                   setSelectedInscriptionId('')
                   setSelectedWorkPermitId('')
                   setSelectedResidenceId('')
+                  setSelectedStudyPermitRenewalId('')
                 }}
                 disabled={loading}
               >
@@ -704,7 +755,7 @@ const ClientDocuments = () => {
               <Button
                 variant="primary"
                 onClick={handleUpload}
-                disabled={!file || !type || !documentCategory || loading || (file && file.size > MAX_FILE_SIZE) || (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId)}
+                disabled={!file || !type || !documentCategory || loading || (file && file.size > MAX_FILE_SIZE) || (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId && !selectedStudyPermitRenewalId)}
                 loading={loading}
               >
                 {loading ? 'Upload...' : 'Uploader'}
