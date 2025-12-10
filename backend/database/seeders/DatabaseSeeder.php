@@ -12,16 +12,18 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Créer l'admin
-        User::create([
-            'name' => 'Administrateur',
-            'email' => 'toubafallv@gmail.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'phone' => '789553756',
-        ]);
+        // Créer ou mettre à jour l'admin
+        User::updateOrCreate(
+            ['email' => 'toubafallv@gmail.com'],
+            [
+                'name' => 'Administrateur',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'phone' => '789553756',
+            ]
+        );
 
-        // Créer les pays
+        // Créer ou mettre à jour les pays
         $countries = [
             ['name' => 'Canada', 'code' => 'CAN', 'description' => 'Étudiez au Canada'],
             ['name' => 'France', 'code' => 'FRA', 'description' => 'Étudiez en France'],
@@ -30,19 +32,24 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($countries as $country) {
-            Country::create($country);
+            Country::updateOrCreate(
+                ['code' => $country['code']],
+                $country
+            );
         }
 
-        // Créer les paramètres de l'agence
-        AgencySetting::create([
-            'name' => 'InnoSoft',
-            'description' => 'Votre destination, notre mission. Nous vous accompagnons dans vos démarches de préinscription pour vos études à l\'étranger.',
-            'email' => 'laityfaye@gmail.com',
-            'whatsapp' => '780186229',
-            'phone' => '780186229',
-            'address' => 'Dakar, HLM FASS',
-            'registration_number' => 'SN.DKR.2025.A.34574',
-        ]);
+        // Créer ou mettre à jour les paramètres de l'agence
+        AgencySetting::updateOrCreate(
+            ['name' => 'InnoSoft'],
+            [
+                'description' => 'Votre destination, notre mission. Nous vous accompagnons dans vos démarches de préinscription pour vos études à l\'étranger.',
+                'email' => 'laityfaye@gmail.com',
+                'whatsapp' => '780186229',
+                'phone' => '780186229',
+                'address' => 'Dakar, HLM FASS',
+                'registration_number' => 'SN.DKR.2025.A.34574',
+            ]
+        );
     }
 }
 
