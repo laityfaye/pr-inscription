@@ -27,11 +27,123 @@ const ClientDocuments = () => {
   const [selectedResidenceId, setSelectedResidenceId] = useState('')
   const [selectedStudyPermitRenewalId, setSelectedStudyPermitRenewalId] = useState('')
   const [loading, setLoading] = useState(false)
+  const [uploadStep, setUploadStep] = useState(1) // 1: Catégorie, 2: Type, 3: Fichier, 4: Nom
   const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB en bytes
 
   useEffect(() => {
     fetchData()
   }, [])
+
+  // Fonction pour déterminer les catégories disponibles
+  const getAvailableCategories = () => {
+    const categories = []
+    if (inscriptions.length > 0) categories.push({ value: 'inscription', label: 'Préinscription', count: inscriptions.length })
+    if (workPermitApplications.length > 0) categories.push({ value: 'work_permit', label: 'Demande de visa', count: workPermitApplications.length })
+    if (residenceApplications.length > 0) categories.push({ value: 'residence', label: 'Résidence Canada', count: residenceApplications.length })
+    if (studyPermitRenewalApplications.length > 0) categories.push({ value: 'study_permit_renewal', label: 'CAQ/Permis d\'études', count: studyPermitRenewalApplications.length })
+    return categories
+  }
+
+  // Fonction pour obtenir les demandes d'une catégorie
+  const getCategoryApplications = (category) => {
+    switch (category) {
+      case 'inscription':
+        return inscriptions
+      case 'work_permit':
+        return workPermitApplications
+      case 'residence':
+        return residenceApplications
+      case 'study_permit_renewal':
+        return studyPermitRenewalApplications
+      default:
+        return []
+    }
+  }
+
+  // Effet pour la sélection automatique au chargement du modal
+  useEffect(() => {
+    if (showModal && uploadStep === 1 && !documentCategory) {
+      const categories = []
+      if (inscriptions.length > 0) categories.push({ value: 'inscription', count: inscriptions.length })
+      if (workPermitApplications.length > 0) categories.push({ value: 'work_permit', count: workPermitApplications.length })
+      if (residenceApplications.length > 0) categories.push({ value: 'residence', count: residenceApplications.length })
+      if (studyPermitRenewalApplications.length > 0) categories.push({ value: 'study_permit_renewal', count: studyPermitRenewalApplications.length })
+      
+      // Si une seule catégorie disponible, la sélectionner automatiquement
+      if (categories.length === 1) {
+        const category = categories[0].value
+        setDocumentCategory(category)
+        
+        // Si cette catégorie n'a qu'une seule demande, la sélectionner automatiquement
+        let applications = []
+        switch (category) {
+          case 'inscription':
+            applications = inscriptions
+            break
+          case 'work_permit':
+            applications = workPermitApplications
+            break
+          case 'residence':
+            applications = residenceApplications
+            break
+          case 'study_permit_renewal':
+            applications = studyPermitRenewalApplications
+            break
+        }
+        
+        if (applications.length === 1) {
+          const app = applications[0]
+          switch (category) {
+            case 'inscription':
+              setSelectedInscriptionId(app.id.toString())
+              break
+            case 'work_permit':
+              setSelectedWorkPermitId(app.id.toString())
+              break
+            case 'residence':
+              setSelectedResidenceId(app.id.toString())
+              break
+            case 'study_permit_renewal':
+              setSelectedStudyPermitRenewalId(app.id.toString())
+              break
+          }
+        }
+      }
+    }
+  }, [showModal, uploadStep, documentCategory, inscriptions, workPermitApplications, residenceApplications, studyPermitRenewalApplications])
+
+  // Effet pour sélectionner automatiquement la demande si une seule disponible dans la catégorie
+  useEffect(() => {
+    if (documentCategory && uploadStep === 1) {
+      let applications = []
+      switch (documentCategory) {
+        case 'inscription':
+          applications = inscriptions
+          if (applications.length === 1 && !selectedInscriptionId) {
+            setSelectedInscriptionId(applications[0].id.toString())
+          }
+          break
+        case 'work_permit':
+          applications = workPermitApplications
+          if (applications.length === 1 && !selectedWorkPermitId) {
+            setSelectedWorkPermitId(applications[0].id.toString())
+          }
+          break
+        case 'residence':
+          applications = residenceApplications
+          if (applications.length === 1 && !selectedResidenceId) {
+            setSelectedResidenceId(applications[0].id.toString())
+          }
+          break
+        case 'study_permit_renewal':
+          applications = studyPermitRenewalApplications
+          if (applications.length === 1 && !selectedStudyPermitRenewalId) {
+            setSelectedStudyPermitRenewalId(applications[0].id.toString())
+          }
+          break
+      }
+    }
+  }, [documentCategory, uploadStep, inscriptions, workPermitApplications, residenceApplications, studyPermitRenewalApplications, selectedInscriptionId, selectedWorkPermitId, selectedResidenceId, selectedStudyPermitRenewalId])
 
   const fetchData = async () => {
     try {
@@ -80,8 +192,10 @@ const ClientDocuments = () => {
       return
     }
 
+    // Validation finale avant upload
     if (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId && !selectedStudyPermitRenewalId) {
       toast.error('Veuillez sélectionner une demande')
+      setUploadStep(1)
       return
     }
 
@@ -119,6 +233,7 @@ const ClientDocuments = () => {
       setSelectedWorkPermitId('')
       setSelectedResidenceId('')
       setSelectedStudyPermitRenewalId('')
+      setUploadStep(1)
       fetchDocuments()
     } catch (error) {
       console.error('Upload error:', error)
@@ -502,6 +617,7 @@ const ClientDocuments = () => {
                           setType(doc.type)
                           setFile(null)
                           setCustomName('')
+                          setUploadStep(1)
                           setShowModal(true)
                         }}
                         className="flex-1"
@@ -530,213 +646,9 @@ const ClientDocuments = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           <Card className="max-w-md w-full p-8 animate-scale-in max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Uploader un document</h2>
-            
-            {/* Message informatif */}
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start gap-2">
-                <FiAlertCircle className="text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-blue-900 mb-1">
-                    Informations importantes
-                  </p>
-                  <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
-                    <li>Taille maximale: <strong>10 MB</strong></li>
-                    <li>Un nom clair et descriptif facilite le traitement de votre document</li>
-                    <li>Évitez les caractères spéciaux dans le nom</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Catégorie de demande <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={documentCategory}
-                  onChange={(e) => {
-                    setDocumentCategory(e.target.value)
-                    setSelectedInscriptionId('')
-                    setSelectedWorkPermitId('')
-                    setSelectedResidenceId('')
-                    setSelectedStudyPermitRenewalId('')
-                  }}
-                  className="input w-full"
-                  required
-                >
-                  <option value="">Sélectionnez une catégorie</option>
-                  <option value="inscription">Préinscription</option>
-                  <option value="work_permit">Demande de visa</option>
-                  <option value="residence">Résidence Canada</option>
-                  <option value="study_permit_renewal">CAQ/Permis d'études</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Sélectionnez la catégorie pour lier ce document à une demande spécifique
-                </p>
-              </div>
-
-              {documentCategory === 'inscription' && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Préinscription <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedInscriptionId}
-                    onChange={(e) => setSelectedInscriptionId(e.target.value)}
-                    className="input w-full"
-                    required
-                  >
-                    <option value="">Sélectionnez une préinscription</option>
-                    {inscriptions.map((inscription) => (
-                      <option key={inscription.id} value={inscription.id}>
-                        {inscription.country?.name || 'Préinscription'} - {new Date(inscription.created_at).toLocaleDateString('fr-FR')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {documentCategory === 'work_permit' && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Demande de visa <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedWorkPermitId}
-                    onChange={(e) => setSelectedWorkPermitId(e.target.value)}
-                    className="input w-full"
-                    required
-                  >
-                    <option value="">Sélectionnez une demande</option>
-                    {workPermitApplications.map((app) => (
-                      <option key={app.id} value={app.id}>
-                        {app.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'} - {app.country?.name || 'N/A'} - {new Date(app.created_at).toLocaleDateString('fr-FR')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {documentCategory === 'residence' && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Demande de résidence <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedResidenceId}
-                    onChange={(e) => setSelectedResidenceId(e.target.value)}
-                    className="input w-full"
-                    required
-                  >
-                    <option value="">Sélectionnez une demande</option>
-                    {residenceApplications.map((app) => (
-                      <option key={app.id} value={app.id}>
-                        Résidence Canada - {new Date(app.created_at).toLocaleDateString('fr-FR')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {documentCategory === 'study_permit_renewal' && (
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Demande de renouvellement CAQ/Permis d'études <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedStudyPermitRenewalId}
-                    onChange={(e) => setSelectedStudyPermitRenewalId(e.target.value)}
-                    className="input w-full"
-                    required
-                  >
-                    <option value="">Sélectionnez une demande</option>
-                    {studyPermitRenewalApplications.map((app) => (
-                      <option key={app.id} value={app.id}>
-                        CAQ/Permis - {app.country || 'Canada'} - {new Date(app.created_at).toLocaleDateString('fr-FR')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Type de document <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="input w-full"
-                >
-                  <option value="">Sélectionner un type</option>
-                  {documentTypes.map((dt) => (
-                    <option key={dt.value} value={dt.value}>
-                      {dt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Fichier <span className="text-red-500">*</span>
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary-400 transition-colors">
-                  <input
-                    type="file"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="cursor-pointer flex flex-col items-center"
-                  >
-                    <FiUpload className="text-4xl text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-600 mb-1">
-                      {file ? file.name : 'Cliquez pour sélectionner un fichier'}
-                    </span>
-                    {file && (
-                      <span className="text-xs text-gray-500">
-                        Taille: {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </span>
-                    )}
-                  </label>
-                </div>
-                {file && file.size > MAX_FILE_SIZE && (
-                  <p className="text-xs text-red-600 mt-1">
-                    Le fichier dépasse la taille maximale de {(MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Nom du document
-                  <span className="text-gray-500 font-normal ml-1">(optionnel)</span>
-                </label>
-                <Input
-                  type="text"
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-                  placeholder={file ? file.name.replace(/\.[^/.]+$/, '') : 'Nom du document'}
-                  className="w-full"
-                  maxLength={255}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {customName.length}/255 caractères. Si vide, le nom du fichier sera utilisé.
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  💡 Astuce: Utilisez un nom descriptif (ex: "Passeport_Jean_Dupont_2024")
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-4 mt-8">
-              <Button
-                variant="ghost"
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Uploader un document</h2>
+              <button
                 onClick={() => {
                   setShowModal(false)
                   setFile(null)
@@ -747,20 +659,376 @@ const ClientDocuments = () => {
                   setSelectedWorkPermitId('')
                   setSelectedResidenceId('')
                   setSelectedStudyPermitRenewalId('')
+                  setUploadStep(1)
                 }}
-                disabled={loading}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Annuler
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleUpload}
-                disabled={!file || !type || !documentCategory || loading || (file && file.size > MAX_FILE_SIZE) || (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId && !selectedStudyPermitRenewalId)}
-                loading={loading}
-              >
-                {loading ? 'Upload...' : 'Uploader'}
-              </Button>
+                <FiX className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
+
+            {/* Indicateur de progression */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                {[1, 2, 3, 4].map((step) => (
+                  <div key={step} className="flex items-center flex-1">
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm ${
+                      uploadStep >= step 
+                        ? 'bg-primary-600 text-white' 
+                        : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {uploadStep > step ? '✓' : step}
+                    </div>
+                    {step < 4 && (
+                      <div className={`flex-1 h-1 mx-2 ${
+                        uploadStep > step ? 'bg-primary-600' : 'bg-gray-200'
+                      }`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-xs text-gray-600">
+                <span className={uploadStep === 1 ? 'font-semibold text-primary-600' : ''}>Catégorie</span>
+                <span className={uploadStep === 2 ? 'font-semibold text-primary-600' : ''}>Type</span>
+                <span className={uploadStep === 3 ? 'font-semibold text-primary-600' : ''}>Fichier</span>
+                <span className={uploadStep === 4 ? 'font-semibold text-primary-600' : ''}>Nom</span>
+              </div>
+            </div>
+
+            {/* Phase 1: Catégorie de demande */}
+            {uploadStep === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Catégorie de demande <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={documentCategory}
+                    onChange={(e) => {
+                      setDocumentCategory(e.target.value)
+                      setSelectedInscriptionId('')
+                      setSelectedWorkPermitId('')
+                      setSelectedResidenceId('')
+                      setSelectedStudyPermitRenewalId('')
+                    }}
+                    className="input w-full"
+                    required
+                  >
+                    <option value="">Sélectionnez une catégorie</option>
+                    {getAvailableCategories().map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label} ({cat.count})
+                      </option>
+                    ))}
+                  </select>
+                  {getAvailableCategories().length === 0 && (
+                    <p className="text-xs text-red-600 mt-1">
+                      Vous devez avoir au moins une demande pour uploader un document
+                    </p>
+                  )}
+                </div>
+
+                {documentCategory === 'inscription' && inscriptions.length > 1 && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Préinscription <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedInscriptionId}
+                      onChange={(e) => setSelectedInscriptionId(e.target.value)}
+                      className="input w-full"
+                      required
+                    >
+                      <option value="">Sélectionnez une préinscription</option>
+                      {inscriptions.map((inscription) => (
+                        <option key={inscription.id} value={inscription.id}>
+                          {inscription.country?.name || 'Préinscription'} - {new Date(inscription.created_at).toLocaleDateString('fr-FR')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {documentCategory === 'work_permit' && workPermitApplications.length > 1 && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Demande de visa <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedWorkPermitId}
+                      onChange={(e) => setSelectedWorkPermitId(e.target.value)}
+                      className="input w-full"
+                      required
+                    >
+                      <option value="">Sélectionnez une demande</option>
+                      {workPermitApplications.map((app) => (
+                        <option key={app.id} value={app.id}>
+                          {app.visa_type === 'visitor_visa' ? 'Visa Visiteur' : 'Permis de travail'} - {app.country?.name || 'N/A'} - {new Date(app.created_at).toLocaleDateString('fr-FR')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {documentCategory === 'residence' && residenceApplications.length > 1 && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Demande de résidence <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedResidenceId}
+                      onChange={(e) => setSelectedResidenceId(e.target.value)}
+                      className="input w-full"
+                      required
+                    >
+                      <option value="">Sélectionnez une demande</option>
+                      {residenceApplications.map((app) => (
+                        <option key={app.id} value={app.id}>
+                          Résidence Canada - {new Date(app.created_at).toLocaleDateString('fr-FR')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {documentCategory === 'study_permit_renewal' && studyPermitRenewalApplications.length > 1 && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Demande de renouvellement CAQ/Permis d'études <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={selectedStudyPermitRenewalId}
+                      onChange={(e) => setSelectedStudyPermitRenewalId(e.target.value)}
+                      className="input w-full"
+                      required
+                    >
+                      <option value="">Sélectionnez une demande</option>
+                      {studyPermitRenewalApplications.map((app) => (
+                        <option key={app.id} value={app.id}>
+                          CAQ/Permis - {app.country || 'Canada'} - {new Date(app.created_at).toLocaleDateString('fr-FR')}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-4 pt-4 border-t">
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setShowModal(false)
+                      setFile(null)
+                      setType('')
+                      setCustomName('')
+                      setDocumentCategory('')
+                      setSelectedInscriptionId('')
+                      setSelectedWorkPermitId('')
+                      setSelectedResidenceId('')
+                      setSelectedStudyPermitRenewalId('')
+                      setUploadStep(1)
+                    }}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      // Vérifier qu'une catégorie est sélectionnée et qu'une demande est sélectionnée si nécessaire
+                      if (!documentCategory) {
+                        toast.error('Veuillez sélectionner une catégorie')
+                        return
+                      }
+                      const applications = getCategoryApplications(documentCategory)
+                      if (applications.length > 1) {
+                        const hasSelection = 
+                          (documentCategory === 'inscription' && selectedInscriptionId) ||
+                          (documentCategory === 'work_permit' && selectedWorkPermitId) ||
+                          (documentCategory === 'residence' && selectedResidenceId) ||
+                          (documentCategory === 'study_permit_renewal' && selectedStudyPermitRenewalId)
+                        if (!hasSelection) {
+                          toast.error('Veuillez sélectionner une demande')
+                          return
+                        }
+                      }
+                      setUploadStep(2)
+                    }}
+                    disabled={!documentCategory || getAvailableCategories().length === 0}
+                  >
+                    Suivant
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Phase 2: Type de document */}
+            {uploadStep === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Type de document <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value)}
+                    className="input w-full"
+                    required
+                  >
+                    <option value="">Sélectionner un type</option>
+                    {documentTypes.map((dt) => (
+                      <option key={dt.value} value={dt.value}>
+                        {dt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex justify-end space-x-4 pt-4 border-t">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setUploadStep(1)}
+                  >
+                    Précédent
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      if (!type) {
+                        toast.error('Veuillez sélectionner un type de document')
+                        return
+                      }
+                      setUploadStep(3)
+                    }}
+                    disabled={!type}
+                  >
+                    Suivant
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Phase 3: Fichier */}
+            {uploadStep === 3 && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Fichier <span className="text-red-500">*</span>
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary-400 transition-colors">
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label
+                      htmlFor="file-upload"
+                      className="cursor-pointer flex flex-col items-center"
+                    >
+                      <FiUpload className="text-4xl text-gray-400 mb-2" />
+                      <span className="text-sm text-gray-600 mb-1">
+                        {file ? file.name : 'Cliquez pour sélectionner un fichier'}
+                      </span>
+                      {file && (
+                        <span className="text-xs text-gray-500">
+                          Taille: {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                  {file && file.size > MAX_FILE_SIZE && (
+                    <p className="text-xs text-red-600 mt-1">
+                      Le fichier dépasse la taille maximale de {(MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2">
+                    Taille maximale: 10 MB
+                  </p>
+                </div>
+
+                <div className="flex justify-end space-x-4 pt-4 border-t">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setUploadStep(2)}
+                  >
+                    Précédent
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      if (!file) {
+                        toast.error('Veuillez sélectionner un fichier')
+                        return
+                      }
+                      if (file.size > MAX_FILE_SIZE) {
+                        toast.error(`Le fichier dépasse la taille maximale de ${(MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB`)
+                        return
+                      }
+                      // Pré-remplir le nom avec le nom du fichier sans extension
+                      const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, '')
+                      setCustomName(fileNameWithoutExt)
+                      setUploadStep(4)
+                    }}
+                    disabled={!file || file.size > MAX_FILE_SIZE}
+                  >
+                    Suivant
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Phase 4: Renommer le document */}
+            {uploadStep === 4 && (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Nom du document
+                    <span className="text-gray-500 font-normal ml-1">(optionnel)</span>
+                  </label>
+                  <Input
+                    type="text"
+                    value={customName}
+                    onChange={(e) => setCustomName(e.target.value)}
+                    placeholder={file ? file.name.replace(/\.[^/.]+$/, '') : 'Nom du document'}
+                    className="w-full"
+                    maxLength={255}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {customName.length}/255 caractères. Si vide, le nom du fichier sera utilisé.
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    💡 Astuce: Utilisez un nom descriptif (ex: "Passeport_Jean_Dupont_2024")
+                  </p>
+                </div>
+
+                {/* Récapitulatif */}
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Récapitulatif:</p>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    <p><strong>Catégorie:</strong> {getAvailableCategories().find(c => c.value === documentCategory)?.label || 'N/A'}</p>
+                    <p><strong>Type:</strong> {documentTypes.find(dt => dt.value === type)?.label || 'N/A'}</p>
+                    <p><strong>Fichier:</strong> {file?.name || 'N/A'}</p>
+                    {customName && <p><strong>Nom personnalisé:</strong> {customName}</p>}
+                  </div>
+                </div>
+
+                <div className="flex justify-end space-x-4 pt-4 border-t">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setUploadStep(3)}
+                  >
+                    Précédent
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleUpload}
+                    disabled={loading || (file && file.size > MAX_FILE_SIZE)}
+                    loading={loading}
+                  >
+                    {loading ? 'Upload...' : 'Uploader'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
       )}
