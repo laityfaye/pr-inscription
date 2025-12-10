@@ -708,64 +708,64 @@ const Home = () => {
       )}
 
       {/* Study Permit Renewal Section */}
-      <section className="py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
-        <div className="section-container">
-          <div className="text-center mb-20">
-            <Badge variant="primary" size="lg" className="mb-6">
+      <section className="py-12 sm:py-16 md:py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
+        <div className="section-container px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-12 md:mb-20">
+            <Badge variant="primary" size="lg" className="mb-4 sm:mb-6">
               Renouvellement
             </Badge>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-neutral-900 mb-4 sm:mb-6 px-2">
               Renouvellement CAQ ou Permis d'études
             </h2>
-            <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto px-2">
               Renouvelez votre CAQ ou votre permis d'études au Canada en toute simplicité
             </p>
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <Card interactive className="p-8 md:p-12 animate-slide-up">
-              <div className="flex flex-col md:flex-row items-center gap-8">
+            <Card interactive className="p-4 sm:p-6 md:p-8 lg:p-12 animate-slide-up">
+              <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 md:gap-8">
                 <div className="relative flex-shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl blur-xl opacity-50"></div>
-                  <div className="relative w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-accent-500 to-accent-800 rounded-2xl flex items-center justify-center shadow-xl">
-                    <FiFileText className="text-4xl md:text-5xl text-white" />
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-gradient-to-br from-accent-500 to-accent-800 rounded-2xl flex items-center justify-center shadow-xl">
+                    <FiFileText className="text-3xl sm:text-4xl md:text-5xl text-white" />
                   </div>
                 </div>
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
+                <div className="flex-1 text-center md:text-left w-full">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-neutral-900 mb-3 sm:mb-4">
                     Renouvelez votre CAQ ou Permis d'études
                   </h3>
-                  <p className="text-neutral-600 mb-6 leading-relaxed">
+                  <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-6 leading-relaxed">
                     Vous êtes déjà au Canada et votre CAQ ou permis d'études arrive à expiration ? 
                     Notre équipe vous accompagne dans le processus de renouvellement pour continuer vos études en toute sérénité.
                   </p>
-                  <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Processus simplifié</p>
-                        <p className="text-sm text-neutral-600">Renouvellement rapide et efficace</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Processus simplifié</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Renouvellement rapide et efficace</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Accompagnement expert</p>
-                        <p className="text-sm text-neutral-600">Notre équipe connaît les procédures</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Accompagnement expert</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Notre équipe connaît les procédures</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Suivi personnalisé</p>
-                        <p className="text-sm text-neutral-600">Un conseiller dédié à votre dossier</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Suivi personnalisé</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Un conseiller dédié à votre dossier</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Délais respectés</p>
-                        <p className="text-sm text-neutral-600">Soumission dans les temps</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Délais respectés</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Soumission dans les temps</p>
                       </div>
                     </div>
                   </div>
@@ -775,7 +775,7 @@ const Home = () => {
                     icon={FiArrowRight} 
                     iconPosition="right" 
                     fullWidth 
-                    className="md:w-auto"
+                    className="md:w-auto text-sm sm:text-base"
                     onClick={(e) => handleApplicationClick(e, '/client/study-permit-renewal-applications')}
                   >
                     Faire une demande de renouvellement
@@ -788,64 +788,64 @@ const Home = () => {
       </section>
 
       {/* Residence Application Section */}
-      <section className="py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
-        <div className="section-container">
-          <div className="text-center mb-20">
-            <Badge variant="accent" size="lg" className="mb-6">
+      <section className="py-12 sm:py-16 md:py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
+        <div className="section-container px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-12 md:mb-20">
+            <Badge variant="accent" size="lg" className="mb-4 sm:mb-6">
               Résidence permanente
             </Badge>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-neutral-900 mb-4 sm:mb-6 px-2">
               Résidence permanente au Canada
             </h2>
-            <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto px-2">
               Réalisez votre rêve d'immigration au Canada avec notre accompagnement expert
             </p>
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <Card interactive className="p-8 md:p-12 animate-slide-up">
-              <div className="flex flex-col md:flex-row items-center gap-8">
+            <Card interactive className="p-4 sm:p-6 md:p-8 lg:p-12 animate-slide-up">
+              <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 md:gap-8">
                 <div className="relative flex-shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl blur-xl opacity-50"></div>
-                  <div className="relative w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-primary-500 to-primary-800 rounded-2xl flex items-center justify-center shadow-xl">
-                    <FiHome className="text-4xl md:text-5xl text-white" />
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-gradient-to-br from-primary-500 to-primary-800 rounded-2xl flex items-center justify-center shadow-xl">
+                    <FiHome className="text-3xl sm:text-4xl md:text-5xl text-white" />
                   </div>
                 </div>
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
+                <div className="flex-1 text-center md:text-left w-full">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-neutral-900 mb-3 sm:mb-4">
                     Obtenez votre résidence permanente au Canada
                   </h3>
-                  <p className="text-neutral-600 mb-6 leading-relaxed">
+                  <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-6 leading-relaxed">
                     Le Canada offre de nombreuses opportunités pour ceux qui souhaitent s'y installer de manière permanente. 
                     Notre équipe vous accompagne dans toutes les démarches nécessaires pour obtenir votre résidence permanente.
                   </p>
-                  <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Accompagnement complet</p>
-                        <p className="text-sm text-neutral-600">De la préparation du dossier à l'obtention</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Accompagnement complet</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">De la préparation du dossier à l'obtention</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Expertise reconnue</p>
-                        <p className="text-sm text-neutral-600">Des années d'expérience dans l'immigration</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Expertise reconnue</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Des années d'expérience dans l'immigration</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Suivi personnalisé</p>
-                        <p className="text-sm text-neutral-600">Un conseiller dédié à votre dossier</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Suivi personnalisé</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Un conseiller dédié à votre dossier</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Taux de réussite élevé</p>
-                        <p className="text-sm text-neutral-600">Maximisez vos chances de succès</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Taux de réussite élevé</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Maximisez vos chances de succès</p>
                       </div>
                     </div>
                   </div>
@@ -855,7 +855,7 @@ const Home = () => {
                     icon={FiArrowRight} 
                     iconPosition="right" 
                     fullWidth 
-                    className="md:w-auto"
+                    className="md:w-auto text-sm sm:text-base"
                     onClick={(e) => handleApplicationClick(e, '/client/residence-applications')}
                   >
                     Faire une demande de résidence
