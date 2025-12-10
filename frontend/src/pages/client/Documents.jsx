@@ -202,9 +202,40 @@ const ClientDocuments = () => {
       return
     }
 
-    // Validation finale avant upload
-    if (documentCategory && !selectedInscriptionId && !selectedWorkPermitId && !selectedResidenceId && !selectedStudyPermitRenewalId) {
-      toast.error('Veuillez sélectionner une demande')
+    // Validation finale avant upload - s'assurer qu'une demande est sélectionnée
+    let selectedApplicationId = null
+    if (documentCategory === 'inscription') {
+      if (!selectedInscriptionId) {
+        toast.error('Veuillez sélectionner une préinscription')
+        setUploadStep(1)
+        return
+      }
+      selectedApplicationId = selectedInscriptionId
+    } else if (documentCategory === 'work_permit') {
+      if (!selectedWorkPermitId) {
+        toast.error('Veuillez sélectionner une demande de visa')
+        setUploadStep(1)
+        return
+      }
+      selectedApplicationId = selectedWorkPermitId
+    } else if (documentCategory === 'residence') {
+      if (!selectedResidenceId) {
+        toast.error('Veuillez sélectionner une demande de résidence')
+        setUploadStep(1)
+        return
+      }
+      selectedApplicationId = selectedResidenceId
+    } else if (documentCategory === 'study_permit_renewal') {
+      if (!selectedStudyPermitRenewalId) {
+        toast.error('Veuillez sélectionner une demande de renouvellement CAQ/Permis d\'études')
+        setUploadStep(1)
+        return
+      }
+      selectedApplicationId = selectedStudyPermitRenewalId
+    }
+
+    if (!selectedApplicationId) {
+      toast.error('Veuillez sélectionner une catégorie et une demande')
       setUploadStep(1)
       return
     }
@@ -216,6 +247,8 @@ const ClientDocuments = () => {
     if (customName.trim()) {
       formData.append('name', customName.trim())
     }
+    
+    // Toujours envoyer l'ID de la demande correspondante pour référencer le dossier
     if (documentCategory === 'inscription' && selectedInscriptionId) {
       formData.append('inscription_id', selectedInscriptionId)
     }

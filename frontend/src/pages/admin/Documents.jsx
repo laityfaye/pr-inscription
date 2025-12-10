@@ -275,6 +275,14 @@ const AdminDocuments = () => {
         data: doc.residence_application
       }
     }
+    if (doc.study_permit_renewal_application_id) {
+      return {
+        type: 'study_permit_renewal',
+        label: 'CAQ/Permis d\'études',
+        id: doc.study_permit_renewal_application_id,
+        data: doc.study_permit_renewal_application
+      }
+    }
     return {
       type: 'none',
       label: 'Sans dossier',
