@@ -159,6 +159,15 @@ const ClientDocuments = () => {
       setWorkPermitApplications(workPermitRes.data)
       setResidenceApplications(residenceRes.data)
       setStudyPermitRenewalApplications(studyPermitRenewalRes.data)
+      
+      // Debug: vérifier les documents de visa
+      const visaDocs = documentsRes.data.filter(d => d.work_permit_application_id !== null && d.work_permit_application_id !== undefined)
+      if (visaDocs.length > 0) {
+        console.log('Documents de visa trouvés:', visaDocs.length, visaDocs)
+      } else {
+        console.log('Aucun document de visa trouvé. Total documents:', documentsRes.data.length)
+        console.log('Exemple de document:', documentsRes.data[0])
+      }
     } catch (error) {
       console.error('Error fetching data:', error)
     }
@@ -371,16 +380,16 @@ const ClientDocuments = () => {
   const getFilteredDocuments = () => {
     if (activeTab === 'all') return documents
     if (activeTab === 'inscription') {
-      return documents.filter(doc => doc.inscription_id !== null)
+      return documents.filter(doc => doc.inscription_id !== null && doc.inscription_id !== undefined)
     }
     if (activeTab === 'work_permit') {
-      return documents.filter(doc => doc.work_permit_application_id !== null)
+      return documents.filter(doc => doc.work_permit_application_id !== null && doc.work_permit_application_id !== undefined)
     }
     if (activeTab === 'residence') {
-      return documents.filter(doc => doc.residence_application_id !== null)
+      return documents.filter(doc => doc.residence_application_id !== null && doc.residence_application_id !== undefined)
     }
     if (activeTab === 'study_permit_renewal') {
-      return documents.filter(doc => doc.study_permit_renewal_application_id !== null)
+      return documents.filter(doc => doc.study_permit_renewal_application_id !== null && doc.study_permit_renewal_application_id !== undefined)
     }
     return documents
   }
@@ -472,7 +481,7 @@ const ClientDocuments = () => {
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
-            Visa ({documents.filter(d => d.work_permit_application_id).length})
+            Visa ({documents.filter(d => d.work_permit_application_id !== null && d.work_permit_application_id !== undefined).length})
           </button>
           <button
             onClick={() => setActiveTab('residence')}

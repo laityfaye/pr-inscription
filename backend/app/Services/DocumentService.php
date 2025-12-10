@@ -54,7 +54,16 @@ class DocumentService
 
     public function getUserDocuments(int $userId)
     {
-        return Document::where('user_id', $userId)->get();
+        return Document::where('user_id', $userId)
+            ->with([
+                'validator',
+                'inscription',
+                'workPermitApplication',
+                'residenceApplication',
+                'studyPermitRenewalApplication'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     public function getAllDocuments()
