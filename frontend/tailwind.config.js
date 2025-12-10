@@ -32,8 +32,8 @@ export default {
           600: '#525252',
           700: '#404040',
           800: '#262626',
-          900: '#171717',  // noir doux (soft black)
-          950: '#0a0a0a',  // noir profond (deep black)
+          900: '#171717',  
+          950: '#0a0a0a',  
         
         },
         success: {
