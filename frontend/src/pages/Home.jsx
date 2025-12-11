@@ -295,11 +295,9 @@ const Home = () => {
           {/* Main Heading - Toujours affiché car les données de l'agence sont disponibles depuis le cache */}
           <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-3 sm:mb-4 md:mb-6 text-balance animate-slide-up leading-tight px-2">
             <span className="block mb-1 sm:mb-2">{agency?.name || 'Touba Fall Khidma Services'}</span>
-            {agency?.name && agency?.name !== 'Touba Fall Khidma Services' && (
               <span className="block text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-primary-100">
                 TFKServices
               </span>
-            )}
           </h1>
 
           {/* Subtitle - Toujours affiché avec les données de l'agence (cache ou valeurs par défaut) */}
