@@ -82,7 +82,7 @@ const AdminSettings = () => {
     e.preventDefault()
     const data = new FormData()
     
-    // Vérifier si les informations minimales de l'avocat sont présentes
+    // Vérifier si les informations minimales de Développeur sont présentes
     const hasMinimalLawyerInfo = (settings.lawyer_first_name && settings.lawyer_first_name.trim()) || 
                                  (settings.lawyer_last_name && settings.lawyer_last_name.trim())
     
@@ -370,11 +370,11 @@ const AdminSettings = () => {
               </div>
             </div>
 
-            {/* Informations de l'avocat */}
+            {/* Informations de Développeur */}
             <div className="border-t border-neutral-200 pt-6">
               <h2 className="text-xl font-bold text-neutral-900 mb-6 flex items-center gap-2">
                 <FiCalendar className="text-primary-600" />
-                Informations de l'avocat
+                Informations de Développeur
               </h2>
               
               {/* Vérifier si les informations minimales sont présentes */}
@@ -401,23 +401,23 @@ const AdminSettings = () => {
                           className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                         <span className="text-sm font-semibold text-neutral-700">
-                          Afficher la carte de l'avocat sur la page d'accueil
+                          Afficher la carte de Développeur sur la page d'accueil
                         </span>
                       </label>
                       {!canEnable && (
                         <p className="form-error mt-2 flex items-center gap-2">
                           <span>⚠️</span>
-                          <span>Vous devez remplir au moins le prénom ou le nom de l'avocat pour activer cette option</span>
+                          <span>Vous devez remplir au moins le prénom ou le nom de Développeur pour activer cette option</span>
                         </p>
                       )}
                       {canEnable && !settings.lawyer_card_enabled && (
                         <p className="form-helper mt-2">
-                          Activez cette option pour afficher la carte de l'avocat dans la section Hero de la page d'accueil
+                          Activez cette option pour afficher la carte de Développeur dans la section Hero de la page d'accueil
                         </p>
                       )}
                       {canEnable && settings.lawyer_card_enabled && (
                         <p className="form-helper mt-2 text-success-600">
-                          ✓ La carte de l'avocat sera affichée sur la page d'accueil
+                          ✓ La carte de Développeur sera affichée sur la page d'accueil
                         </p>
                       )}
                     </div>
@@ -439,14 +439,14 @@ const AdminSettings = () => {
                 {!settings.lawyer_first_name && !settings.lawyer_last_name && (
                   <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-800">
-                      💡 Remplissez au moins le prénom ou le nom de l'avocat pour pouvoir activer l'affichage de la carte
+                      💡 Remplissez au moins le prénom ou le nom de Développeur pour pouvoir activer l'affichage de la carte
                     </p>
                   </div>
                 )}
                   <div className="grid md:grid-cols-2 gap-6">
                     <Input
                       type="text"
-                      label="Prénom de l'avocat"
+                      label="Prénom de Développeur"
                       value={settings.lawyer_first_name}
                       onChange={(e) => setSettings({ ...settings, lawyer_first_name: e.target.value })}
                       placeholder="Touba"
@@ -454,7 +454,7 @@ const AdminSettings = () => {
                     />
                     <Input
                       type="text"
-                      label="Nom de l'avocat"
+                      label="Nom de Développeur"
                       value={settings.lawyer_last_name}
                       onChange={(e) => setSettings({ ...settings, lawyer_last_name: e.target.value })}
                       placeholder="Fall"
@@ -473,7 +473,7 @@ const AdminSettings = () => {
 
                   <div className="form-group">
                     <label className="form-label">
-                      Photo de l'avocat
+                      Photo de Développeur
                     </label>
                     <div className="relative">
                       <input
@@ -494,7 +494,7 @@ const AdminSettings = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <Input
                       type="tel"
-                      label="Téléphone de l'avocat"
+                      label="Téléphone de Développeur"
                       value={settings.lawyer_phone}
                       onChange={(e) => setSettings({ ...settings, lawyer_phone: e.target.value })}
                       icon={FiPhone}
@@ -502,7 +502,7 @@ const AdminSettings = () => {
                     />
                     <Input
                       type="email"
-                      label="Email de l'avocat"
+                      label="Email de Développeur"
                       value={settings.lawyer_email}
                       onChange={(e) => setSettings({ ...settings, lawyer_email: e.target.value })}
                       icon={FiMail}
