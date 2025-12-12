@@ -132,8 +132,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Rendez-vous
     Route::post('/appointments', [AppointmentController::class, 'store']);
-    Route::get('/appointments', [AppointmentController::class, 'index'])->middleware('admin');
-    Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->middleware('admin');
+    Route::get('/appointments', [AppointmentController::class, 'index'])->middleware('avocat_or_admin');
+    Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->middleware('avocat_or_admin');
     Route::post('/appointments/{appointment}/validate', [AppointmentController::class, 'validateAppointment'])->middleware('admin');
     Route::post('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->middleware('admin');
     Route::post('/appointments/unavailable-days', [AppointmentController::class, 'addUnavailableDay'])->middleware('admin');

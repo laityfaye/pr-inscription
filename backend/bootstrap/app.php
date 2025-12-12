@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserIsAvocatOrAdmin;
 use App\Http\Middleware\ForceCorsHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'avocat_or_admin' => EnsureUserIsAvocatOrAdmin::class,
         ]);
         
         // Ajouter CORS en premier pour toutes les requêtes API

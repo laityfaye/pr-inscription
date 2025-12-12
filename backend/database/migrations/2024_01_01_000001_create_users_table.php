@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'client'])->default('client');
+            $table->enum('role', ['admin', 'client', 'avocat'])->default('client');
             $table->string('target_country')->nullable();
             $table->string('photo')->nullable();
             $table->rememberToken();

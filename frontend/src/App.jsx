@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { AgencyProvider } from './contexts/AgencyContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
+import AvocatRoute from './components/AvocatRoute'
 
 // Pages publiques
 import Home from './pages/Home'
@@ -38,6 +39,10 @@ import AdminWorkPermitApplications from './pages/admin/WorkPermitApplications'
 import AdminResidenceApplications from './pages/admin/ResidenceApplications'
 import AdminStudyPermitRenewalApplications from './pages/admin/StudyPermitRenewalApplications'
 import AdminAppointments from './pages/admin/Appointments'
+
+// Pages avocat
+import AvocatDashboard from './pages/avocat/Dashboard'
+import AvocatAppointments from './pages/avocat/Appointments'
 
 function App() {
   return (
@@ -236,6 +241,24 @@ function App() {
                 <AdminRoute>
                   <AdminAppointments />
                 </AdminRoute>
+              }
+            />
+
+            {/* Routes avocat */}
+            <Route
+              path="/avocat/dashboard"
+              element={
+                <AvocatRoute>
+                  <AvocatDashboard />
+                </AvocatRoute>
+              }
+            />
+            <Route
+              path="/avocat/appointments"
+              element={
+                <AvocatRoute>
+                  <AvocatAppointments />
+                </AvocatRoute>
               }
             />
 

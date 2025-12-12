@@ -21,6 +21,15 @@ class DatabaseSeeder extends Seeder
             'phone' => '789553756',
         ]);
 
+        // Créer l'avocat
+        User::create([
+            'name' => 'Avocat',
+            'email' => 'sbcvoyage110@gmail.com',
+            'password' => Hash::make('sbcgroupe#123@'),
+            'role' => 'avocat',
+            'phone' => null,
+        ]);
+
         // Créer un client de test
         // User::create([
         //     'name' => 'Client Test',

@@ -55,6 +55,8 @@ const Register = () => {
       // Rediriger selon le rôle de l'utilisateur (normalement toujours client pour l'inscription)
       if (user?.role === 'admin') {
         navigate('/admin/dashboard')
+      } else if (user?.role === 'avocat') {
+        navigate('/avocat/dashboard')
       } else {
         navigate('/client/dashboard')
       }
