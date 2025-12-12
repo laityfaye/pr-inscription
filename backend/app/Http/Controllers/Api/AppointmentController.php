@@ -102,8 +102,9 @@ class AppointmentController extends Controller
 
     public function show(Request $request, Appointment $appointment): JsonResponse
     {
-        // Seuls les admins peuvent voir tous les rendez-vous
-        if (!$request->user()->isAdmin()) {
+        // Les admins et avocats peuvent voir tous les rendez-vous
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 

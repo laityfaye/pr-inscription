@@ -64,7 +64,12 @@ const AvocatAppointments = () => {
       setAppointments(appointmentsData)
     } catch (error) {
       console.error('Error fetching appointments:', error)
-      toast.error('Erreur lors du chargement des rendez-vous')
+      console.error('Error response:', error.response)
+      if (error.response?.status === 403) {
+        toast.error('Accès refusé. Vérifiez que vous êtes bien connecté en tant qu\'avocat.')
+      } else {
+        toast.error(error.response?.data?.message || 'Erreur lors du chargement des rendez-vous')
+      }
     }
   }
 

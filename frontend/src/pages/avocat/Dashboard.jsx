@@ -22,7 +22,7 @@ const AvocatDashboard = () => {
   const fetchStats = async () => {
     try {
       setLoading(true)
-      const appointmentsRes = await api.get('/appointments').catch(() => ({ data: [] }))
+      const appointmentsRes = await api.get('/appointments')
       const appointments = appointmentsRes.data || []
       
       setStats({
@@ -34,6 +34,11 @@ const AvocatDashboard = () => {
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
+      console.error('Error response:', error.response)
+      // Afficher un message d'erreur plus détaillé
+      if (error.response?.status === 403) {
+        console.error('Accès refusé - Vérifiez que vous êtes bien connecté en tant qu\'avocat')
+      }
     } finally {
       setLoading(false)
     }
