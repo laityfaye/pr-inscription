@@ -12,23 +12,27 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Créer l'admin
-        User::updateOrCreate([
-            'name' => 'Administrateur',
-            'email' => 'massaersyll3@gmail.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'phone' => '789553756',
-        ]);
+        // Créer ou mettre à jour l'admin
+        User::updateOrCreate(
+            ['email' => 'massaersyll3@gmail.com'],
+            [
+                'name' => 'Administrateur',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'phone' => '789553756',
+            ]
+        );
 
-        // Créer l'avocat
-        User::updateOrCreate([
-            'name' => 'Avocat',
-            'email' => 'sbcvoyage110@gmail.com',
-            'password' => Hash::make('sbcgroupe#123@'),
-            'role' => 'avocat',
-            'phone' => null,
-        ]);
+        // Créer ou mettre à jour l'avocat
+        User::updateOrCreate(
+            ['email' => 'sbcvoyage110@gmail.com'],
+            [
+                'name' => 'Avocat',
+                'password' => Hash::make('sbcgroupe#123@'),
+                'role' => 'avocat',
+                'phone' => null,
+            ]
+        );
 
         // Créer un client de test
         // User::create([
@@ -49,19 +53,24 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($countries as $country) {
-            Country::updateOrCreate($country);
+            Country::updateOrCreate(
+                ['code' => $country['code']],
+                $country
+            );
         }
 
-        // Créer les paramètres de l'agence
-        AgencySetting::updateOrCreate([
-            'name' => 'InnoSoft',
-            'description' => 'Votre destination, notre mission. Nous vous accompagnons dans vos démarches de préinscription pour vos études à l\'étranger.',
-            'email' => 'massaersyll3@gmail.com',
-            'whatsapp' => '789553756',
-            'phone' => '789553756',
-            'address' => 'Dakar, HLM FASS',
-            'registration_number' => 'SN.DKR.2025.A.34574',
-        ]);
+        // Créer ou mettre à jour les paramètres de l'agence
+        AgencySetting::updateOrCreate(
+            ['name' => 'InnoSoft'],
+            [
+                'description' => 'Votre destination, notre mission. Nous vous accompagnons dans vos démarches de préinscription pour vos études à l\'étranger.',
+                'email' => 'massaersyll3@gmail.com',
+                'whatsapp' => '789553756',
+                'phone' => '789553756',
+                'address' => 'Dakar, HLM FASS',
+                'registration_number' => 'SN.DKR.2025.A.34574',
+            ]
+        );
     }
 }
 
