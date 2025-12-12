@@ -272,7 +272,10 @@ class AppointmentController extends Controller
                 $timeKey = substr($timeStr, 0, 5);
             }
             
-            $prices[$timeKey] = (float) $slotPrice->price;
+            $prices[$timeKey] = [
+                'price' => (float) $slotPrice->price,
+                'currency' => $slotPrice->currency ?? 'FCFA',
+            ];
         }
 
         return response()->json($prices);
@@ -288,11 +291,15 @@ class AppointmentController extends Controller
         $request->validate([
             'time' => ['required', 'string', 'in:08:00,09:00,10:00,11:00,12:00,15:00,16:00,17:00,18:00'],
             'price' => ['required', 'numeric', 'min:0'],
+            'currency' => ['nullable', 'string', 'max:10'],
         ]);
 
         $slotPrice = SlotPrice::updateOrCreate(
             ['time' => $request->time],
-            ['price' => $request->price]
+            [
+                'price' => $request->price,
+                'currency' => $request->currency ?? 'FCFA',
+            ]
         );
 
         // Retourner tous les prix mis à jour pour synchronisation
@@ -315,7 +322,10 @@ class AppointmentController extends Controller
                 $timeKey = substr($timeStr, 0, 5);
             }
             
-            $allPrices[$timeKey] = (float) $sp->price;
+            $allPrices[$timeKey] = [
+                'price' => (float) $sp->price,
+                'currency' => $sp->currency ?? 'FCFA',
+            ];
         }
 
         return response()->json([

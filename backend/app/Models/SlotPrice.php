@@ -12,6 +12,7 @@ class SlotPrice extends Model
     protected $fillable = [
         'time',
         'price',
+        'currency',
     ];
 
     protected $casts = [

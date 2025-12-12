@@ -53,6 +53,8 @@ const AvocatAppointments = () => {
   const [slotPrices, setSlotPrices] = useState({})
   const [editingPrice, setEditingPrice] = useState(null)
   const [newPrice, setNewPrice] = useState('')
+  const [newCurrency, setNewCurrency] = useState('FCFA')
+  const [customCurrency, setCustomCurrency] = useState('')
   
   // Créneaux horaires disponibles
   const availableHours = [
@@ -299,7 +301,7 @@ const AvocatAppointments = () => {
     }
   }
 
-  const handleUpdateSlotPrice = async (time, price) => {
+  const handleUpdateSlotPrice = async (time, price, currency, customCurrencyValue = '') => {
     const priceValue = parseFloat(price)
     
     if (!price || isNaN(priceValue) || priceValue < 0) {
@@ -307,8 +309,22 @@ const AvocatAppointments = () => {
       return
     }
 
+    // Utiliser la devise personnalisée si "Autre" est sélectionné
+    const finalCurrency = currency === 'Autre' 
+      ? (customCurrencyValue.trim() || 'FCFA')
+      : (currency || 'FCFA')
+
+    if (!finalCurrency || finalCurrency.trim() === '') {
+      toast.error('Veuillez sélectionner ou entrer une devise')
+      return
+    }
+
     try {
-      const response = await api.post('/appointments/slot-prices', { time, price: priceValue })
+      const response = await api.post('/appointments/slot-prices', { 
+        time, 
+        price: priceValue,
+        currency: finalCurrency.trim()
+      })
       
       let prices = {}
       if (response.data && response.data.all_prices) {
@@ -323,10 +339,25 @@ const AvocatAppointments = () => {
       if (prices && typeof prices === 'object') {
         Object.keys(prices).forEach(key => {
           const value = prices[key]
-          if (value !== null && value !== undefined && value !== '') {
+          if (typeof value === 'object' && value !== null) {
+            const priceVal = value.price
+            const currencyVal = value.currency || 'FCFA'
+            if (priceVal !== null && priceVal !== undefined && priceVal !== '') {
+              const numValue = typeof priceVal === 'number' ? priceVal : parseFloat(priceVal)
+              if (!isNaN(numValue) && numValue > 0) {
+                normalizedPrices[key] = {
+                  price: numValue,
+                  currency: currencyVal
+                }
+              }
+            }
+          } else if (value !== null && value !== undefined && value !== '') {
             const numValue = typeof value === 'number' ? value : parseFloat(value)
             if (!isNaN(numValue) && numValue > 0) {
-              normalizedPrices[key] = numValue
+              normalizedPrices[key] = {
+                price: numValue,
+                currency: 'FCFA'
+              }
             }
           }
         })
@@ -336,6 +367,8 @@ const AvocatAppointments = () => {
       toast.success('Prix mis à jour avec succès')
       setEditingPrice(null)
       setNewPrice('')
+      setNewCurrency('FCFA')
+      setCustomCurrency('')
     } catch (error) {
       console.error('Error updating slot price:', error)
       const errorMessage = error.response?.data?.message || 'Erreur lors de la mise à jour du prix'
@@ -1411,25 +1444,54 @@ const AvocatAppointments = () => {
                           <p className="text-xs text-neutral-500">Créneau horaire</p>
                         </div>
                       </div>
-                      {editingPrice === hour ? (
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                    {editingPrice === hour ? (
+                      <div className="flex flex-col gap-3 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                           <div className="flex-1 sm:flex-initial">
                             <input
                               type="number"
                               value={newPrice}
                               onChange={(e) => setNewPrice(e.target.value)}
-                              placeholder="Prix en FCFA"
+                              placeholder="Prix"
                               className="input w-full sm:w-40"
                               min="0"
                               step="100"
                               autoFocus
                             />
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex-1 sm:flex-initial">
+                            <select
+                              value={newCurrency}
+                              onChange={(e) => setNewCurrency(e.target.value)}
+                              className="input w-full sm:w-32"
+                            >
+                              <option value="FCFA">FCFA</option>
+                              <option value="EUR">EUR</option>
+                              <option value="USD">USD</option>
+                              <option value="CAD">CAD</option>
+                              <option value="XOF">XOF</option>
+                              <option value="Autre">Autre</option>
+                            </select>
+                          </div>
+                        </div>
+                        {newCurrency === 'Autre' && (
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              value={customCurrency}
+                              onChange={(e) => setCustomCurrency(e.target.value.toUpperCase())}
+                              placeholder="Entrez la devise (ex: GBP, JPY, etc.)"
+                              className="input w-full"
+                              maxLength={10}
+                              autoFocus
+                            />
+                          </div>
+                        )}
+                        <div className="flex gap-2">
                             <Button
                               variant="primary"
                               size="sm"
-                              onClick={() => handleUpdateSlotPrice(hour, newPrice)}
+                              onClick={() => handleUpdateSlotPrice(hour, newPrice, newCurrency, customCurrency)}
                               icon={FiSave}
                               className="flex-1 sm:flex-initial"
                             >
@@ -1441,38 +1503,46 @@ const AvocatAppointments = () => {
                               onClick={() => {
                                 setEditingPrice(null)
                                 setNewPrice('')
+                                setNewCurrency('FCFA')
+                                setCustomCurrency('')
                               }}
                               className="flex-1 sm:flex-initial"
                             >
                               Annuler
                             </Button>
-                          </div>
                         </div>
-                      ) : (
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-                          <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-neutral-200">
-                            <FiDollarSign className="w-4 h-4 text-green-600" />
-                            <span className="text-neutral-900 font-bold text-lg">
-                              {slotPrices[hour] !== undefined && slotPrices[hour] !== null && slotPrices[hour] > 0
-                                ? `${Number(slotPrices[hour]).toLocaleString('fr-FR')} FCFA` 
-                                : <span className="text-neutral-400">Non défini</span>}
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              const currentPrice = slotPrices[hour]
-                              setEditingPrice(hour)
-                              setNewPrice(currentPrice ? String(currentPrice) : '')
-                            }}
-                            icon={FiEdit}
-                            className="w-full sm:w-auto hover:bg-primary-50 hover:text-primary-600"
-                          >
-                            Modifier
-                          </Button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-neutral-200">
+                          <FiDollarSign className="w-4 h-4 text-green-600" />
+                          <span className="text-neutral-900 font-bold text-lg">
+                            {slotPrices[hour] !== undefined && slotPrices[hour] !== null && 
+                             (typeof slotPrices[hour] === 'object' ? slotPrices[hour].price > 0 : slotPrices[hour] > 0)
+                              ? `${Number(typeof slotPrices[hour] === 'object' ? slotPrices[hour].price : slotPrices[hour]).toLocaleString('fr-FR')} ${typeof slotPrices[hour] === 'object' ? (slotPrices[hour].currency || 'FCFA') : 'FCFA'}` 
+                              : <span className="text-neutral-400">Non défini</span>}
+                          </span>
                         </div>
-                      )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const currentSlot = slotPrices[hour]
+                            const currentPrice = typeof currentSlot === 'object' ? currentSlot?.price : currentSlot
+                            const currentCurrency = typeof currentSlot === 'object' ? (currentSlot?.currency || 'FCFA') : 'FCFA'
+                            const isCustomCurrency = !['FCFA', 'EUR', 'USD', 'CAD', 'XOF'].includes(currentCurrency)
+                            setEditingPrice(hour)
+                            setNewPrice(currentPrice ? String(currentPrice) : '')
+                            setNewCurrency(isCustomCurrency ? 'Autre' : currentCurrency)
+                            setCustomCurrency(isCustomCurrency ? currentCurrency : '')
+                          }}
+                          icon={FiEdit}
+                          className="w-full sm:w-auto hover:bg-primary-50 hover:text-primary-600"
+                        >
+                          Modifier
+                        </Button>
+                      </div>
+                    )}
                     </div>
                   ))}
                 </div>
