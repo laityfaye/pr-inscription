@@ -60,7 +60,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
   const agencyInitials = getAgencyInitials(agency?.name)
 
   // Pages où le sidebar doit être fixe
-  const fixedPages = ['/admin/users', '/admin/chat', '/admin/news', '/client/chat']
+  const fixedPages = ['/admin/users', '/admin/chat', '/admin/news', '/client/chat', '/avocat/appointments']
   const isFixed = fixedPages.includes(location.pathname)
 
   const adminLinks = [
@@ -90,7 +90,16 @@ const Sidebar = ({ unreadCount = 0 }) => {
     { to: '/client/review/add', label: 'Laisser un avis', icon: FiStar },
   ]
 
-  const links = user?.role === 'admin' ? adminLinks : clientLinks
+  const avocatLinks = [
+    { to: '/avocat/dashboard', label: 'Tableau de bord', icon: FiHome },
+    { to: '/avocat/appointments', label: 'Rendez-vous', icon: FiCalendar },
+  ]
+
+  const links = user?.role === 'admin' 
+    ? adminLinks 
+    : user?.role === 'avocat' 
+    ? avocatLinks 
+    : clientLinks
 
   return (
     <aside className={`hidden lg:flex flex-col w-64 bg-white border-r border-neutral-200 h-screen ${
