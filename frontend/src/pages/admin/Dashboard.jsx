@@ -208,13 +208,13 @@ const AdminDashboard = () => {
       icon: FiStar,
       color: 'amber',
     },
-    // {
-    //   title: 'Gérer les rendez-vous',
-    //   description: 'Valider et gérer les rendez-vous clients',
-    //   link: '/admin/appointments',
-    //   icon: FiCalendar,
-    //   color: 'indigo',
-    // },
+    {
+      title: 'Paramètres',
+      description: 'Configurer les paramètres de la plateforme',
+      link: '/admin/settings',
+      icon: FiSettings,
+      color: 'gray',
+    },
   ]
   
   const chartColors = {
