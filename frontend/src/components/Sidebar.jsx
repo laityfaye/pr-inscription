@@ -66,7 +66,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
   const adminLinks = [
     { to: '/admin/dashboard', label: 'Tableau de bord', icon: FiHome },
     { to: '/admin/inscriptions', label: 'Préinscriptions', icon: FiFileText },
-    // { to: '/admin/appointments', label: 'Rendez-vous', icon: FiCalendar },
+    { to: '/admin/appointments', label: 'Rendez-vous', icon: FiCalendar },
     { to: '/admin/work-permit-applications', label: 'Demandes de visa', icon: FiBriefcase },
     { to: '/admin/residence-applications', label: 'Résidence Canada', icon: FiHome },
     { to: '/admin/study-permit-renewal-applications', label: 'CAQ/Permis d\'études', icon: FiFileText },
