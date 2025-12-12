@@ -115,7 +115,8 @@ class AppointmentController extends Controller
 
     public function validateAppointment(Request $request, Appointment $appointment): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
@@ -139,7 +140,8 @@ class AppointmentController extends Controller
 
     public function reject(Request $request, Appointment $appointment): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
@@ -213,7 +215,8 @@ class AppointmentController extends Controller
 
     public function addUnavailableDay(Request $request): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
@@ -232,7 +235,8 @@ class AppointmentController extends Controller
 
     public function removeUnavailableDay(Request $request, $date): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
@@ -276,7 +280,8 @@ class AppointmentController extends Controller
 
     public function updateSlotPrice(Request $request): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 

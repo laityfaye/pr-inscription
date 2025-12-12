@@ -134,11 +134,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::get('/appointments', [AppointmentController::class, 'index'])->middleware('avocat_or_admin');
     Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->middleware('avocat_or_admin');
-    Route::post('/appointments/{appointment}/validate', [AppointmentController::class, 'validateAppointment'])->middleware('admin');
-    Route::post('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->middleware('admin');
-    Route::post('/appointments/unavailable-days', [AppointmentController::class, 'addUnavailableDay'])->middleware('admin');
-    Route::delete('/appointments/unavailable-days/{date}', [AppointmentController::class, 'removeUnavailableDay'])->middleware('admin');
-    Route::post('/appointments/slot-prices', [AppointmentController::class, 'updateSlotPrice'])->middleware('admin');
+    Route::post('/appointments/{appointment}/validate', [AppointmentController::class, 'validateAppointment'])->middleware('avocat_or_admin');
+    Route::post('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->middleware('avocat_or_admin');
+    Route::post('/appointments/unavailable-days', [AppointmentController::class, 'addUnavailableDay'])->middleware('avocat_or_admin');
+    Route::delete('/appointments/unavailable-days/{date}', [AppointmentController::class, 'removeUnavailableDay'])->middleware('avocat_or_admin');
+    Route::post('/appointments/slot-prices', [AppointmentController::class, 'updateSlotPrice'])->middleware('avocat_or_admin');
 });
 
 
