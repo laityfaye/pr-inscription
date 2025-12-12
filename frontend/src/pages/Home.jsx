@@ -370,7 +370,7 @@ const Home = () => {
                       <p className="text-xs text-gray-600 mb-2 px-1 line-clamp-2">{agency.lawyer_title}</p>
                     )}
                     {/* Appointment Button */}
-                    <Link to="/#" className="block w-full">
+                    <Link to="/Appointment" className="block w-full">
                       <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-3 rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-1.5 text-xs">
                         <FiCalendar className="w-3.5 h-3.5" />
                         <span className="whitespace-nowrap">Prendre rendez-vous</span>
