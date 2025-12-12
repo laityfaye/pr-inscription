@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Créer l'admin
-        User::create([
+        User::updateOrCreate([
             'name' => 'Administrateur',
             'email' => 'massaersyll3@gmail.com',
             'password' => Hash::make('password'),
@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Créer l'avocat
-        User::create([
+        User::updateOrCreate([
             'name' => 'Avocat',
             'email' => 'sbcvoyage110@gmail.com',
             'password' => Hash::make('sbcgroupe#123@'),
@@ -49,11 +49,11 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($countries as $country) {
-            Country::create($country);
+            Country::updateOrCreate($country);
         }
 
         // Créer les paramètres de l'agence
-        AgencySetting::create([
+        AgencySetting::updateOrCreate([
             'name' => 'InnoSoft',
             'description' => 'Votre destination, notre mission. Nous vous accompagnons dans vos démarches de préinscription pour vos études à l\'étranger.',
             'email' => 'massaersyll3@gmail.com',
