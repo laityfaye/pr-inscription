@@ -353,8 +353,6 @@ const AvocatAppointments = () => {
         prices = pricesResponse.data || {}
       }
       
-      console.log('Prix récupérés après mise à jour:', prices)
-      
       const normalizedPrices = {}
       if (prices && typeof prices === 'object') {
         Object.keys(prices).forEach(key => {

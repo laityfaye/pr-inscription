@@ -145,15 +145,35 @@ const Appointment = () => {
       const response = await api.get('/appointments/slot-prices')
       const prices = response.data || {}
       
-      // Normaliser les prix - s'assurer qu'ils sont des nombres
+      // Normaliser les prix - gérer le nouveau format (objet avec price et currency) et l'ancien format
       const normalizedPrices = {}
       if (prices && typeof prices === 'object') {
         Object.keys(prices).forEach(time => {
           const value = prices[time]
-          // Convertir en nombre, gérer les cas où c'est déjà un nombre ou une string
-          normalizedPrices[time] = typeof value === 'number' 
-            ? value 
-            : (value !== null && value !== undefined ? parseFloat(value) : 0)
+          
+          // Gérer le nouveau format (objet avec price et currency)
+          if (typeof value === 'object' && value !== null) {
+            const priceVal = value.price
+            const currencyVal = value.currency || 'FCFA'
+            if (priceVal !== null && priceVal !== undefined && priceVal !== '') {
+              const numValue = typeof priceVal === 'number' ? priceVal : parseFloat(priceVal)
+              if (!isNaN(numValue) && numValue > 0) {
+                normalizedPrices[time] = {
+                  price: numValue,
+                  currency: currencyVal
+                }
+              }
+            }
+          } else if (value !== null && value !== undefined && value !== '') {
+            // Ancien format : juste un nombre
+            const numValue = typeof value === 'number' ? value : parseFloat(value)
+            if (!isNaN(numValue) && numValue > 0) {
+              normalizedPrices[time] = {
+                price: numValue,
+                currency: 'FCFA'
+              }
+            }
+          }
         })
       }
       
@@ -934,13 +954,13 @@ const Appointment = () => {
                                   selectedTime === hour ? 'text-white' : isAvailable ? 'text-primary-500' : 'text-neutral-400'
                                 }`} />
                                 <span className="font-bold text-base sm:text-lg mb-1">{displayHour}</span>
-                                {slotPrices[hour] && slotPrices[hour] > 0 && (
+                                {slotPrices[hour] && typeof slotPrices[hour] === 'object' && slotPrices[hour].price > 0 && (
                                   <div className={`mt-0.5 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold transition-all ${
                                     selectedTime === hour 
                                       ? 'bg-white/20 text-white backdrop-blur-sm' 
                                       : 'bg-primary-100 text-primary-700 group-hover:bg-primary-200'
                                   }`}>
-                                    {Number(slotPrices[hour]).toLocaleString('fr-FR')} FCFA
+                                    {Number(slotPrices[hour].price).toLocaleString('fr-FR')} {slotPrices[hour].currency || 'FCFA'}
                                   </div>
                                 )}
                               </div>
@@ -994,13 +1014,13 @@ const Appointment = () => {
                                   selectedTime === hour ? 'text-white' : isAvailable ? 'text-accent-500' : 'text-neutral-400'
                                 }`} />
                                 <span className="font-bold text-base sm:text-lg mb-1">{displayHour}</span>
-                                {slotPrices[hour] && slotPrices[hour] > 0 && (
+                                {slotPrices[hour] && typeof slotPrices[hour] === 'object' && slotPrices[hour].price > 0 && (
                                   <div className={`mt-0.5 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold transition-all ${
                                     selectedTime === hour 
                                       ? 'bg-white/20 text-white backdrop-blur-sm' 
                                       : 'bg-accent-100 text-accent-700 group-hover:bg-accent-200'
                                   }`}>
-                                    {Number(slotPrices[hour]).toLocaleString('fr-FR')} FCFA
+                                    {Number(slotPrices[hour].price).toLocaleString('fr-FR')} {slotPrices[hour].currency || 'FCFA'}
                                   </div>
                                 )}
                               </div>
