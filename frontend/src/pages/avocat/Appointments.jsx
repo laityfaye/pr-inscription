@@ -194,10 +194,27 @@ const AvocatAppointments = () => {
         Object.keys(prices).forEach(time => {
           const value = prices[time]
           
-          if (value !== null && value !== undefined && value !== '') {
+          // Gérer le nouveau format (objet avec price et currency) et l'ancien format (juste un nombre)
+          if (typeof value === 'object' && value !== null) {
+            const priceVal = value.price
+            const currencyVal = value.currency || 'FCFA'
+            if (priceVal !== null && priceVal !== undefined && priceVal !== '') {
+              const numValue = typeof priceVal === 'number' ? priceVal : parseFloat(priceVal)
+              if (!isNaN(numValue) && numValue > 0) {
+                normalizedPrices[time] = {
+                  price: numValue,
+                  currency: currencyVal
+                }
+              }
+            }
+          } else if (value !== null && value !== undefined && value !== '') {
+            // Ancien format : juste un nombre
             const numValue = typeof value === 'number' ? value : parseFloat(value)
             if (!isNaN(numValue) && numValue > 0) {
-              normalizedPrices[time] = numValue
+              normalizedPrices[time] = {
+                price: numValue,
+                currency: 'FCFA'
+              }
             }
           }
         })
@@ -330,10 +347,13 @@ const AvocatAppointments = () => {
       if (response.data && response.data.all_prices) {
         prices = response.data.all_prices
       } else {
-        await new Promise(resolve => setTimeout(resolve, 200))
+        // Attendre un peu pour s'assurer que les données sont sauvegardées
+        await new Promise(resolve => setTimeout(resolve, 300))
         const pricesResponse = await api.get('/appointments/slot-prices')
         prices = pricesResponse.data || {}
       }
+      
+      console.log('Prix récupérés après mise à jour:', prices)
       
       const normalizedPrices = {}
       if (prices && typeof prices === 'object') {
@@ -369,9 +389,6 @@ const AvocatAppointments = () => {
       setNewPrice('')
       setNewCurrency('FCFA')
       setCustomCurrency('')
-      
-      // Rafraîchir les prix depuis le serveur pour s'assurer de la synchronisation
-      await fetchSlotPrices()
     } catch (error) {
       console.error('Error updating slot price:', error)
       const errorMessage = error.response?.data?.message || 'Erreur lors de la mise à jour du prix'
