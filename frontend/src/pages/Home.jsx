@@ -5,6 +5,7 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
 import TestimonialCarousel from '../components/TestimonialCarousel'
+import PartnersCarousel3D from '../components/PartnersCarousel3D'
 import api from '../services/api'
 import { getImageUrl } from '../utils/imageUrl'
 import { useAgency } from '../contexts/AgencyContext'
@@ -392,7 +393,7 @@ const Home = () => {
       </section>
 
       {/* Why Choose Us - Enhanced */}
-      <section className="py-24 bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
+      <section className="py-24 bg-white">
         <div className="section-container">
           <div className="text-center mb-20">
             <Badge variant="primary" size="lg" className="mb-6">
@@ -446,7 +447,6 @@ const Home = () => {
                   style={{ animationDelay: feature.delay }}
                 >
                   <div className={`relative inline-block mb-6`}>
-                    <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300`}></div>
                     <div className={`relative w-20 h-20 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300`}>
                       <Icon className="text-4xl text-white" />
                     </div>
@@ -499,7 +499,6 @@ const Home = () => {
                     
                     {/* Icon */}
                     <div className="relative inline-block mb-6">
-                      <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} rounded-full blur-xl opacity-50 group-hover:opacity-75 transition-opacity`}></div>
                       <div className={`relative w-24 h-24 bg-gradient-to-br ${item.gradient} rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300`}>
                         <Icon className="text-4xl text-white" />
                       </div>
@@ -517,11 +516,6 @@ const Home = () => {
 
       {/* Statistics Section - Enhanced */}
       <section className="py-24 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 text-white relative overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-400 rounded-full blur-3xl"></div>
-        </div>
 
         <div className="section-container relative z-10">
           <div className="text-center mb-16">
@@ -566,7 +560,7 @@ const Home = () => {
 
       {/* Countries Section - Enhanced */}
       {countries.length > 0 && (
-        <section className="py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
+        <section className="py-24 bg-white">
           <div className="section-container">
             <div className="text-center mb-20">
               <Badge variant="success" size="lg" className="mb-6">
@@ -617,7 +611,7 @@ const Home = () => {
 
       {/* Work Permit Section */}
       {workPermitCountries.length > 0 && (
-        <section className="py-24 bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
+        <section className="py-24 bg-white">
           <div className="section-container">
             <div className="text-center mb-20">
               <Badge variant="primary" size="lg" className="mb-6">
@@ -708,7 +702,7 @@ const Home = () => {
       )}
 
       {/* Study Permit Renewal Section */}
-      <section className="py-12 sm:py-16 md:py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
+      <section className="py-12 sm:py-16 md:py-24 bg-white">
         <div className="section-container px-4 sm:px-6">
           <div className="text-center mb-8 sm:mb-12 md:mb-20">
             <Badge variant="primary" size="lg" className="mb-4 sm:mb-6">
@@ -726,7 +720,6 @@ const Home = () => {
             <Card interactive className="p-4 sm:p-6 md:p-8 lg:p-12 animate-slide-up">
               <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 md:gap-8">
                 <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl blur-xl opacity-50"></div>
                   <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-gradient-to-br from-accent-500 to-accent-800 rounded-2xl flex items-center justify-center shadow-xl">
                     <FiFileText className="text-3xl sm:text-4xl md:text-5xl text-white" />
                   </div>
@@ -788,7 +781,7 @@ const Home = () => {
       </section>
 
       {/* Residence Application Section */}
-      <section className="py-12 sm:py-16 md:py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
+      <section className="py-12 sm:py-16 md:py-24 bg-white">
         <div className="section-container px-4 sm:px-6">
           <div className="text-center mb-8 sm:mb-12 md:mb-20">
             <Badge variant="accent" size="lg" className="mb-4 sm:mb-6">
@@ -806,7 +799,6 @@ const Home = () => {
             <Card interactive className="p-4 sm:p-6 md:p-8 lg:p-12 animate-slide-up">
               <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 md:gap-8">
                 <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl blur-xl opacity-50"></div>
                   <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-gradient-to-br from-primary-500 to-primary-800 rounded-2xl flex items-center justify-center shadow-xl">
                     <FiHome className="text-3xl sm:text-4xl md:text-5xl text-white" />
                   </div>
@@ -901,7 +893,6 @@ const Home = () => {
                   >
                     <Card interactive className="p-6 text-center group" style={{ animationDelay: `${index * 0.1}s` }}>
                       <div className={`relative inline-block mb-5`}>
-                        <div className={`absolute inset-0 bg-gradient-to-br ${contact.gradient} rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity`}></div>
                         <div className={`relative w-16 h-16 bg-gradient-to-br ${contact.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                           <Icon className="text-3xl text-white" />
                         </div>
@@ -916,7 +907,6 @@ const Home = () => {
                   <div key={index}>
                     <Card interactive className="p-6 text-center group" style={{ animationDelay: `${index * 0.1}s` }}>
                       <div className={`relative inline-block mb-5`}>
-                        <div className={`absolute inset-0 bg-gradient-to-br ${contact.gradient} rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity`}></div>
                         <div className={`relative w-16 h-16 bg-gradient-to-br ${contact.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                           <Icon className="text-3xl text-white" />
                         </div>
@@ -943,7 +933,7 @@ const Home = () => {
 
       {/* News Section - Enhanced */}
       {news.length > 0 && (
-        <section className="py-24 bg-gradient-to-b from-neutral-50 to-white">
+        <section className="py-24 bg-white">
           <div className="section-container">
             <div className="text-center mb-20">
               <Badge variant="accent" size="lg" className="mb-6">
@@ -1105,10 +1095,6 @@ const Home = () => {
 
       {/* Final CTA Section - Enhanced */}
       <section className="py-24 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 text-white relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] animate-pulse-slow"></div>
-        </div>
 
         <div className="section-container text-center relative z-10">
           <div className="max-w-3xl mx-auto">
@@ -1439,12 +1425,7 @@ const Home = () => {
       )}
 
       {/* Partners Section */}
-      <section className="py-24 bg-gradient-to-b from-neutral-50 via-white to-neutral-50 relative overflow-hidden">
-        {/* Background decorative elements */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-primary-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-500 rounded-full blur-3xl"></div>
-        </div>
+      <section className="py-24 bg-white relative overflow-hidden">
 
         <div className="section-container relative z-10">
           <div className="text-center mb-16">
@@ -1459,8 +1440,8 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-            {[
+          <PartnersCarousel3D 
+            partners={[
               {
                 name: 'Collège Ellis',
                 image: '/images/partners/college-ellis.png',
@@ -1491,45 +1472,8 @@ const Home = () => {
                 image: '/images/partners/college-national.png',
                 alt: 'Logo Collège National'
               }
-            ].map((partner, index) => (
-              <Card
-                key={index}
-                interactive
-                className="p-6 sm:p-8 bg-white hover:shadow-2xl transition-all duration-300 group border-2 border-neutral-200 hover:border-primary-300 animate-slide-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="flex flex-col items-center justify-center h-full min-h-[180px] sm:min-h-[200px]">
-                  <div className="relative w-full h-32 sm:h-40 flex items-center justify-center mb-4 p-4">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-50 to-accent-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
-                    <img
-                      src={partner.image}
-                      alt={partner.alt}
-                      className="relative z-10 max-w-full max-h-full object-contain filter group-hover:brightness-110 transition-all duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        // Fallback si l'image n'est pas trouvée
-                        const fallback = e.target.nextElementSibling
-                        if (fallback) {
-                          e.target.style.display = 'none'
-                          fallback.style.display = 'flex'
-                        }
-                      }}
-                    />
-                    <div
-                      className="hidden items-center justify-center w-full h-full text-center"
-                      style={{ display: 'none' }}
-                    >
-                      <div className="w-16 h-16 bg-gradient-to-br from-primary-100 to-accent-100 rounded-xl flex items-center justify-center">
-                        <FiGlobe className="w-8 h-8 text-primary-600" />
-                      </div>
-                    </div>
-                  </div>
-                  <h3 className="text-xs sm:text-sm md:text-base font-semibold text-neutral-700 group-hover:text-primary-700 transition-colors text-center leading-tight px-2">
-                    {partner.name}
-                  </h3>
-                </div>
-              </Card>
-            ))}
-          </div>
+            ]}
+          />
         </div>
       </section>
     </Layout>

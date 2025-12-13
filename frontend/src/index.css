@@ -878,4 +878,27 @@
       width: 40px;
     }
   }
+
+  /* Animation 3D pour les partenaires */
+  @keyframes partners-rotate3d {
+    0% {
+      transform: perspective(1000px) rotateY(0deg) rotateX(15deg);
+    }
+    100% {
+      transform: perspective(1000px) rotateY(360deg) rotateX(15deg);
+    }
+  }
+
+  .partners-3d-carousel {
+    transform-style: preserve-3d;
+    animation: partners-rotate3d 20s linear infinite;
+    will-change: transform;
+    transition: animation-play-state 0.3s ease;
+  }
+
+  .partners-3d-item {
+    transform-style: preserve-3d;
+    transform-origin: center;
+    will-change: transform;
+  }
 }
