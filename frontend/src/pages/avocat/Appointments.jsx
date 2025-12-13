@@ -369,6 +369,9 @@ const AvocatAppointments = () => {
       setNewPrice('')
       setNewCurrency('FCFA')
       setCustomCurrency('')
+      
+      // Rafraîchir les prix depuis le serveur pour s'assurer de la synchronisation
+      await fetchSlotPrices()
     } catch (error) {
       console.error('Error updating slot price:', error)
       const errorMessage = error.response?.data?.message || 'Erreur lors de la mise à jour du prix'
