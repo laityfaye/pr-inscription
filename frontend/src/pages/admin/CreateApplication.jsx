@@ -15,7 +15,8 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiPlus,
-  FiTrash2
+  FiTrash2,
+  FiFile
 } from 'react-icons/fi'
 
 const CreateApplication = () => {
@@ -183,6 +184,16 @@ const CreateApplication = () => {
       }
 
       const application = response.data
+      console.log('Application created:', application)
+      console.log('Application type:', applicationType)
+      console.log('Application ID:', application?.id)
+      
+      if (!application || !application.id) {
+        console.error('Application created but missing ID:', application)
+        toast.error('Erreur: La demande a été créée mais l\'ID est manquant')
+        return
+      }
+      
       setCreatedApplication(application)
       toast.success('Demande créée avec succès')
       setStep(4)
@@ -195,59 +206,88 @@ const CreateApplication = () => {
   }
 
   const handleAddDocument = () => {
-    if (!currentDocument.file || !currentDocument.type) {
-      toast.error('Veuillez sélectionner un fichier et un type')
-      return
-    }
-    
-    if (!createdApplication || !createdApplication.id) {
-      toast.error('Erreur: La demande n\'a pas été créée correctement')
-      return
-    }
-    
-    const applicationIdField = {
-      inscription: 'inscription_id',
-      work_permit: 'work_permit_application_id',
-      residence: 'residence_application_id',
-      study_permit_renewal: 'study_permit_renewal_application_id',
-    }[applicationType]
+    try {
+      if (!currentDocument.file || !currentDocument.type) {
+        toast.error('Veuillez sélectionner un fichier et un type')
+        return
+      }
+      
+      if (!createdApplication) {
+        toast.error('Erreur: La demande n\'a pas été créée. Veuillez d\'abord créer la demande.')
+        return
+      }
 
-    if (!applicationIdField) {
-      toast.error('Type de demande invalide')
-      return
-    }
+      if (!createdApplication.id) {
+        console.error('createdApplication without id:', createdApplication)
+        toast.error('Erreur: La demande n\'a pas d\'ID. Veuillez réessayer.')
+        return
+      }
+      
+      if (!applicationType) {
+        console.error('applicationType is not set')
+        toast.error('Erreur: Type de demande non défini')
+        return
+      }
+      
+      const applicationIdFieldMap = {
+        inscription: 'inscription_id',
+        work_permit: 'work_permit_application_id',
+        residence: 'residence_application_id',
+        study_permit_renewal: 'study_permit_renewal_application_id',
+      }
+      
+      const applicationIdField = applicationIdFieldMap[applicationType]
 
-    const newDocument = {
-      file: currentDocument.file,
-      type: currentDocument.type,
-      name: currentDocument.name || '',
-      applicationIdField: applicationIdField,
-      applicationId: createdApplication.id,
-    }
+      if (!applicationIdField) {
+        console.error('Invalid applicationType:', applicationType)
+        toast.error(`Type de demande invalide: ${applicationType}`)
+        return
+      }
 
-    console.log('Adding document to list:', {
-      fileName: newDocument.file?.name,
-      type: newDocument.type,
-      applicationIdField: newDocument.applicationIdField,
-      applicationId: newDocument.applicationId,
-    })
+      const newDocument = {
+        file: currentDocument.file,
+        type: currentDocument.type,
+        name: currentDocument.name || '',
+        applicationIdField: applicationIdField,
+        applicationId: createdApplication.id,
+      }
 
-    setDocuments([...documents, newDocument])
-    
-    setCurrentDocument({
-      file: null,
-      type: '',
-      name: '',
-      applicationId: null,
-    })
-    
-    // Réinitialiser le champ fichier
-    const fileInput = document.getElementById('document-file-input')
-    if (fileInput) {
-      fileInput.value = ''
+      console.log('Adding document to list:', {
+        fileName: newDocument.file?.name,
+        type: newDocument.type,
+        applicationIdField: newDocument.applicationIdField,
+        applicationId: newDocument.applicationId,
+        applicationType: applicationType,
+        createdApplication: createdApplication,
+      })
+
+      setDocuments([...documents, newDocument])
+      
+      setCurrentDocument({
+        file: null,
+        type: '',
+        name: '',
+        applicationId: null,
+      })
+      
+      // Réinitialiser le champ fichier
+      const fileInput = document.getElementById('document-file-input')
+      if (fileInput) {
+        fileInput.value = ''
+      }
+      
+      toast.success('Document ajouté à la liste')
+    } catch (error) {
+      console.error('Error in handleAddDocument:', error)
+      console.error('Error stack:', error.stack)
+      console.error('Current state:', {
+        currentDocument,
+        createdApplication,
+        applicationType,
+        documents,
+      })
+      toast.error(`Erreur: ${error.message || 'Une erreur inattendue s\'est produite'}`)
     }
-    
-    toast.success('Document ajouté à la liste')
   }
 
   const handleRemoveDocument = (index) => {
@@ -367,48 +407,59 @@ const CreateApplication = () => {
   }
 
   const getDocumentTypes = () => {
-    switch (applicationType) {
-      case 'inscription':
-        return [
-          'diplome',
-          'releve_notes',
-          'cv',
-          'lettre_motivation',
-          'passeport',
-          'photo_identite',
-          'certificat_langue',
-          'autre',
-        ]
-      case 'work_permit':
-        return [
-          'passeport',
-          'cv',
-          'lettre_offre_emploi',
-          'diplome',
-          'certificat_experience',
-          'certificat_langue',
-          'autre',
-        ]
-      case 'residence':
-        return [
-          'passeport',
-          'acte_naissance',
-          'acte_mariage',
-          'certificat_residence',
-          'preuve_financiere',
-          'autre',
-        ]
-      case 'study_permit_renewal':
-        return [
-          'passeport',
-          'caq',
-          'permis_etudes',
-          'releve_notes',
-          'preuve_inscription',
-          'autre',
-        ]
-      default:
+    try {
+      if (!applicationType) {
+        console.warn('getDocumentTypes called without applicationType')
         return []
+      }
+      
+      switch (applicationType) {
+        case 'inscription':
+          return [
+            'diplome',
+            'releve_notes',
+            'cv',
+            'lettre_motivation',
+            'passeport',
+            'photo_identite',
+            'certificat_langue',
+            'autre',
+          ]
+        case 'work_permit':
+          return [
+            'passeport',
+            'cv',
+            'lettre_offre_emploi',
+            'diplome',
+            'certificat_experience',
+            'certificat_langue',
+            'autre',
+          ]
+        case 'residence':
+          return [
+            'passeport',
+            'acte_naissance',
+            'acte_mariage',
+            'certificat_residence',
+            'preuve_financiere',
+            'autre',
+          ]
+        case 'study_permit_renewal':
+          return [
+            'passeport',
+            'caq',
+            'permis_etudes',
+            'releve_notes',
+            'preuve_inscription',
+            'autre',
+          ]
+        default:
+          console.warn('Unknown applicationType in getDocumentTypes:', applicationType)
+          return []
+      }
+    } catch (error) {
+      console.error('Error in getDocumentTypes:', error)
+      return []
     }
   }
 
@@ -932,7 +983,7 @@ const CreateApplication = () => {
           )}
 
           {/* Étape 4: Upload de documents */}
-          {step === 4 && createdApplication && (
+          {step === 4 && createdApplication && applicationType && (
             <div className="space-y-6">
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                 <div className="flex items-center gap-2 mb-2">
@@ -942,6 +993,13 @@ const CreateApplication = () => {
                 <p className="text-sm text-green-700">
                   Vous pouvez maintenant ajouter des documents à cette demande.
                 </p>
+                {(!createdApplication.id || !applicationType) && (
+                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                    <p className="text-xs text-red-700">
+                      Erreur: Données manquantes. ID: {createdApplication.id}, Type: {applicationType}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -977,11 +1035,23 @@ const CreateApplication = () => {
                         className="input w-full"
                       >
                         <option value="">Sélectionner un type</option>
-                        {getDocumentTypes().map((type) => (
-                          <option key={type} value={type}>
-                            {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          </option>
-                        ))}
+                        {(() => {
+                          try {
+                            const types = getDocumentTypes()
+                            if (!types || types.length === 0) {
+                              console.warn('No document types available for applicationType:', applicationType)
+                              return <option value="" disabled>Aucun type disponible</option>
+                            }
+                            return types.map((type) => (
+                              <option key={type} value={type}>
+                                {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </option>
+                            ))
+                          } catch (error) {
+                            console.error('Error in getDocumentTypes:', error)
+                            return <option value="" disabled>Erreur lors du chargement des types</option>
+                          }
+                        })()}
                       </select>
                     </div>
                     <div>
