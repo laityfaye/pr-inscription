@@ -63,6 +63,7 @@ class DocumentStoreRequest extends FormRequest
             'residence_application_id' => ['nullable', 'integer'],
             'study_permit_renewal_application_id' => ['nullable', 'integer'],
             'name' => ['nullable', 'string', 'max:255'],
+            'user_id' => ['nullable', 'integer', 'exists:users,id'], // Permettre à l'admin de spécifier un user_id
         ];
     }
 

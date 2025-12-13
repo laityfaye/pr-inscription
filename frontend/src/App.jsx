@@ -39,6 +39,7 @@ import AdminWorkPermitApplications from './pages/admin/WorkPermitApplications'
 import AdminResidenceApplications from './pages/admin/ResidenceApplications'
 import AdminStudyPermitRenewalApplications from './pages/admin/StudyPermitRenewalApplications'
 import AdminAppointments from './pages/admin/Appointments'
+import CreateApplication from './pages/admin/CreateApplication'
 
 // Pages avocat
 import AvocatDashboard from './pages/avocat/Dashboard'
@@ -240,6 +241,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminAppointments />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/create-application"
+              element={
+                <AdminRoute>
+                  <CreateApplication />
                 </AdminRoute>
               }
             />

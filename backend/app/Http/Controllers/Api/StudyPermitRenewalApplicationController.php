@@ -58,10 +58,16 @@ class StudyPermitRenewalApplicationController extends Controller
             'address' => ['nullable', 'string', 'max:255'],
             'address_number' => ['nullable', 'string', 'max:50'],
             'country' => ['nullable', 'string', 'max:255'],
+            'user_id' => ['nullable', 'exists:users,id'], // Permettre à l'admin de spécifier un user_id
         ]);
 
+        // Si admin et user_id fourni, utiliser ce user_id, sinon utiliser l'utilisateur connecté
+        $userId = $request->user()->isAdmin() && $request->has('user_id') 
+            ? $request->user_id 
+            : $request->user()->id;
+
         $application = $this->service->create([
-            'user_id' => $request->user()->id,
+            'user_id' => $userId,
             'arrival_date' => $request->input('arrival_date'),
             'institution_name' => $request->input('institution_name'),
             'expiration_date' => $request->input('expiration_date'),

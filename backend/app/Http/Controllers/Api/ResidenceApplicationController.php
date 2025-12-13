@@ -57,10 +57,16 @@ class ResidenceApplicationController extends Controller
             'family_members' => ['nullable', 'array'],
             'employment_status' => ['nullable', 'string'],
             'financial_situation' => ['nullable', 'string'],
+            'user_id' => ['nullable', 'exists:users,id'], // Permettre à l'admin de spécifier un user_id
         ]);
 
+        // Si admin et user_id fourni, utiliser ce user_id, sinon utiliser l'utilisateur connecté
+        $userId = $request->user()->isAdmin() && $request->has('user_id') 
+            ? $request->user_id 
+            : $request->user()->id;
+
         $application = $this->service->create([
-            'user_id' => $request->user()->id,
+            'user_id' => $userId,
             'current_residence_country' => $request->input('current_residence_country'),
             'residence_type' => $request->input('residence_type'),
             'family_members' => $request->input('family_members'),

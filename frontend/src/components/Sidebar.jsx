@@ -12,7 +12,8 @@ import {
   FiBell,
   FiLogOut,
   FiBriefcase,
-  FiCalendar
+  FiCalendar,
+  FiPlus
 } from 'react-icons/fi'
 import { useAuth } from '../contexts/AuthContext'
 import { useAgency } from '../contexts/AgencyContext'
@@ -65,6 +66,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
 
   const adminLinks = [
     { to: '/admin/dashboard', label: 'Tableau de bord', icon: FiHome },
+    { to: '/admin/create-application', label: 'Créer une demande', icon: FiPlus },
     { to: '/admin/inscriptions', label: 'Préinscriptions', icon: FiFileText },
     { to: '/admin/appointments', label: 'Rendez-vous', icon: FiCalendar },
     { to: '/admin/work-permit-applications', label: 'Demandes de visa', icon: FiBriefcase },
