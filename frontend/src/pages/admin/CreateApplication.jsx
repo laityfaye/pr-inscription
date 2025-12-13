@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Layout from '../../components/Layout'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
@@ -16,7 +16,16 @@ import {
   FiAlertCircle,
   FiPlus,
   FiTrash2,
-  FiFile
+  FiFile,
+  FiSearch,
+  FiChevronRight,
+  FiChevronLeft,
+  FiMail,
+  FiPhone,
+  FiMapPin,
+  FiBookOpen,
+  FiUsers,
+  FiDollarSign
 } from 'react-icons/fi'
 
 const CreateApplication = () => {
@@ -25,6 +34,8 @@ const CreateApplication = () => {
   const [selectedClient, setSelectedClient] = useState(null)
   const [applicationType, setApplicationType] = useState('') // inscription, work_permit, residence, study_permit_renewal
   const [users, setUsers] = useState([])
+  const [filteredUsers, setFilteredUsers] = useState([])
+  const [userSearchQuery, setUserSearchQuery] = useState('')
   const [countries, setCountries] = useState([])
   const [workPermitCountries, setWorkPermitCountries] = useState([])
   const [loading, setLoading] = useState(false)
@@ -84,12 +95,29 @@ const CreateApplication = () => {
     fetchWorkPermitCountries()
   }, [])
 
+  // Filtrer les utilisateurs en fonction de la recherche
+  useEffect(() => {
+    if (!userSearchQuery.trim()) {
+      setFilteredUsers(users)
+    } else {
+      const query = userSearchQuery.toLowerCase()
+      setFilteredUsers(
+        users.filter(user => 
+          user.name?.toLowerCase().includes(query) ||
+          user.email?.toLowerCase().includes(query) ||
+          user.phone?.includes(query)
+        )
+      )
+    }
+  }, [userSearchQuery, users])
+
   const fetchUsers = async () => {
     try {
       const response = await api.get('/users')
       // Filtrer pour ne garder que les clients
       const clients = response.data.filter(user => user.role === 'client')
       setUsers(clients)
+      setFilteredUsers(clients)
     } catch (error) {
       console.error('Error fetching users:', error)
       toast.error('Erreur lors du chargement des clients')
@@ -475,82 +503,132 @@ const CreateApplication = () => {
           </p>
         </div>
 
-        {/* Indicateur de progression */}
+        {/* Indicateur de progression amélioré */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {[1, 2, 3, 4].map((s) => (
-              <div key={s} className="flex items-center flex-1">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all ${
-                  step >= s 
-                    ? 'bg-primary-600 border-primary-600 text-white' 
-                    : 'bg-white border-neutral-300 text-neutral-400'
-                }`}>
-                  {step > s ? <FiCheckCircle className="w-5 h-5" /> : s}
+          <div className="flex items-center justify-between max-w-4xl mx-auto">
+            {[
+              { num: 1, label: 'Client', icon: FiUser },
+              { num: 2, label: 'Type', icon: FiFileText },
+              { num: 3, label: 'Formulaire', icon: FiBookOpen },
+              { num: 4, label: 'Documents', icon: FiUpload }
+            ].map((stepInfo, index) => (
+              <div key={stepInfo.num} className="flex items-center flex-1">
+                <div className="flex flex-col items-center flex-1">
+                  <div className={`relative flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 transform ${
+                    step >= stepInfo.num 
+                      ? 'bg-primary-600 border-primary-600 text-white scale-110 shadow-lg' 
+                      : 'bg-white border-neutral-300 text-neutral-400'
+                  }`}>
+                    {step > stepInfo.num ? (
+                      <FiCheckCircle className="w-6 h-6" />
+                    ) : (
+                      <stepInfo.icon className={`w-5 h-5 ${step === stepInfo.num ? 'text-white' : ''}`} />
+                    )}
+                    {step === stepInfo.num && (
+                      <div className="absolute -inset-1 bg-primary-200 rounded-full animate-ping opacity-75"></div>
+                    )}
+                  </div>
+                  <span className={`mt-2 text-xs font-medium transition-colors ${
+                    step >= stepInfo.num ? 'text-primary-600' : 'text-neutral-400'
+                  }`}>
+                    {stepInfo.label}
+                  </span>
                 </div>
-                {s < 4 && (
-                  <div className={`flex-1 h-1 mx-2 ${
-                    step > s ? 'bg-primary-600' : 'bg-neutral-300'
+                {index < 3 && (
+                  <div className={`flex-1 h-1 mx-2 transition-all duration-500 ${
+                    step > stepInfo.num ? 'bg-primary-600' : 'bg-neutral-200'
                   }`} />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between mt-2 text-xs text-neutral-500">
-            <span>Client</span>
-            <span>Type</span>
-            <span>Formulaire</span>
-            <span>Documents</span>
-          </div>
         </div>
 
-        <Card padding="lg" className="bg-white shadow-sm">
+        <Card padding="lg" className="bg-white shadow-lg border-0">
           {/* Étape 1: Sélection du client */}
           {step === 1 && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fadeIn">
               <div>
-                <h2 className="text-xl font-bold text-neutral-900 mb-4">Sélectionner un client</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-neutral-700 mb-2">
-                      Client *
-                    </label>
-                    <select
-                      value={selectedUserId}
-                      onChange={(e) => setSelectedUserId(e.target.value)}
-                      className="input w-full"
-                    >
-                      <option value="">Sélectionner un client</option>
-                      {users.map((user) => (
-                        <option key={user.id} value={user.id}>
-                          {user.name} ({user.email})
-                        </option>
-                      ))}
-                    </select>
+                <h2 className="text-2xl font-bold text-neutral-900 mb-2 flex items-center gap-2">
+                  <FiUser className="w-6 h-6 text-primary-600" />
+                  Sélectionner un client
+                </h2>
+                <p className="text-sm text-neutral-600 mb-6">
+                  Recherchez et sélectionnez le client pour qui vous créez cette demande
+                </p>
+                
+                {/* Barre de recherche */}
+                <div className="mb-6">
+                  <div className="relative">
+                    <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                    <Input
+                      type="text"
+                      placeholder="Rechercher un client par nom, email ou téléphone..."
+                      value={userSearchQuery}
+                      onChange={(e) => setUserSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                  {selectedUserId && (
-                    <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">
-                          {users.find(u => u.id === parseInt(selectedUserId))?.name?.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-neutral-900">
-                            {users.find(u => u.id === parseInt(selectedUserId))?.name}
-                          </p>
-                          <p className="text-sm text-neutral-600">
-                            {users.find(u => u.id === parseInt(selectedUserId))?.email}
-                          </p>
-                        </div>
-                      </div>
+                </div>
+
+                {/* Liste des clients */}
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {filteredUsers.length === 0 ? (
+                    <div className="text-center py-8 text-neutral-500">
+                      <FiUser className="w-12 h-12 mx-auto mb-3 text-neutral-300" />
+                      <p>Aucun client trouvé</p>
                     </div>
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <button
+                        key={user.id}
+                        onClick={() => setSelectedUserId(String(user.id))}
+                        className={`w-full p-4 rounded-xl border-2 transition-all text-left hover:shadow-md ${
+                          selectedUserId === String(user.id)
+                            ? 'border-primary-500 bg-primary-50 shadow-md'
+                            : 'border-neutral-200 hover:border-primary-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg transition-all ${
+                            selectedUserId === String(user.id)
+                              ? 'bg-primary-600 scale-110'
+                              : 'bg-neutral-400'
+                          }`}>
+                            {user.name?.charAt(0).toUpperCase() || '?'}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-neutral-900 mb-1">{user.name}</p>
+                            <div className="flex flex-wrap items-center gap-3 text-sm text-neutral-600">
+                              <span className="flex items-center gap-1">
+                                <FiMail className="w-4 h-4" />
+                                {user.email}
+                              </span>
+                              {user.phone && (
+                                <span className="flex items-center gap-1">
+                                  <FiPhone className="w-4 h-4" />
+                                  {user.phone}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {selectedUserId === String(user.id) && (
+                            <FiCheckCircle className="w-6 h-6 text-primary-600" />
+                          )}
+                        </div>
+                      </button>
+                    ))
                   )}
                 </div>
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-end pt-4 border-t border-neutral-200">
                 <Button
                   variant="primary"
                   onClick={handleClientSelect}
                   disabled={!selectedUserId}
+                  icon={FiChevronRight}
+                  iconPosition="right"
+                  className="min-w-[120px]"
                 >
                   Suivant
                 </Button>
@@ -560,67 +638,104 @@ const CreateApplication = () => {
 
           {/* Étape 2: Sélection du type de demande */}
           {step === 2 && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-fadeIn">
               <div>
-                <h2 className="text-xl font-bold text-neutral-900 mb-4">Sélectionner le type de demande</h2>
+                <h2 className="text-2xl font-bold text-neutral-900 mb-2 flex items-center gap-2">
+                  <FiFileText className="w-6 h-6 text-primary-600" />
+                  Sélectionner le type de demande
+                </h2>
+                <p className="text-sm text-neutral-600 mb-6">
+                  Choisissez le type de demande que vous souhaitez créer pour {selectedClient?.name || 'ce client'}
+                </p>
+                
+                {/* Afficher le client sélectionné */}
+                {selectedClient && (
+                  <div className="mb-6 p-4 bg-primary-50 rounded-xl border border-primary-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">
+                        {selectedClient.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-neutral-900">{selectedClient.name}</p>
+                        <p className="text-sm text-neutral-600">{selectedClient.email}</p>
+                      </div>
+                    </div>
+                  </div>
+                }
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setApplicationType('inscription')}
-                    className={`p-6 rounded-xl border-2 transition-all text-left ${
-                      applicationType === 'inscription'
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-neutral-200 hover:border-primary-300'
-                    }`}
-                  >
-                    <FiFileText className="w-8 h-8 text-primary-600 mb-3" />
-                    <h3 className="font-bold text-lg text-neutral-900 mb-1">Préinscription</h3>
-                    <p className="text-sm text-neutral-600">Demande de préinscription pour études</p>
-                  </button>
-                  
-                  <button
-                    onClick={() => setApplicationType('work_permit')}
-                    className={`p-6 rounded-xl border-2 transition-all text-left ${
-                      applicationType === 'work_permit'
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-neutral-200 hover:border-primary-300'
-                    }`}
-                  >
-                    <FiBriefcase className="w-8 h-8 text-primary-600 mb-3" />
-                    <h3 className="font-bold text-lg text-neutral-900 mb-1">Demande de visa</h3>
-                    <p className="text-sm text-neutral-600">Visa visiteur ou permis de travail</p>
-                  </button>
-                  
-                  <button
-                    onClick={() => setApplicationType('residence')}
-                    className={`p-6 rounded-xl border-2 transition-all text-left ${
-                      applicationType === 'residence'
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-neutral-200 hover:border-primary-300'
-                    }`}
-                  >
-                    <FiHome className="w-8 h-8 text-primary-600 mb-3" />
-                    <h3 className="font-bold text-lg text-neutral-900 mb-1">Résidence Canada</h3>
-                    <p className="text-sm text-neutral-600">Demande de résidence permanente</p>
-                  </button>
-                  
-                  <button
-                    onClick={() => setApplicationType('study_permit_renewal')}
-                    className={`p-6 rounded-xl border-2 transition-all text-left ${
-                      applicationType === 'study_permit_renewal'
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-neutral-200 hover:border-primary-300'
-                    }`}
-                  >
-                    <FiFileText className="w-8 h-8 text-primary-600 mb-3" />
-                    <h3 className="font-bold text-lg text-neutral-900 mb-1">Renouvellement CAQ/Permis</h3>
-                    <p className="text-sm text-neutral-600">Renouvellement CAQ/Permis d'études</p>
-                  </button>
+                  {[
+                    {
+                      type: 'inscription',
+                      icon: FiFileText,
+                      title: 'Préinscription',
+                      description: 'Demande de préinscription pour études à l\'étranger',
+                      color: 'from-blue-500 to-blue-600'
+                    },
+                    {
+                      type: 'work_permit',
+                      icon: FiBriefcase,
+                      title: 'Demande de visa',
+                      description: 'Visa visiteur ou permis de travail',
+                      color: 'from-green-500 to-green-600'
+                    },
+                    {
+                      type: 'residence',
+                      icon: FiHome,
+                      title: 'Résidence Canada',
+                      description: 'Demande de résidence permanente',
+                      color: 'from-purple-500 to-purple-600'
+                    },
+                    {
+                      type: 'study_permit_renewal',
+                      icon: FiBookOpen,
+                      title: 'Renouvellement CAQ/Permis',
+                      description: 'Renouvellement CAQ/Permis d\'études',
+                      color: 'from-orange-500 to-orange-600'
+                    }
+                  ].map((option) => {
+                    const Icon = option.icon
+                    const isSelected = applicationType === option.type
+                    return (
+                      <button
+                        key={option.type}
+                        onClick={() => setApplicationType(option.type)}
+                        className={`group relative p-6 rounded-xl border-2 transition-all duration-300 text-left overflow-hidden ${
+                          isSelected
+                            ? 'border-primary-500 bg-primary-50 shadow-lg scale-105'
+                            : 'border-neutral-200 hover:border-primary-300 bg-white hover:shadow-md'
+                        }`}
+                      >
+                        {isSelected && (
+                          <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${option.color} opacity-10 rounded-full -mr-16 -mt-16`}></div>
+                        )}
+                        <div className="relative z-10">
+                          <div className={`inline-flex p-3 rounded-lg mb-4 ${
+                            isSelected 
+                              ? `bg-gradient-to-br ${option.color} text-white` 
+                              : 'bg-neutral-100 text-neutral-600'
+                          }`}>
+                            <Icon className="w-6 h-6" />
+                          </div>
+                          <h3 className="font-bold text-lg text-neutral-900 mb-2">{option.title}</h3>
+                          <p className="text-sm text-neutral-600">{option.description}</p>
+                          {isSelected && (
+                            <div className="mt-4 flex items-center gap-2 text-primary-600 text-sm font-medium">
+                              <FiCheckCircle className="w-4 h-4" />
+                              Sélectionné
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between pt-4 border-t border-neutral-200">
                 <Button
                   variant="ghost"
                   onClick={() => setStep(1)}
+                  icon={FiChevronLeft}
                 >
                   Retour
                 </Button>
@@ -628,6 +743,9 @@ const CreateApplication = () => {
                   variant="primary"
                   onClick={handleApplicationTypeSelect}
                   disabled={!applicationType}
+                  icon={FiChevronRight}
+                  iconPosition="right"
+                  className="min-w-[120px]"
                 >
                   Suivant
                 </Button>
@@ -964,10 +1082,11 @@ const CreateApplication = () => {
                   </div>
                 )}
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between pt-4 border-t border-neutral-200">
                 <Button
                   variant="ghost"
                   onClick={() => setStep(2)}
+                  icon={FiChevronLeft}
                 >
                   Retour
                 </Button>
@@ -975,8 +1094,18 @@ const CreateApplication = () => {
                   variant="primary"
                   onClick={handleCreateApplication}
                   disabled={loading}
+                  icon={loading ? null : FiCheckCircle}
+                  iconPosition="right"
+                  className="min-w-[160px]"
                 >
-                  {loading ? 'Création...' : 'Créer la demande'}
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                      Création...
+                    </span>
+                  ) : (
+                    'Créer la demande'
+                  )}
                 </Button>
               </div>
             </div>
@@ -1012,18 +1141,29 @@ const CreateApplication = () => {
                       <label className="block text-sm font-semibold text-neutral-700 mb-2">
                         Fichier *
                       </label>
-                      <input
-                        type="file"
-                        id="document-file-input"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            setCurrentDocument({ ...currentDocument, file })
-                          }
-                        }}
-                        className="input w-full"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="document-file-input"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) {
+                              setCurrentDocument({ ...currentDocument, file })
+                            }
+                          }}
+                          className="input w-full cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        />
+                        {currentDocument.file && (
+                          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+                            <FiFile className="w-4 h-4 text-green-600" />
+                            <span className="text-sm text-green-700 font-medium">{currentDocument.file.name}</span>
+                            <span className="text-xs text-green-600">
+                              ({(currentDocument.file.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-neutral-700 mb-2">
@@ -1077,40 +1217,57 @@ const CreateApplication = () => {
                 {/* Liste des documents à uploader */}
                 {documents.length > 0 && (
                   <div className="space-y-3 mb-6">
-                    <h3 className="font-semibold text-neutral-900">Documents à uploader ({documents.length})</h3>
-                    {documents.map((doc, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-4 bg-white rounded-lg border border-neutral-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          <FiFile className="w-5 h-5 text-primary-600" />
-                          <div>
-                            <p className="font-semibold text-neutral-900">{doc.file.name}</p>
-                            <p className="text-sm text-neutral-600">
-                              Type: {doc.type.replace(/_/g, ' ')}
-                              {doc.name && ` - ${doc.name}`}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveDocument(index)}
-                          icon={FiTrash2}
-                          className="text-red-600 hover:text-red-700"
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-neutral-900 flex items-center gap-2">
+                        <FiFile className="w-5 h-5 text-primary-600" />
+                        Documents à uploader ({documents.length})
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      {documents.map((doc, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-4 bg-white rounded-lg border-2 border-neutral-200 hover:border-primary-300 transition-all shadow-sm hover:shadow-md"
                         >
-                          Retirer
-                        </Button>
-                      </div>
-                    ))}
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center">
+                              <FiFile className="w-5 h-5 text-primary-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-neutral-900 truncate">{doc.file.name}</p>
+                              <div className="flex items-center gap-2 text-sm text-neutral-600">
+                                <span className="px-2 py-0.5 bg-neutral-100 rounded text-xs">
+                                  {doc.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </span>
+                                {doc.name && (
+                                  <span className="text-neutral-500">• {doc.name}</span>
+                                )}
+                                <span className="text-neutral-400">
+                                  • {(doc.file.size / 1024 / 1024).toFixed(2)} MB
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveDocument(index)}
+                            icon={FiTrash2}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-4"
+                          >
+                            Retirer
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
-                <div className="flex justify-between">
+                <div className="flex justify-between pt-4 border-t border-neutral-200">
                   <Button
                     variant="ghost"
                     onClick={() => setStep(3)}
+                    icon={FiChevronLeft}
                   >
                     Retour
                   </Button>
@@ -1125,9 +1282,18 @@ const CreateApplication = () => {
                       variant="primary"
                       onClick={handleUploadDocuments}
                       disabled={loading || documents.length === 0}
-                      icon={FiUpload}
+                      icon={loading ? null : FiUpload}
+                      iconPosition="right"
+                      className="min-w-[200px]"
                     >
-                      {loading ? 'Upload...' : `Uploader ${documents.length} document(s)`}
+                      {loading ? (
+                        <span className="flex items-center gap-2">
+                          <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                          Upload en cours...
+                        </span>
+                      ) : (
+                        `Uploader ${documents.length} document${documents.length > 1 ? 's' : ''}`
+                      )}
                     </Button>
                   </div>
                 </div>
