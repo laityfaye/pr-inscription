@@ -54,8 +54,9 @@ class DocumentController extends Controller
             $targetUserId = $user->id; // Par défaut, l'utilisateur connecté
             
             // Si admin et user_id fourni, utiliser ce user_id pour le document
-            if ($user->isAdmin() && $request->has('user_id')) {
-                $targetUserId = $request->user_id;
+            $requestUserId = $request->input('user_id');
+            if ($user->isAdmin() && $requestUserId) {
+                $targetUserId = (int) $requestUserId;
             }
             
             if (!empty($validated['inscription_id'])) {
@@ -74,7 +75,7 @@ class DocumentController extends Controller
                     ], 422);
                 }
                 // Si admin spécifie un user_id, s'assurer que l'inscription appartient à ce user
-                if ($user->isAdmin() && $request->has('user_id') && $inscription->user_id !== $targetUserId) {
+                if ($user->isAdmin() && $request->input('user_id') && $inscription->user_id !== $targetUserId) {
                     return response()->json([
                         'message' => 'La préinscription sélectionnée n\'appartient pas au client spécifié.',
                         'errors' => ['inscription_id' => ['La préinscription sélectionnée n\'appartient pas au client spécifié.']]
@@ -96,7 +97,7 @@ class DocumentController extends Controller
                         'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée ne vous appartient pas.']]
                     ], 422);
                 }
-                if ($user->isAdmin() && $request->has('user_id') && $workPermit->user_id !== $targetUserId) {
+                if ($user->isAdmin() && $request->input('user_id') && $workPermit->user_id !== $targetUserId) {
                     return response()->json([
                         'message' => 'La demande de permis de travail sélectionnée n\'appartient pas au client spécifié.',
                         'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée n\'appartient pas au client spécifié.']]
@@ -118,7 +119,7 @@ class DocumentController extends Controller
                         'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée ne vous appartient pas.']]
                     ], 422);
                 }
-                if ($user->isAdmin() && $request->has('user_id') && $residence->user_id !== $targetUserId) {
+                if ($user->isAdmin() && $request->input('user_id') && $residence->user_id !== $targetUserId) {
                     return response()->json([
                         'message' => 'La demande de résidence sélectionnée n\'appartient pas au client spécifié.',
                         'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée n\'appartient pas au client spécifié.']]
@@ -140,7 +141,7 @@ class DocumentController extends Controller
                         'errors' => ['study_permit_renewal_application_id' => ['La demande de renouvellement CAQ/Permis d\'études sélectionnée ne vous appartient pas.']]
                     ], 422);
                 }
-                if ($user->isAdmin() && $request->has('user_id') && $studyPermitRenewal->user_id !== $targetUserId) {
+                if ($user->isAdmin() && $request->input('user_id') && $studyPermitRenewal->user_id !== $targetUserId) {
                     return response()->json([
                         'message' => 'La demande de renouvellement CAQ/Permis d\'études sélectionnée n\'appartient pas au client spécifié.',
                         'errors' => ['study_permit_renewal_application_id' => ['La demande de renouvellement CAQ/Permis d\'études sélectionnée n\'appartient pas au client spécifié.']]

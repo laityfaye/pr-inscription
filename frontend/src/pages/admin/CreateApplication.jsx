@@ -200,6 +200,11 @@ const CreateApplication = () => {
       return
     }
     
+    if (!createdApplication || !createdApplication.id) {
+      toast.error('Erreur: La demande n\'a pas été créée correctement')
+      return
+    }
+    
     const applicationIdField = {
       inscription: 'inscription_id',
       work_permit: 'work_permit_application_id',
@@ -207,11 +212,27 @@ const CreateApplication = () => {
       study_permit_renewal: 'study_permit_renewal_application_id',
     }[applicationType]
 
-    setDocuments([...documents, {
-      ...currentDocument,
-      applicationIdField,
+    if (!applicationIdField) {
+      toast.error('Type de demande invalide')
+      return
+    }
+
+    const newDocument = {
+      file: currentDocument.file,
+      type: currentDocument.type,
+      name: currentDocument.name || '',
+      applicationIdField: applicationIdField,
       applicationId: createdApplication.id,
-    }])
+    }
+
+    console.log('Adding document to list:', {
+      fileName: newDocument.file?.name,
+      type: newDocument.type,
+      applicationIdField: newDocument.applicationIdField,
+      applicationId: newDocument.applicationId,
+    })
+
+    setDocuments([...documents, newDocument])
     
     setCurrentDocument({
       file: null,
@@ -219,6 +240,14 @@ const CreateApplication = () => {
       name: '',
       applicationId: null,
     })
+    
+    // Réinitialiser le champ fichier
+    const fileInput = document.getElementById('document-file-input')
+    if (fileInput) {
+      fileInput.value = ''
+    }
+    
+    toast.success('Document ajouté à la liste')
   }
 
   const handleRemoveDocument = (index) => {
@@ -235,25 +264,88 @@ const CreateApplication = () => {
 
     setLoading(true)
     try {
-      for (const doc of documents) {
-        const formData = new FormData()
-        formData.append('file', doc.file)
-        formData.append('type', doc.type)
-        formData.append('user_id', selectedUserId)
-        if (doc.name) {
-          formData.append('name', doc.name)
-        }
-        formData.append(doc.applicationIdField, doc.applicationId)
+      let successCount = 0
+      let errorCount = 0
+      const errors = []
 
-        await api.post('/documents', formData)
+      for (const doc of documents) {
+        try {
+          if (!doc.file) {
+            console.error('Document sans fichier:', doc)
+            errorCount++
+            errors.push(`${doc.name || 'Document'}: Fichier manquant`)
+            continue
+          }
+
+          const formData = new FormData()
+          formData.append('file', doc.file)
+          formData.append('type', doc.type)
+          formData.append('user_id', String(selectedUserId)) // S'assurer que c'est une string
+          if (doc.name && doc.name.trim()) {
+            formData.append('name', doc.name.trim())
+          }
+          formData.append(doc.applicationIdField, String(doc.applicationId))
+
+          // Vérifier que tous les champs sont présents
+          console.log('Uploading document:', {
+            fileName: doc.file?.name,
+            fileSize: doc.file?.size,
+            fileType: doc.file?.type,
+            type: doc.type,
+            userId: selectedUserId,
+            applicationIdField: doc.applicationIdField,
+            applicationId: doc.applicationId,
+            name: doc.name,
+          })
+
+          // Vérifier que le FormData contient bien le fichier
+          const fileInFormData = formData.get('file')
+          if (!fileInFormData) {
+            console.error('Fichier non trouvé dans FormData')
+            errorCount++
+            errors.push(`${doc.file?.name}: Erreur lors de la préparation du fichier`)
+            continue
+          }
+
+          const response = await api.post('/documents', formData)
+          successCount++
+          console.log(`Document ${doc.file?.name} uploadé avec succès:`, response.data)
+        } catch (error) {
+          console.error(`Error uploading document ${doc.file?.name}:`, error)
+          console.error('Error response:', error.response?.data)
+          console.error('Error status:', error.response?.status)
+          errorCount++
+          const errorMessage = error.response?.data?.message || 'Erreur inconnue'
+          errors.push(`${doc.file?.name}: ${errorMessage}`)
+          
+          if (error.response?.data?.errors) {
+            const validationErrors = error.response.data.errors
+            Object.values(validationErrors).flat().forEach(err => {
+              errors.push(`${doc.file?.name}: ${err}`)
+            })
+          }
+        }
       }
 
-      toast.success('Demande créée et documents uploadés avec succès')
-      // Rediriger vers la page de gestion
-      window.location.href = getApplicationListUrl()
+      if (successCount > 0) {
+        toast.success(`${successCount} document(s) uploadé(s) avec succès${errorCount > 0 ? `, ${errorCount} erreur(s)` : ''}`)
+        if (errors.length > 0) {
+          console.error('Erreurs détaillées:', errors)
+          // Afficher les erreurs dans la console pour debug
+          errors.forEach(err => console.error(err))
+        }
+        // Rediriger vers la page de gestion après un court délai
+        setTimeout(() => {
+          window.location.href = getApplicationListUrl()
+        }, 1500)
+      } else {
+        toast.error('Aucun document n\'a pu être uploadé')
+        errors.forEach(err => toast.error(err, { duration: 5000 }))
+        // Ne pas rediriger si tous les uploads ont échoué
+      }
     } catch (error) {
       console.error('Error uploading documents:', error)
-      toast.error('Erreur lors de l\'upload des documents')
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'upload des documents')
     } finally {
       setLoading(false)
     }
@@ -864,7 +956,13 @@ const CreateApplication = () => {
                       </label>
                       <input
                         type="file"
-                        onChange={(e) => setCurrentDocument({ ...currentDocument, file: e.target.files[0] })}
+                        id="document-file-input"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            setCurrentDocument({ ...currentDocument, file })
+                          }
+                        }}
                         className="input w-full"
                         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                       />
