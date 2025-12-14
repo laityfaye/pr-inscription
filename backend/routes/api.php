@@ -38,6 +38,7 @@ Route::get('/storage/{path}', [StorageController::class, 'serve'])->where('path'
 Route::get('/appointments/booked-slots', [AppointmentController::class, 'getBookedSlots']);
 Route::get('/appointments/unavailable-days', [AppointmentController::class, 'getUnavailableDays']);
 Route::get('/appointments/slot-prices', [AppointmentController::class, 'getSlotPrices']);
+Route::get('/appointments/by-email', [AppointmentController::class, 'getByEmail']);
 
 // Routes publiques pour les pays de permis de travail
 // IMPORTANT: /work-permit-countries/all doit être défini AVANT /work-permit-countries/{workPermitCountry} pour éviter les conflits de routage

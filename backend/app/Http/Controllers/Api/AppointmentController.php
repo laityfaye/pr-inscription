@@ -275,6 +275,29 @@ class AppointmentController extends Controller
         return response()->json($days);
     }
 
+    public function getByEmail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        // Récupérer le dernier rendez-vous pour cet email (le plus récent)
+        $appointment = Appointment::where('email', $request->email)
+                                 ->orderBy('created_at', 'desc')
+                                 ->first();
+
+        if (!$appointment) {
+            return response()->json([
+                'appointment' => null,
+                'message' => 'Aucun rendez-vous trouvé pour cet email'
+            ]);
+        }
+
+        return response()->json([
+            'appointment' => $appointment,
+        ]);
+    }
+
     public function addUnavailableDay(Request $request): JsonResponse
     {
         $user = $request->user();
