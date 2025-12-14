@@ -79,6 +79,24 @@ const Home = () => {
     }
   }, [user, navigate])
 
+  // Fonction helper pour gérer les clics sur les boutons de préinscription
+  // Redirige vers /register si l'utilisateur n'est pas connecté, sinon vers l'espace client
+  const handlePreinscriptionClick = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const token = localStorage.getItem('token')
+    const isAuthenticated = user || token
+    
+    if (!isAuthenticated) {
+      // Rediriger vers l'inscription si l'utilisateur n'est pas connecté
+      navigate('/register')
+    } else {
+      // Rediriger vers l'espace client pour les utilisateurs connectés
+      navigate('/client/inscriptions')
+    }
+  }, [user, navigate])
+
   // Charger uniquement les données non-critiques (ne bloque pas l'affichage de la section Hero)
   const fetchNonCriticalData = useCallback(async () => {
     try {
@@ -296,19 +314,18 @@ const Home = () => {
           {/* CTA Buttons */}
           {!loading && (
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-slide-up px-2" style={{ animationDelay: '0.3s' }}>
-            <Link to="/register" className="w-full sm:w-auto">
-              <button 
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
-                           px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
-                           bg-white text-primary-700 hover:bg-neutral-50 
-                           shadow-2xl hover:shadow-glow-lg transform hover:scale-105 
-                           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
-                           whitespace-nowrap border-0"
-              >
-                Préinscription maintenant
-                <FiArrowRight className="w-4 h-4" />
-              </button>
-            </Link>
+            <button 
+              onClick={handlePreinscriptionClick}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
+                         px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
+                         bg-white text-primary-700 hover:bg-neutral-50 
+                         shadow-2xl hover:shadow-glow-lg transform hover:scale-105 
+                         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                         whitespace-nowrap border-0"
+            >
+              Préinscription maintenant
+              <FiArrowRight className="w-4 h-4" />
+            </button>
             <Link to="/reviews" className="w-full sm:w-auto">
               <button 
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
@@ -1224,11 +1241,16 @@ const Home = () => {
                 <Button variant="secondary" onClick={closeModal} className="sm:order-2">
                   Fermer
                 </Button>
-                <Link to="/register" className="sm:order-1">
-                  <Button variant="primary" fullWidth className="sm:w-auto" icon={FiArrowRight} iconPosition="right">
-                    Faire une préinscription
-                  </Button>
-                </Link>
+                <Button 
+                  variant="primary" 
+                  fullWidth 
+                  className="sm:order-1 sm:w-auto" 
+                  icon={FiArrowRight} 
+                  iconPosition="right"
+                  onClick={handlePreinscriptionClick}
+                >
+                  Faire une préinscription
+                </Button>
               </div>
             </div>
           </Card>
