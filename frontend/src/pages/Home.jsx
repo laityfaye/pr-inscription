@@ -282,6 +282,13 @@ const Home = () => {
     }
   }, [countersVisible])
 
+  // Fonction pour déclencher le décompte au survol
+  const handleStatsHover = () => {
+    if (!countersVisible) {
+      setCountersVisible(true)
+    }
+  }
+
 
   const handleCountryClick = async (countryId) => {
     setLoadingCountry(true)
@@ -628,17 +635,29 @@ const Home = () => {
       {/* Statistics Section - Enhanced */}
       <section 
         ref={statsSectionRef}
+        onMouseEnter={handleStatsHover}
         className="py-24 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 text-white relative overflow-hidden"
       >
         <div className="section-container relative z-10">
           <div className="text-center mb-16">
-            <Badge variant="neutral" size="lg" className="mb-6 bg-white/20 text-white border-white/30">
+            <Badge 
+              variant="neutral" 
+              size="lg" 
+              className="mb-6 bg-white/20 text-white border-white/30 cursor-pointer transition-all duration-300 hover:bg-white/30 hover:scale-105"
+              onMouseEnter={handleStatsHover}
+            >
               Nos réalisations
             </Badge>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+            <h2 
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 cursor-pointer transition-all duration-300 hover:scale-105"
+              onMouseEnter={handleStatsHover}
+            >
               Des chiffres qui parlent
             </h2>
-            <p className="text-xl text-primary-100 max-w-2xl mx-auto">
+            <p 
+              className="text-xl text-primary-100 max-w-2xl mx-auto cursor-pointer"
+              onMouseEnter={handleStatsHover}
+            >
               Une communauté qui grandit chaque jour grâce à votre confiance
             </p>
           </div>
