@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\UnavailableDay;
 use App\Models\SlotPrice;
+use App\Mail\AppointmentStatusMail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class AppointmentController extends Controller
 {
@@ -132,6 +135,16 @@ class AppointmentController extends Controller
             'validated_at' => now(),
         ]);
 
+        // Envoyer l'e-mail de notification en queue
+        try {
+            Mail::to($appointment->email)->queue(new AppointmentStatusMail($appointment->fresh(), 'validated'));
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'envoi de l\'e-mail de validation de rendez-vous: ' . $e->getMessage(), [
+                'appointment_id' => $appointment->id,
+                'email' => $appointment->email,
+            ]);
+        }
+
         return response()->json([
             'message' => 'Rendez-vous validé avec succès',
             'appointment' => $appointment->fresh('validator'),
@@ -159,6 +172,16 @@ class AppointmentController extends Controller
             'status' => 'rejected',
             'rejection_reason' => $request->reason,
         ]);
+
+        // Envoyer l'e-mail de notification en queue
+        try {
+            Mail::to($appointment->email)->queue(new AppointmentStatusMail($appointment->fresh(), 'rejected'));
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'envoi de l\'e-mail de rejet de rendez-vous: ' . $e->getMessage(), [
+                'appointment_id' => $appointment->id,
+                'email' => $appointment->email,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Rendez-vous rejeté',
@@ -221,6 +244,16 @@ class AppointmentController extends Controller
             'date' => $request->date,
             'time' => $request->time,
         ]);
+
+        // Envoyer l'e-mail de notification en queue
+        try {
+            Mail::to($appointment->email)->queue(new AppointmentStatusMail($appointment->fresh(), 'rescheduled'));
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'envoi de l\'e-mail de report de rendez-vous: ' . $e->getMessage(), [
+                'appointment_id' => $appointment->id,
+                'email' => $appointment->email,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Rendez-vous reporté avec succès',

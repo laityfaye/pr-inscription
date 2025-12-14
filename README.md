@@ -78,6 +78,13 @@ MAIL_PASSWORD=your_app_password
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=laityfaye1709@gmail.com
 MAIL_FROM_NAME="${APP_NAME}"
+
+# URL du frontend pour les liens de redirection dans les e-mails
+FRONTEND_URL=https://sbcgroupe.ca  # Production
+# FRONTEND_URL=http://localhost:3000  # Développement local
+
+# Configuration des queues (déjà configuré sur database)
+QUEUE_CONNECTION=database
 ```
 
 ### Configuration Chat Temps Réel
@@ -118,9 +125,17 @@ Voir `backend/routes/api.php` pour la liste complète des endpoints.
 
 ## 📧 Notifications
 
-Les emails sont automatiquement envoyés à `laityfaye1709@gmail.com` lors de :
-- Nouvelle inscription client
-- Nouveau message dans le chat
+Les emails sont envoyés automatiquement en queue (asynchrone) pour éviter tout ralentissement de la plateforme :
+
+### E-mails envoyés aux clients :
+- **E-mail de bienvenue** : Envoyé automatiquement après l'inscription avec un lien de redirection vers la plateforme
+- **Notification de rendez-vous validé** : Envoyé lorsque l'admin/avocat valide un rendez-vous
+- **Notification de rendez-vous rejeté** : Envoyé lorsque l'admin/avocat rejette un rendez-vous (avec la raison du rejet)
+- **Notification de rendez-vous reporté** : Envoyé lorsque l'admin/avocat reporte un rendez-vous à une nouvelle date/heure
+
+### E-mails envoyés à l'administration :
+- **Notification de nouveau client** : Envoyé à `laityfaye1709@gmail.com` lors d'une nouvelle inscription
+- **Nouveau message dans le chat** : Notifications via le système de chat intégré
 
 ## 🛠️ Commandes Artisan
 
@@ -128,7 +143,12 @@ Les emails sont automatiquement envoyés à `laityfaye1709@gmail.com` lors de :
 php artisan migrate
 php artisan db:seed
 php artisan storage:link
-php artisan queue:work  # Pour les emails en queue
+
+# Important : Démarrer le worker de queue pour traiter les e-mails
+php artisan queue:work
+
+# Pour la production, utiliser supervisor ou un processus similaire pour maintenir le worker actif
+# Voir : https://laravel.com/docs/11.x/queues#supervisor-configuration
 ```
 
 ## 📄 Licence
