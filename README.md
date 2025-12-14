@@ -1,6 +1,8 @@
 # Plateforme de Gestion de Préinscriptions - TFKS Touba Fall Khidma Services
 
-Plateforme web complète pour la gestion des préinscriptions de voyages d'étude.
+## 📋 Résumé
+
+Plateforme web complète pour la gestion de tous les services d'immigration et d'études à l'étranger. Elle permet aux clients de soumettre leurs demandes de préinscription pour voyages d'étude, de visa visiteur, de permis de travail, de résidence permanente au Canada, ainsi que de renouvellement CAQ et permis d'études. Les utilisateurs peuvent uploader leurs documents, suivre l'état de leurs démarches et communiquer en temps réel avec l'agence via un système de chat intégré. Les administrateurs peuvent gérer toutes les demandes, publier des actualités, modérer les avis et offrir un accompagnement personnalisé pour chaque type de demande.
 
 ## 🏗️ Architecture
 

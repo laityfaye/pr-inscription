@@ -8,8 +8,10 @@ import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api from '../services/api'
 import { getImageUrl } from '../utils/imageUrl'
+import { useAuth } from '../contexts/AuthContext'
 
 const Appointment = () => {
+  const { user } = useAuth()
   const [agency, setAgency] = useState(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -56,6 +58,22 @@ const Appointment = () => {
     fetchUnavailableDays()
     fetchSlotPrices()
   }, [])
+
+  // Auto-remplir les champs si l'utilisateur est connecté
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      }))
+      // Mettre à jour l'email de vérification également
+      if (user.email) {
+        setCheckEmail(user.email)
+      }
+    }
+  }, [user])
 
   // Précharger toutes les images
   useEffect(() => {
@@ -766,7 +784,6 @@ const Appointment = () => {
                 <div className="text-center">
                   {agency.lawyer_image && (
                     <div className="relative inline-block mb-4 sm:mb-6">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-2xl opacity-60 animate-pulse-slow"></div>
                       <div className="relative w-28 h-28 sm:w-32 sm:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden border-4 border-white shadow-2xl ring-4 ring-primary-100 hover:ring-primary-200 transition-all duration-300">
                         <img 
                           src={getImageUrl(agency.lawyer_image)} 
