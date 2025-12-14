@@ -25,7 +25,8 @@ import {
   FiSettings,
   FiTrash2,
   FiSave,
-  FiEdit
+  FiEdit,
+  FiRefreshCw
 } from 'react-icons/fi'
 import { getImageUrl } from '../../utils/imageUrl'
 
@@ -35,6 +36,7 @@ const AvocatAppointments = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showUnavailableDaysModal, setShowUnavailableDaysModal] = useState(false)
   const [showPriceModal, setShowPriceModal] = useState(false)
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false)
   const [viewMode, setViewMode] = useState('table') // 'table' ou 'calendar'
   const [calendarWeek, setCalendarWeek] = useState(0) // 0 = semaine en cours
   
@@ -55,6 +57,11 @@ const AvocatAppointments = () => {
   const [newPrice, setNewPrice] = useState('')
   const [newCurrency, setNewCurrency] = useState('FCFA')
   const [customCurrency, setCustomCurrency] = useState('')
+  
+  // États pour le report de rendez-vous
+  const [rescheduleDate, setRescheduleDate] = useState('')
+  const [rescheduleTime, setRescheduleTime] = useState('')
+  const [rescheduleWeek, setRescheduleWeek] = useState(0) // 0 = semaine en cours
   
   // Créneaux horaires disponibles
   const availableHours = [
@@ -253,6 +260,24 @@ const AvocatAppointments = () => {
     }
   }
 
+  const handleReschedule = async (appointmentId, newDate, newTime) => {
+    try {
+      await api.post(`/appointments/${appointmentId}/reschedule`, {
+        date: newDate,
+        time: newTime
+      })
+      toast.success('Rendez-vous reporté avec succès')
+      fetchAppointments()
+      setShowRescheduleModal(false)
+      setShowDetailsModal(false)
+      setRescheduleDate('')
+      setRescheduleTime('')
+    } catch (error) {
+      console.error('Error rescheduling appointment:', error)
+      toast.error(error.response?.data?.message || 'Erreur lors du report du rendez-vous')
+    }
+  }
+
   const handleAddUnavailableDay = async (dateString) => {
     if (!dateString) {
       toast.error('Veuillez sélectionner une date')
@@ -277,20 +302,25 @@ const AvocatAppointments = () => {
   }
 
   // Générer les jours de la semaine (7 jours)
-  const getWeekDays = () => {
+  const getWeekDays = (weekOffset = null) => {
     const days = []
     const today = new Date()
-    const startDay = currentWeek * 7 // 0 pour semaine en cours, 7 pour semaine prochaine
+    today.setHours(0, 0, 0, 0)
+    const week = weekOffset !== null ? weekOffset : currentWeek
+    const startDay = week * 7 // 0 pour semaine en cours, 7 pour semaine prochaine
     
     for (let i = 0; i < 7; i++) {
       const date = new Date(today)
       date.setDate(today.getDate() + startDay + i)
+      date.setHours(0, 0, 0, 0)
       
       const dayName = date.toLocaleDateString('fr-FR', { weekday: 'long' })
       const dayNumber = date.getDate()
       const month = date.toLocaleDateString('fr-FR', { month: 'short' })
       const dateString = date.toISOString().split('T')[0]
+      const todayString = today.toISOString().split('T')[0]
       const isUnavailable = unavailableDays.includes(dateString)
+      const isPast = date < today
       
       days.push({
         date: date,
@@ -298,8 +328,9 @@ const AvocatAppointments = () => {
         dayName: dayName.charAt(0).toUpperCase() + dayName.slice(1),
         dayNumber: dayNumber,
         month: month,
-        isToday: startDay + i === 0,
+        isToday: dateString === todayString,
         isUnavailable: isUnavailable,
+        isPast: isPast,
       })
     }
     
@@ -1241,29 +1272,43 @@ const AvocatAppointments = () => {
                 </div>
               </div>
 
-              {selectedAppointment.status === 'pending' && (
+              {(selectedAppointment.status === 'pending' || selectedAppointment.status === 'validated') && (
                 <div className="border-t border-neutral-200 p-6 bg-neutral-50">
                   <div className="flex flex-col sm:flex-row gap-3">
+                    {selectedAppointment.status === 'pending' && (
+                      <>
+                        <Button
+                          variant="primary"
+                          onClick={() => handleValidate(selectedAppointment.id)}
+                          icon={FiCheckCircle}
+                          className="flex-1"
+                        >
+                          Valider le rendez-vous
+                        </Button>
+                        <Button
+                          variant="danger"
+                          onClick={() => {
+                            const reason = prompt('Raison du rejet (optionnel) :')
+                            if (reason !== null) {
+                              handleReject(selectedAppointment.id, reason)
+                            }
+                          }}
+                          icon={FiXCircle}
+                          className="flex-1"
+                        >
+                          Rejeter
+                        </Button>
+                      </>
+                    )}
                     <Button
-                      variant="primary"
-                      onClick={() => handleValidate(selectedAppointment.id)}
-                      icon={FiCheckCircle}
-                      className="flex-1"
-                    >
-                      Valider le rendez-vous
-                    </Button>
-                    <Button
-                      variant="danger"
+                      variant="secondary"
                       onClick={() => {
-                        const reason = prompt('Raison du rejet (optionnel) :')
-                        if (reason !== null) {
-                          handleReject(selectedAppointment.id, reason)
-                        }
+                        setShowRescheduleModal(true)
                       }}
-                      icon={FiXCircle}
+                      icon={FiRefreshCw}
                       className="flex-1"
                     >
-                      Rejeter
+                      Reporter le rendez-vous
                     </Button>
                   </div>
                 </div>
@@ -1563,6 +1608,237 @@ const AvocatAppointments = () => {
                     )}
                     </div>
                   ))}
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Modal de report de rendez-vous */}
+        {showRescheduleModal && selectedAppointment && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+            <Card className="max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border-2 border-neutral-200">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-1">Reporter le rendez-vous</h2>
+                    <p className="text-white/90 text-sm">Sélectionnez une nouvelle date et heure pour ce rendez-vous</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowRescheduleModal(false)
+                      setRescheduleDate('')
+                      setRescheduleTime('')
+                    }}
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="overflow-y-auto flex-1 p-6">
+                <div className="space-y-6">
+                  {/* Informations du rendez-vous actuel */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100/30 p-5 rounded-xl border border-blue-200">
+                    <h3 className="font-bold text-neutral-900 mb-3 flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                        <FiCalendar className="w-4 h-4 text-white" />
+                      </div>
+                      Rendez-vous actuel
+                    </h3>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
+                        <FiCalendar className="w-4 h-4 text-blue-500" />
+                        <div>
+                          <span className="text-xs text-neutral-500 block">Date actuelle</span>
+                          <span className="font-semibold text-neutral-900">
+                            {new Date(selectedAppointment.date).toLocaleDateString('fr-FR', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
+                        <FiClock className="w-4 h-4 text-blue-500" />
+                        <div>
+                          <span className="text-xs text-neutral-500 block">Heure actuelle</span>
+                          <span className="font-semibold text-neutral-900">{selectedAppointment.time}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sélection de la nouvelle date */}
+                  <div className="bg-gradient-to-br from-primary-50 to-primary-100/30 p-5 rounded-xl border border-primary-200">
+                    <h3 className="font-bold text-neutral-900 mb-4 flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center">
+                        <FiCalendar className="w-4 h-4 text-white" />
+                      </div>
+                      Nouvelle date et heure
+                    </h3>
+                    
+                    {/* Navigation entre les semaines */}
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setRescheduleWeek(0)}
+                        className={`flex-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 font-semibold text-sm ${
+                          rescheduleWeek === 0
+                            ? 'border-primary-500 bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg'
+                            : 'border-neutral-200 bg-white hover:border-primary-300 hover:shadow-md text-neutral-700'
+                        }`}
+                      >
+                        Semaine en cours
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRescheduleWeek(1)}
+                        className={`flex-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 font-semibold text-sm ${
+                          rescheduleWeek === 1
+                            ? 'border-primary-500 bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg'
+                            : 'border-neutral-200 bg-white hover:border-primary-300 hover:shadow-md text-neutral-700'
+                        }`}
+                      >
+                        Semaine prochaine
+                      </button>
+                    </div>
+
+                    {/* Calendrier visuel */}
+                    <div className="mb-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
+                        {getWeekDays(rescheduleWeek).map((day, index) => {
+                          const isSelected = rescheduleDate === day.dateString
+                          const isPast = day.isPast
+                          const isUnavailable = day.isUnavailable
+                          const isDisabled = isPast || isUnavailable
+                          
+                          return (
+                            <button
+                              key={day.dateString}
+                              type="button"
+                              onClick={() => {
+                                if (!isDisabled) {
+                                  setRescheduleDate(day.dateString)
+                                }
+                              }}
+                              disabled={isDisabled}
+                              className={`group relative p-2.5 sm:p-3 md:p-4 rounded-xl border-2 transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 ${
+                                isDisabled
+                                  ? 'border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-60'
+                                  : isSelected
+                                  ? 'border-primary-500 bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-xl scale-105'
+                                  : 'border-neutral-200 bg-white hover:border-primary-300 hover:shadow-lg text-gray-700 hover:scale-105 active:scale-95'
+                              }`}
+                            >
+                              <div className={`text-[10px] sm:text-xs font-semibold mb-0.5 ${
+                                isSelected ? 'text-white/90' : 'text-gray-500'
+                              }`}>
+                                {day.dayName.substring(0, 3).toUpperCase()}
+                              </div>
+                              <div className={`text-lg sm:text-xl md:text-2xl font-bold mb-0.5 ${
+                                isSelected ? 'text-white' : 'text-neutral-900'
+                              }`}>
+                                {day.dayNumber}
+                              </div>
+                              <div className={`text-[10px] sm:text-xs font-medium mb-0.5 ${
+                                isSelected ? 'text-white/80' : 'text-gray-500'
+                              }`}>
+                                {day.month}
+                              </div>
+                              {isSelected && (
+                                <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-full flex items-center justify-center shadow-lg">
+                                  <FiCheckCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary-600" />
+                                </div>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Sélection de l'heure */}
+                    {rescheduleDate && (
+                      <div className="mt-4">
+                        <label className="form-label flex items-center gap-2 mb-3">
+                          <FiClock className="w-4 h-4 text-primary-500" />
+                          Sélectionnez une heure
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {availableHours.map((hour) => {
+                            // Vérifier si le créneau est déjà réservé
+                            const isBooked = appointments.some(apt => {
+                              const aptDate = apt.date ? apt.date.split('T')[0] : apt.date
+                              return aptDate === rescheduleDate && 
+                                     apt.time === hour && 
+                                     apt.id !== selectedAppointment.id &&
+                                     (apt.status === 'pending' || apt.status === 'validated')
+                            })
+                            const isSelected = rescheduleTime === hour
+                            
+                            return (
+                              <button
+                                key={hour}
+                                type="button"
+                                onClick={() => {
+                                  if (!isBooked) {
+                                    setRescheduleTime(hour)
+                                  }
+                                }}
+                                disabled={isBooked}
+                                className={`p-3 rounded-lg border-2 transition-all duration-200 font-semibold ${
+                                  isBooked
+                                    ? 'border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-60'
+                                    : isSelected
+                                    ? 'border-primary-500 bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-lg scale-105'
+                                    : 'border-neutral-200 bg-white hover:border-primary-300 hover:shadow-md text-neutral-700 hover:scale-105'
+                                }`}
+                              >
+                                {hour}
+                                {isBooked && (
+                                  <div className="text-xs mt-1 text-neutral-500">Réservé</div>
+                                )}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-neutral-200 p-6 bg-neutral-50">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      if (rescheduleDate && rescheduleTime) {
+                        handleReschedule(selectedAppointment.id, rescheduleDate, rescheduleTime)
+                      } else {
+                        toast.error('Veuillez sélectionner une date et une heure')
+                      }
+                    }}
+                    icon={FiRefreshCw}
+                    className="flex-1"
+                    disabled={!rescheduleDate || !rescheduleTime}
+                  >
+                    Confirmer le report
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setShowRescheduleModal(false)
+                      setRescheduleDate('')
+                      setRescheduleTime('')
+                    }}
+                    className="flex-1"
+                  >
+                    Annuler
+                  </Button>
                 </div>
               </div>
             </Card>

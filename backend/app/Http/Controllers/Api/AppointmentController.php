@@ -166,6 +166,68 @@ class AppointmentController extends Controller
         ]);
     }
 
+    public function reschedule(Request $request, Appointment $appointment): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $request->validate([
+            'date' => ['required', 'date', 'after_or_equal:today'],
+            'time' => ['required', 'string', 'in:08:00,09:00,10:00,11:00,12:00,15:00,16:00,17:00,18:00'],
+        ]);
+
+        // Vérifier que le rendez-vous peut être reporté (pas déjà terminé ou rejeté)
+        if ($appointment->status === 'completed') {
+            return response()->json([
+                'message' => 'Un rendez-vous terminé ne peut pas être reporté'
+            ], 422);
+        }
+
+        // Vérifier que la nouvelle date est ultérieure à la date actuelle du rendez-vous
+        $currentDate = \Carbon\Carbon::parse($appointment->date);
+        $newDate = \Carbon\Carbon::parse($request->date);
+        
+        if ($newDate->isSameDay($currentDate) && $request->time === $appointment->time) {
+            return response()->json([
+                'message' => 'La nouvelle date et heure doivent être différentes de la date et heure actuelles'
+            ], 422);
+        }
+
+        // Vérifier si le jour est indisponible
+        $isUnavailable = UnavailableDay::where('date', $request->date)->exists();
+        if ($isUnavailable) {
+            return response()->json([
+                'message' => 'Ce jour n\'est pas disponible pour les rendez-vous'
+            ], 422);
+        }
+
+        // Vérifier si le créneau est déjà réservé (sauf pour le rendez-vous actuel)
+        $existingAppointment = Appointment::where('date', $request->date)
+                                         ->where('time', $request->time)
+                                         ->where('id', '!=', $appointment->id)
+                                         ->whereIn('status', ['pending', 'validated'])
+                                         ->exists();
+
+        if ($existingAppointment) {
+            return response()->json([
+                'message' => 'Ce créneau est déjà réservé'
+            ], 422);
+        }
+
+        // Mettre à jour le rendez-vous avec la nouvelle date et heure
+        $appointment->update([
+            'date' => $request->date,
+            'time' => $request->time,
+        ]);
+
+        return response()->json([
+            'message' => 'Rendez-vous reporté avec succès',
+            'appointment' => $appointment->fresh('validator'),
+        ]);
+    }
+
     public function getBookedSlots(): JsonResponse
     {
         // Récupérer tous les créneaux réservés (pending ou validated)
