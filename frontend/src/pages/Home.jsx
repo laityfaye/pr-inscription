@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import Card from '../components/ui/Card'
@@ -40,6 +40,73 @@ import {
 import ReactPlayer from 'react-player'
 import toast from 'react-hot-toast'
 
+// Composant Counter pour animer les chiffres
+const Counter = ({ target, duration = 2000, visible }) => {
+  const [count, setCount] = useState(0)
+  const countRef = useRef(0)
+  const animationRef = useRef(null)
+
+  useEffect(() => {
+    if (!visible) {
+      setCount(0)
+      return
+    }
+
+    // Extraire le nombre de la chaîne (gérer les formats comme "95%", "15+", etc.)
+    const extractNumber = (str) => {
+      const match = str.match(/(\d+)/)
+      return match ? parseInt(match[1]) : 0
+    }
+
+    const targetNum = extractNumber(target)
+    const startTime = Date.now()
+    const startValue = 0
+
+    const animate = () => {
+      const now = Date.now()
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
+      // Easing function (ease-out)
+      const easeOut = 1 - Math.pow(1 - progress, 3)
+      const currentValue = Math.floor(startValue + (targetNum - startValue) * easeOut)
+
+      countRef.current = currentValue
+      setCount(currentValue)
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate)
+      } else {
+        // Afficher la valeur finale avec le suffixe
+        setCount(targetNum)
+      }
+    }
+
+    const timeoutId = setTimeout(() => {
+      animationRef.current = requestAnimationFrame(animate)
+    }, 100)
+
+    return () => {
+      clearTimeout(timeoutId)
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [visible, target, duration])
+
+  // Formater avec le suffixe
+  const formatValue = () => {
+    if (target.includes('%')) {
+      return `${count}%`
+    } else if (target.includes('+')) {
+      return `${count}+`
+    }
+    return count.toString()
+  }
+
+  return <span>{formatValue()}</span>
+}
+
 const Home = () => {
   // Utiliser directement le contexte Agency qui a déjà un système de cache
   // Le contexte charge immédiatement depuis le cache localStorage, donc pas de délai
@@ -60,6 +127,8 @@ const Home = () => {
   const [selectedWorkPermitCountry, setSelectedWorkPermitCountry] = useState(null)
   const [showWorkPermitDetails, setShowWorkPermitDetails] = useState(false)
   const [loadingWorkPermitDetails, setLoadingWorkPermitDetails] = useState(false)
+  const [countersVisible, setCountersVisible] = useState(false)
+  const statsSectionRef = useRef(null)
 
   // Fonction helper pour gérer les clics sur les boutons de demande
   // Redirige vers /register si l'utilisateur n'est pas connecté, sinon vers la route normale
@@ -188,6 +257,31 @@ const Home = () => {
       window.removeEventListener('agencySettingsUpdated', handleAgencyUpdate)
     }
   }, [fetchNonCriticalData]) // Recharger les données quand fetchNonCriticalData change (donc quand user change)
+
+  // Observer pour déclencher l'animation du compteur quand la section est visible
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !countersVisible) {
+            setCountersVisible(true)
+          }
+        })
+      },
+      { threshold: 0.3 }
+    )
+
+    if (statsSectionRef.current) {
+      observer.observe(statsSectionRef.current)
+    }
+
+    return () => {
+      if (statsSectionRef.current) {
+        observer.unobserve(statsSectionRef.current)
+      }
+    }
+  }, [countersVisible])
+
 
   const handleCountryClick = async (countryId) => {
     setLoadingCountry(true)
@@ -532,8 +626,10 @@ const Home = () => {
       </section>
 
       {/* Statistics Section - Enhanced */}
-      <section className="py-24 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 text-white relative overflow-hidden">
-
+      <section 
+        ref={statsSectionRef}
+        className="py-24 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 text-white relative overflow-hidden"
+      >
         <div className="section-container relative z-10">
           <div className="text-center mb-16">
             <Badge variant="neutral" size="lg" className="mb-6 bg-white/20 text-white border-white/30">
@@ -550,22 +646,23 @@ const Home = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { icon: FiUsers, number: clientsCount > 0 ? `${clientsCount}+` : '0+', label: 'Étudiants accompagnés' },
-              { icon: FiGlobe, number: countries.length || '15+', label: 'Pays disponibles' },
+              { icon: FiGlobe, number: countries.length ? `${countries.length}+` : '15+', label: 'Pays disponibles' },
               { icon: FiTrendingUp, number: '95%', label: 'Taux de réussite' },
               { icon: FiStar, number: reviews.length > 0 ? `${reviews.length}+` : '50+', label: 'Avis clients' },
             ].map((stat, index) => {
               const Icon = stat.icon
+              
               return (
                 <div
                   key={index} 
-                  className="p-8 text-center bg-white/15 backdrop-blur-xl border-2 border-white/40 rounded-2xl shadow-2xl animate-slide-up" 
+                  className="group p-8 text-center bg-white/15 backdrop-blur-xl border-2 border-white/40 rounded-2xl shadow-2xl animate-slide-up hover:bg-white/20 hover:border-white/60 transition-all duration-300" 
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="w-20 h-20 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 border-2 border-white/50 shadow-lg">
-                    <Icon className="text-4xl text-white" />
+                  <div className="w-20 h-20 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 border-2 border-white/50 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 group-hover:bg-white/40">
+                    <Icon className="text-4xl text-white transition-transform duration-500 group-hover:rotate-[-12deg] group-hover:scale-110" />
                   </div>
-                  <div className="text-5xl lg:text-6xl font-bold mb-3 text-white">
-                    {stat.number}
+                  <div className="text-5xl lg:text-6xl font-bold mb-3 text-white min-h-[4rem] flex items-center justify-center">
+                    <Counter target={stat.number} visible={countersVisible} duration={2000} />
                   </div>
                   <div className="text-white text-lg font-semibold">{stat.label}</div>
                 </div>
