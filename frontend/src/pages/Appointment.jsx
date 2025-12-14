@@ -508,7 +508,10 @@ const Appointment = () => {
         setClientAppointment(response.data.appointment)
       } else {
         setClientAppointment(null)
-        toast.info('Aucun rendez-vous trouvé pour cet email')
+        toast('Aucun rendez-vous trouvé pour cet email', {
+          icon: 'ℹ️',
+          duration: 4000,
+        })
       }
     } catch (error) {
       console.error('Error fetching appointment:', error)
