@@ -41,16 +41,39 @@ import ReactPlayer from 'react-player'
 import toast from 'react-hot-toast'
 
 // Composant Counter pour animer les chiffres
-const Counter = ({ target, duration = 2000, visible }) => {
+const Counter = ({ target, duration = 2000, visible, resetKey }) => {
   const [count, setCount] = useState(0)
   const countRef = useRef(0)
   const animationRef = useRef(null)
+  const isAnimatingRef = useRef(false)
+
+  useEffect(() => {
+    // Réinitialiser quand resetKey change
+    setCount(0)
+    isAnimatingRef.current = false
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+      animationRef.current = null
+    }
+  }, [resetKey])
 
   useEffect(() => {
     if (!visible) {
       setCount(0)
+      isAnimatingRef.current = false
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+        animationRef.current = null
+      }
       return
     }
+
+    // Éviter de lancer plusieurs animations en même temps
+    if (isAnimatingRef.current) {
+      return
+    }
+
+    isAnimatingRef.current = true
 
     // Extraire le nombre de la chaîne (gérer les formats comme "95%", "15+", etc.)
     const extractNumber = (str) => {
@@ -79,6 +102,8 @@ const Counter = ({ target, duration = 2000, visible }) => {
       } else {
         // Afficher la valeur finale avec le suffixe
         setCount(targetNum)
+        isAnimatingRef.current = false
+        animationRef.current = null
       }
     }
 
@@ -90,9 +115,11 @@ const Counter = ({ target, duration = 2000, visible }) => {
       clearTimeout(timeoutId)
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
+        animationRef.current = null
       }
+      isAnimatingRef.current = false
     }
-  }, [visible, target, duration])
+  }, [visible, target, duration, resetKey])
 
   // Formater avec le suffixe
   const formatValue = () => {
@@ -128,6 +155,7 @@ const Home = () => {
   const [showWorkPermitDetails, setShowWorkPermitDetails] = useState(false)
   const [loadingWorkPermitDetails, setLoadingWorkPermitDetails] = useState(false)
   const [countersVisible, setCountersVisible] = useState(false)
+  const [counterKey, setCounterKey] = useState(0) // Clé pour forcer la réinitialisation du compteur
   const statsSectionRef = useRef(null)
 
   // Fonction helper pour gérer les clics sur les boutons de demande
@@ -284,9 +312,13 @@ const Home = () => {
 
   // Fonction pour déclencher le décompte au survol
   const handleStatsHover = () => {
-    if (!countersVisible) {
+    // Réinitialiser et relancer le compteur à chaque survol
+    setCountersVisible(false)
+    setCounterKey(prev => prev + 1)
+    // Relancer après un court délai pour permettre la réinitialisation
+    setTimeout(() => {
       setCountersVisible(true)
-    }
+    }, 50)
   }
 
 
@@ -681,7 +713,7 @@ const Home = () => {
                     <Icon className="text-4xl text-white transition-transform duration-500 group-hover:rotate-[-12deg] group-hover:scale-110" />
                   </div>
                   <div className="text-5xl lg:text-6xl font-bold mb-3 text-white min-h-[4rem] flex items-center justify-center">
-                    <Counter target={stat.number} visible={countersVisible} duration={2000} />
+                    <Counter key={counterKey} target={stat.number} visible={countersVisible} duration={2000} resetKey={counterKey} />
                   </div>
                   <div className="text-white text-lg font-semibold">{stat.label}</div>
                 </div>
