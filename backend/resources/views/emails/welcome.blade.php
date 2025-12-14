@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenue sur TFKS</title>
+    <title>Bienvenue sur SBC Groupe</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,7 +48,7 @@
 <body>
     <div class="container">
         <h1>Bienvenue {{ $user->name }} !</h1>
-        <p>Merci de vous être inscrit sur la plateforme de préinscriptions TFKS Touba Fall Khidma Services.</p>
+        <p>Merci de vous être inscrit sur la plateforme de préinscriptions SBC Groupe.</p>
         <p>Votre compte a été créé avec succès. Vous pouvez maintenant :</p>
         <ul>
             <li>Accéder à votre espace personnel</li>
@@ -60,7 +60,7 @@
             <a href="{{ $platformUrl }}" class="button">Accéder à la plateforme</a>
         </div>
         <div class="footer">
-            <p>Cordialement,<br>L'équipe TFKS Touba Fall Khidma Services</p>
+            <p>Cordialement,<br>L'équipe SBC Groupe</p>
         </div>
     </div>
 </body>

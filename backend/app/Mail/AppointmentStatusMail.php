@@ -23,10 +23,10 @@ class AppointmentStatusMail extends Mailable
         $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'https://sbcgroupe.ca'));
         
         $subject = match($this->status) {
-            'validated' => 'Votre rendez-vous a été validé - TFKS',
-            'rejected' => 'Votre rendez-vous a été rejeté - TFKS',
-            'rescheduled' => 'Votre rendez-vous a été reporté - TFKS',
-            default => 'Mise à jour de votre rendez-vous - TFKS',
+            'validated' => 'Votre rendez-vous a été validé - SBC Groupe',
+            'rejected' => 'Votre rendez-vous a été rejeté - SBC Groupe',
+            'rescheduled' => 'Votre rendez-vous a été reporté - SBC Groupe',
+            default => 'Mise à jour de votre rendez-vous - SBC Groupe',
         };
 
         return $this->subject($subject)

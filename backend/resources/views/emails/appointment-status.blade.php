@@ -113,7 +113,7 @@
 
         <div class="footer">
             <p>Pour toute question, n'hésitez pas à nous contacter.</p>
-            <p>Cordialement,<br>L'équipe TFKS Touba Fall Khidma Services</p>
+            <p>Cordialement,<br>L'équipe SBC Groupe</p>
         </div>
     </div>
 </body>

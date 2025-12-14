@@ -20,7 +20,7 @@ class WelcomeMail extends Mailable
         // Récupérer l'URL frontend depuis la config ou l'environnement
         $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'https://sbcgroupe.ca'));
         
-        return $this->subject('Bienvenue sur TFKS - Votre compte a été créé avec succès')
+        return $this->subject('Bienvenue sur SBC Groupe - Votre compte a été créé avec succès')
             ->view('emails.welcome')
             ->with([
                 'user' => $this->user,
