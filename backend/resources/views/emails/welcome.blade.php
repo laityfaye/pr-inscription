@@ -47,15 +47,18 @@
 </head>
 <body>
     <div class="container">
-        <h1>Bienvenue {{ $user->name }} !</h1>
-        <p>Merci de vous être inscrit sur la plateforme de préinscriptions SBC Groupe.</p>
-        <p>Votre compte a été créé avec succès. Vous pouvez maintenant :</p>
+        <h1>Bienvenue Mr/Mme {{ $user->name }} !</h1>
+        <p>Nous vous remercions pour votre inscription sur la plateforme de demande de visa et d'orientation lié à vos projets de voyage de SBC Groupe .
+        </p>
+        <p>Votre compte a été créé avec succès. Vous pouvez dès à présent :</p>
         <ul>
             <li>Accéder à votre espace personnel</li>
-            <li>Uploader vos documents</li>
+            <li>Télécharger les documents requis</li>
             <li>Suivre l'état de votre préinscription</li>
-            <li>Communiquer avec notre équipe via le chat</li>
+            <li>Échanger avec notre équipe via le service de messagerie intégré</li>
         </ul>
+        <p>Nous vous invitons à compléter votre dossier dans les meilleurs délais afin de faciliter le traitement de votre préinscription.</p>
+        <p>Notre équipe reste à votre entière disposition pour toute information complémentaire.</p>
         <div style="text-align: center;">
             <a href="{{ $platformUrl }}" class="button">Accéder à la plateforme</a>
         </div>
