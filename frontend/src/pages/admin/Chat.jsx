@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import Layout from '../../components/Layout'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
@@ -56,6 +56,7 @@ const AdminChat = () => {
   const pollingIntervalRef = useRef(null)
   const pollingCountRef = useRef(0)
   const fileInputRef = useRef(null)
+  const messagesRef = useRef([]) // Ref pour accéder à la valeur actuelle de messages
 
   useEffect(() => {
     fetchConversations()
@@ -88,12 +89,38 @@ const AdminChat = () => {
   useEffect(() => {
     if (selectedClient) {
       fetchApplications(selectedClient.id)
+      // Charger les messages quand un client est sélectionné
+      if (!selectedApplication) {
+        // Si aucune application n'est sélectionnée, charger tous les messages
+        fetchMessages(selectedClient.id)
+      }
     }
   }, [selectedClient])
 
+  // Charger les messages quand l'application change
+  useEffect(() => {
+    if (selectedClient) {
+      fetchMessages(selectedClient.id)
+    }
+  }, [selectedApplication, applicationType, selectedClient, fetchMessages])
+
   useEffect(() => {
     scrollToBottom()
+    // Mettre à jour la ref quand les messages changent
+    messagesRef.current = messages
   }, [messages])
+
+  // Debug: Logger les changements de messages
+  useEffect(() => {
+    console.log('Messages state changed (Admin):', {
+      count: messages.length,
+      messageIds: messages.map(m => m.id),
+      firstMessage: messages[0],
+      lastMessage: messages[messages.length - 1],
+      selectedApplication: selectedApplication?.id,
+      applicationType: applicationType
+    })
+  }, [messages, selectedApplication, applicationType])
 
   // Fermer les résultats de recherche quand on clique en dehors
   useEffect(() => {
@@ -209,7 +236,7 @@ const AdminChat = () => {
     }
   }
 
-  const fetchMessages = async (clientId, sinceId = null) => {
+  const fetchMessages = useCallback(async (clientId, sinceId = null) => {
     if (!clientId) return
 
     try {
@@ -228,30 +255,40 @@ const AdminChat = () => {
       const newMessages = response.data.messages || []
       console.log('Fetched messages (Admin):', newMessages.length, 'for application:', selectedApplication?.id)
       console.log('Messages data (Admin):', newMessages)
+      
       if (sinceId) {
         // Ajouter seulement les nouveaux messages (éviter les doublons)
         setMessages(prev => {
+          console.log('Adding new messages with sinceId. Previous count:', prev.length)
           const existingIds = new Set(prev.map(m => m.id))
           const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
+          console.log('Unique new messages:', uniqueNewMessages.length)
           if (uniqueNewMessages.length === 0) return prev
           // Trier par date après ajout
           const allMessages = [...prev, ...uniqueNewMessages]
-          return allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          const sorted = allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          console.log('Total messages after merge:', sorted.length)
+          messagesRef.current = sorted
+          return sorted
         })
       } else {
         // Chargement initial - trier par date
         const sortedMessages = newMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        console.log('Setting initial messages. Count:', sortedMessages.length)
+        console.log('Message IDs:', sortedMessages.map(m => m.id))
+        console.log('Messages to set:', sortedMessages)
         setMessages(sortedMessages)
+        messagesRef.current = sortedMessages
       }
     } catch (error) {
       console.error('Error fetching messages:', error)
     }
-  }
+  }, [applicationType, selectedApplication])
 
-  const fetchNewMessages = async (clientId) => {
+  const fetchNewMessages = useCallback(async (clientId) => {
     if (!clientId) return
     
-    const currentMessages = messages.length > 0 ? messages : []
+    const currentMessages = messagesRef.current.length > 0 ? messagesRef.current : []
     if (currentMessages.length === 0) {
       // Si aucun message n'est chargé, charger tous les messages
       await fetchMessages(clientId)
@@ -282,7 +319,9 @@ const AdminChat = () => {
             if (uniqueNewMessages.length === 0) return prev
             // Trier par date après ajout
             const allMessages = [...prev, ...uniqueNewMessages]
-            return allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+            const sorted = allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+            messagesRef.current = sorted
+            return sorted
           })
         }
       } catch (error) {
@@ -294,7 +333,7 @@ const AdminChat = () => {
       // Si pas de lastMessageId, recharger tous les messages
       await fetchMessages(clientId)
     }
-  }
+  }, [applicationType, selectedApplication, fetchMessages])
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
@@ -710,6 +749,13 @@ const AdminChat = () => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-gray-50 via-white to-gray-50 space-y-4 scroll-smooth">
+                  {/* Debug info - à retirer en production */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <div className="mb-4 p-2 bg-yellow-100 text-xs rounded">
+                      <p>Debug: messages.length={messages.length}, selectedApplication={selectedApplication?.id}, applicationType={applicationType}</p>
+                      <p>Message IDs: {messages.map(m => m.id).join(', ') || 'none'}</p>
+                    </div>
+                  )}
                   {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center">
@@ -725,6 +771,13 @@ const AdminChat = () => {
                       // Filtrer les doublons et trier par date
                       const uniqueMessages = messages.filter((msg, idx, arr) => arr.findIndex(m => m.id === msg.id) === idx)
                       const sortedMessages = uniqueMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+                      
+                      console.log('Rendering messages (Admin):', {
+                        totalMessages: messages.length,
+                        uniqueMessages: uniqueMessages.length,
+                        sortedMessages: sortedMessages.length,
+                        messageIds: sortedMessages.map(m => m.id)
+                      })
                       
                       return sortedMessages.map((message, index) => {
                         const isSender = message.sender_id === user?.id
