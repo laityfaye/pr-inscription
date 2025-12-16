@@ -51,7 +51,11 @@ class MessageController extends Controller
                 $userId = (int) $userId;
                 $user = User::find($userId);
                 if (!$user) {
-                    Log::warning('User not found', ['user_id' => $userId]);
+                    try {
+                        Log::warning('User not found', ['user_id' => $userId]);
+                    } catch (\Exception $e) {
+                        // Ignore logging errors
+                    }
                     return response()->json(['messages' => [], 'error' => 'Utilisateur introuvable'], 404);
                 }
             }
@@ -73,23 +77,31 @@ class MessageController extends Controller
             $sinceId = $request->query('since_id') ? (int) $request->query('since_id') : null;
             $limit = $request->query('limit') ? (int) $request->query('limit') : null;
 
-            // Log pour debug
-            Log::debug('Fetching messages', [
-                'current_user_id' => $currentUser->id,
-                'other_user_id' => $user->id,
-                'application_type' => $applicationType,
-                'application_id' => $applicationId,
-                'since_id' => $sinceId,
-                'limit' => $limit,
-            ]);
+            // Log pour debug (safely handle logging errors)
+            try {
+                Log::debug('Fetching messages', [
+                    'current_user_id' => $currentUser->id,
+                    'other_user_id' => $user->id,
+                    'application_type' => $applicationType,
+                    'application_id' => $applicationId,
+                    'since_id' => $sinceId,
+                    'limit' => $limit,
+                ]);
+            } catch (\Exception $e) {
+                // Ignore logging errors
+            }
 
             $messages = $this->messageService->getConversation($currentUser, $user, $applicationType, $applicationId, $sinceId, $limit);
             
-            // Log pour debug
-            Log::debug('Messages found', [
-                'count' => $messages->count(),
-                'message_ids' => $messages->pluck('id')->toArray(),
-            ]);
+            // Log pour debug (safely handle logging errors)
+            try {
+                Log::debug('Messages found', [
+                    'count' => $messages->count(),
+                    'message_ids' => $messages->pluck('id')->toArray(),
+                ]);
+            } catch (\Exception $e) {
+                // Ignore logging errors
+            }
 
             // Marquer les messages comme lus
             // Si une application est sélectionnée, marquer comme lus:
@@ -155,10 +167,14 @@ class MessageController extends Controller
                         ] : null,
                     ];
                 } catch (\Exception $e) {
-                    Log::error('Error serializing message', [
-                        'message_id' => $message->id ?? 'unknown',
-                        'error' => $e->getMessage(),
-                    ]);
+                    try {
+                        Log::error('Error serializing message', [
+                            'message_id' => $message->id ?? 'unknown',
+                            'error' => $e->getMessage(),
+                        ]);
+                    } catch (\Exception $logException) {
+                        // Ignore logging errors
+                    }
                     return null;
                 }
             })->filter()->values()->toArray();
@@ -171,23 +187,31 @@ class MessageController extends Controller
                 'role' => $user->role,
             ];
 
-            Log::debug('Returning messages', [
-                'count' => count($messagesArray),
-                'first_message' => $messagesArray[0] ?? null,
-            ]);
+            try {
+                Log::debug('Returning messages', [
+                    'count' => count($messagesArray),
+                    'first_message' => $messagesArray[0] ?? null,
+                ]);
+            } catch (\Exception $e) {
+                // Ignore logging errors
+            }
 
             return response()->json([
                 'messages' => $messagesArray,
                 'other_user' => $otherUser,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error in messages method: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'user_id' => $userId ?? null,
-            ]);
+            try {
+                Log::error('Error in messages method: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
+                    'user_id' => $userId ?? null,
+                ]);
+            } catch (\Exception $logException) {
+                // Ignore logging errors - this prevents logging failures from hiding the real error
+            }
             return response()->json([
-                'messages' => [],
-                'error' => 'Une erreur est survenue lors de la récupération des messages'
+                'message' => 'Une erreur est survenue',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
@@ -254,8 +278,12 @@ class MessageController extends Controller
 
             // Vérifier que le fichier existe
             if (!Storage::disk('public')->exists($message->file_path)) {
-                Log::error('File not found: ' . $message->file_path);
-                Log::error('Storage path: ' . Storage::disk('public')->path(''));
+                try {
+                    Log::error('File not found: ' . $message->file_path);
+                    Log::error('Storage path: ' . Storage::disk('public')->path(''));
+                } catch (\Exception $e) {
+                    // Ignore logging errors
+                }
                 return response()->json(['message' => 'Fichier introuvable: ' . $message->file_path], 404);
             }
 
@@ -263,7 +291,11 @@ class MessageController extends Controller
             
             // Vérifier que le fichier existe physiquement
             if (!file_exists($filePath)) {
-                Log::error('Physical file not found: ' . $filePath);
+                try {
+                    Log::error('Physical file not found: ' . $filePath);
+                } catch (\Exception $e) {
+                    // Ignore logging errors
+                }
                 return response()->json(['message' => 'Fichier introuvable sur le serveur'], 404);
             }
             $fileName = $message->file_name ?: basename($message->file_path);
@@ -298,8 +330,12 @@ class MessageController extends Controller
                 'Content-Type' => $message->file_type ?: 'application/octet-stream',
             ]);
         } catch (\Exception $e) {
-            Log::error('Error downloading message file: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
+            try {
+                Log::error('Error downloading message file: ' . $e->getMessage());
+                Log::error('Stack trace: ' . $e->getTraceAsString());
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
             return response()->json(['message' => 'Erreur lors du téléchargement du fichier: ' . $e->getMessage()], 500);
         }
     }
@@ -314,7 +350,11 @@ class MessageController extends Controller
             $count = $this->messageService->getUnreadCount($user);
             return response()->json(['count' => $count]);
         } catch (\Exception $e) {
-            Log::error('Error in unreadCount: ' . $e->getMessage());
+            try {
+                Log::error('Error in unreadCount: ' . $e->getMessage());
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
             return response()->json(['count' => 0, 'error' => $e->getMessage()], 500);
         }
     }

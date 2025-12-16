@@ -142,21 +142,29 @@ class MessageService
         try {
             $result = $query->orderBy('created_at', 'asc')->get();
             
-            Log::debug('Message query', [
-                'user1_id' => $user1->id,
-                'user2_id' => $user2->id,
-                'application_type' => $applicationType,
-                'application_id' => $applicationId,
-                'result_count' => $result->count(),
-            ]);
+            try {
+                Log::debug('Message query', [
+                    'user1_id' => $user1->id,
+                    'user2_id' => $user2->id,
+                    'application_type' => $applicationType,
+                    'application_id' => $applicationId,
+                    'result_count' => $result->count(),
+                ]);
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
 
             return $result;
         } catch (\Exception $e) {
-            Log::error('Error in getConversation: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'user1_id' => $user1->id,
-                'user2_id' => $user2->id,
-            ]);
+            try {
+                Log::error('Error in getConversation: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
+                    'user1_id' => $user1->id,
+                    'user2_id' => $user2->id,
+                ]);
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
             // Retourner une collection vide en cas d'erreur
             return new \Illuminate\Database\Eloquent\Collection();
         }
@@ -174,7 +182,11 @@ class MessageService
                 ->where('is_read', 0)
                 ->count();
         } catch (\Exception $e) {
-            Log::error('Error in getUnreadCount: ' . $e->getMessage());
+            try {
+                Log::error('Error in getUnreadCount: ' . $e->getMessage());
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
             return 0;
         }
     }
