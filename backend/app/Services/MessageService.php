@@ -45,21 +45,20 @@ class MessageService
     public function getConversation(User $user1, User $user2, ?string $applicationType = null, ?int $applicationId = null, ?int $sinceId = null, ?int $limit = null): Collection
     {
         // Construire la requête de base pour les messages entre les deux utilisateurs
+        // Utiliser whereRaw pour garantir que la requête fonctionne correctement
         $query = Message::where(function ($q) use ($user1, $user2) {
             // Messages envoyés de user1 à user2 OU de user2 à user1
-            $q->where(function ($subQ) use ($user1, $user2) {
-                $subQ->where('sender_id', $user1->id)
-                      ->where('receiver_id', $user2->id);
-            })
-            ->orWhere(function ($subQ) use ($user1, $user2) {
-                $subQ->where('sender_id', $user2->id)
-                      ->where('receiver_id', $user1->id);
-            });
+            // Utiliser whereRaw pour éviter les problèmes de priorité SQL
+            $q->whereRaw('(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)', [
+                $user1->id, $user2->id,
+                $user2->id, $user1->id
+            ]);
         });
         
         // Si un type d'application est spécifié, filtrer pour inclure:
         // 1. Les messages généraux (sans application)
         // 2. Les messages de cette application spécifique
+        // IMPORTANT: Appliquer ce filtre comme une condition AND supplémentaire
         if ($applicationType && $applicationId) {
             $query->where(function ($appQ) use ($applicationType, $applicationId) {
                 // Messages généraux (sans application)
@@ -114,6 +113,20 @@ class MessageService
 
         // Log pour debug (à retirer en production)
         try {
+            // Log la requête SQL générée pour déboguer
+            try {
+                $sql = $query->toSql();
+                $bindings = $query->getBindings();
+                Log::debug('Message query SQL', [
+                    'sql' => $sql,
+                    'bindings' => $bindings,
+                    'user1_id' => $user1->id,
+                    'user2_id' => $user2->id,
+                ]);
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
+            
             // Si un limit est fourni, récupérer les messages les plus récents, puis les trier par date croissante
             if ($limit && !$sinceId) {
                 // Récupérer les messages les plus récents d'abord
@@ -144,7 +157,7 @@ class MessageService
                     ];
                 })->toArray();
                 
-                Log::debug('Message query', [
+                Log::debug('Message query result', [
                     'user1_id' => $user1->id,
                     'user2_id' => $user2->id,
                     'application_type' => $applicationType,
