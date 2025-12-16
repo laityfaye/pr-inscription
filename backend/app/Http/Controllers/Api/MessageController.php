@@ -91,18 +91,33 @@ class MessageController extends Controller
         ]);
 
         // Marquer les messages comme lus
+        // Si une application est sélectionnée, marquer comme lus:
+        // 1. Les messages généraux (sans application)
+        // 2. Les messages de cette application spécifique
+        // Sinon, marquer tous les messages non lus
         $query = Message::where('sender_id', $user->id)
             ->where('receiver_id', $currentUser->id)
             ->where('is_read', 0);
 
         if ($applicationType && $applicationId) {
-            if ($applicationType === 'inscription') {
-                $query->where('inscription_id', $applicationId);
-            } elseif ($applicationType === 'work_permit') {
-                $query->where('work_permit_application_id', $applicationId);
-            } elseif ($applicationType === 'residence') {
-                $query->where('residence_application_id', $applicationId);
-            }
+            $query->where(function ($q) use ($applicationType, $applicationId) {
+                // Messages généraux (sans application)
+                $q->where(function ($generalQ) {
+                    $generalQ->whereNull('application_type')
+                             ->whereNull('inscription_id')
+                             ->whereNull('work_permit_application_id')
+                             ->whereNull('residence_application_id');
+                });
+                
+                // OU messages de cette application spécifique
+                if ($applicationType === 'inscription') {
+                    $q->orWhere('inscription_id', $applicationId);
+                } elseif ($applicationType === 'work_permit') {
+                    $q->orWhere('work_permit_application_id', $applicationId);
+                } elseif ($applicationType === 'residence') {
+                    $q->orWhere('residence_application_id', $applicationId);
+                }
+            });
         }
 
         $query->update(['is_read' => true]);

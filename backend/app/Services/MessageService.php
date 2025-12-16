@@ -51,15 +51,26 @@ class MessageService
                 $subQ->where('sender_id', $user1->id)
                       ->where('receiver_id', $user2->id);
                 
-                // Si un type d'application est spécifié, filtrer par cette application
+                // Si un type d'application est spécifié, inclure:
+                // 1. Les messages généraux (sans application)
+                // 2. Les messages de cette application spécifique
                 if ($applicationType && $applicationId) {
-                    if ($applicationType === 'inscription') {
-                        $subQ->where('inscription_id', $applicationId);
-                    } elseif ($applicationType === 'work_permit') {
-                        $subQ->where('work_permit_application_id', $applicationId);
-                    } elseif ($applicationType === 'residence') {
-                        $subQ->where('residence_application_id', $applicationId);
-                    }
+                    $subQ->where(function ($appQ) use ($applicationType, $applicationId) {
+                        // Messages généraux (sans application)
+                        $appQ->whereNull('application_type')
+                             ->whereNull('inscription_id')
+                             ->whereNull('work_permit_application_id')
+                             ->whereNull('residence_application_id');
+                        
+                        // OU messages de cette application spécifique
+                        if ($applicationType === 'inscription') {
+                            $appQ->orWhere('inscription_id', $applicationId);
+                        } elseif ($applicationType === 'work_permit') {
+                            $appQ->orWhere('work_permit_application_id', $applicationId);
+                        } elseif ($applicationType === 'residence') {
+                            $appQ->orWhere('residence_application_id', $applicationId);
+                        }
+                    });
                 }
             })
             // Messages envoyés de user2 à user1
@@ -67,15 +78,26 @@ class MessageService
                 $subQ->where('sender_id', $user2->id)
                       ->where('receiver_id', $user1->id);
                 
-                // Si un type d'application est spécifié, filtrer par cette application
+                // Si un type d'application est spécifié, inclure:
+                // 1. Les messages généraux (sans application)
+                // 2. Les messages de cette application spécifique
                 if ($applicationType && $applicationId) {
-                    if ($applicationType === 'inscription') {
-                        $subQ->where('inscription_id', $applicationId);
-                    } elseif ($applicationType === 'work_permit') {
-                        $subQ->where('work_permit_application_id', $applicationId);
-                    } elseif ($applicationType === 'residence') {
-                        $subQ->where('residence_application_id', $applicationId);
-                    }
+                    $subQ->where(function ($appQ) use ($applicationType, $applicationId) {
+                        // Messages généraux (sans application)
+                        $appQ->whereNull('application_type')
+                             ->whereNull('inscription_id')
+                             ->whereNull('work_permit_application_id')
+                             ->whereNull('residence_application_id');
+                        
+                        // OU messages de cette application spécifique
+                        if ($applicationType === 'inscription') {
+                            $appQ->orWhere('inscription_id', $applicationId);
+                        } elseif ($applicationType === 'work_permit') {
+                            $appQ->orWhere('work_permit_application_id', $applicationId);
+                        } elseif ($applicationType === 'residence') {
+                            $appQ->orWhere('residence_application_id', $applicationId);
+                        }
+                    });
                 }
             });
         });

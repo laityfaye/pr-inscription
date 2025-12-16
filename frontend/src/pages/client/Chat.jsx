@@ -109,10 +109,11 @@ const ClientChat = () => {
           return updated
         })
       } else {
-        // Chargement initial - dédupliquer au cas où
+        // Chargement initial - dédupliquer et trier par date
         const uniqueMessages = deduplicateMessages(newMessages)
-        setMessages(uniqueMessages)
-        messagesRef.current = uniqueMessages
+        const sortedMessages = uniqueMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        setMessages(sortedMessages)
+        messagesRef.current = sortedMessages
       }
     } catch (error) {
       console.error('Error fetching conversation:', error)
@@ -146,8 +147,9 @@ const ClientChat = () => {
           const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
           if (uniqueNewMessages.length === 0) return prev
           const updated = deduplicateMessages([...prev, ...uniqueNewMessages])
-          messagesRef.current = updated
-          return updated
+          const sorted = updated.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          messagesRef.current = sorted
+          return sorted
         })
       }
     } catch (error) {
@@ -347,8 +349,9 @@ const ClientChat = () => {
         const exists = prev.some(m => m.id === response.data.id)
         if (exists) return prev
         const updated = [...prev, response.data]
-        messagesRef.current = updated
-        return updated
+        const sorted = updated.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        messagesRef.current = sorted
+        return sorted
       })
       // Recharger la conversation pour s'assurer que tous les messages sont à jour
       // Cela garantit que les messages de l'autre utilisateur sont aussi chargés
@@ -428,6 +431,41 @@ const ClientChat = () => {
                 </div>
               ) : (
                 <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
+                  {/* Option "Tous les messages" */}
+                  <button
+                    onClick={() => {
+                      setSelectedApplication(null)
+                      setApplicationType(null)
+                      setMessages([])
+                      messagesRef.current = []
+                      setLoading(true)
+                    }}
+                    className={`flex-shrink-0 p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-lg min-w-[200px] ${
+                      !selectedApplication 
+                        ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white border-primary-600 shadow-lg scale-105' 
+                        : 'bg-white text-gray-900 border-gray-200 hover:border-primary-300'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center text-center space-y-2">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                        !selectedApplication ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        <FiMessageSquare className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <p className={`font-semibold text-sm ${
+                          !selectedApplication ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          Tous les messages
+                        </p>
+                        <p className={`text-xs mt-1 ${
+                          !selectedApplication ? 'text-white/80' : 'text-gray-500'
+                        }`}>
+                          Messages généraux
+                        </p>
+                      </div>
+                    </div>
+                  </button>
                   {allApplications.map((app) => {
                     const Icon = app.type === 'inscription' ? FiFileTextIcon : app.type === 'work_permit' ? FiBriefcase : FiHome
                     const isSelected = selectedApplication?.id === app.id && applicationType === app.type
@@ -520,21 +558,45 @@ const ClientChat = () => {
                   </div>
                 </div>
               ) : (
-                    // Filtrer les doublons avant de rendre
-                    messages.filter((msg, idx, arr) => arr.findIndex(m => m.id === msg.id) === idx)
-                      .map((message, index) => {
+                    // Filtrer les doublons et trier par date avant de rendre
+                    (() => {
+                      const uniqueMessages = messages.filter((msg, idx, arr) => arr.findIndex(m => m.id === msg.id) === idx)
+                      const sortedMessages = uniqueMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+                      return sortedMessages.map((message, index) => {
                         const isSender = message.sender_id === user?.id
                         const FileIcon = message.file_path ? getFileIcon(message.file_type) : null
+                        const isGeneralMessage = !message.application_type && !message.inscription_id && !message.work_permit_application_id && !message.residence_application_id
+                        const messageDate = new Date(message.created_at)
+                        const isToday = messageDate.toDateString() === new Date().toDateString()
+                        const showDateSeparator = index === 0 || new Date(sortedMessages[index - 1]?.created_at).toDateString() !== messageDate.toDateString()
                         // Utiliser une clé composite pour garantir l'unicité
                         const uniqueKey = `msg-${message.id}-${index}`
                         return (
                            <div key={uniqueKey} className="space-y-2">
+                             {showDateSeparator && (
+                               <div className="flex items-center justify-center my-4">
+                                 <div className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 font-medium">
+                                   {isToday ? "Aujourd'hui" : messageDate.toLocaleDateString('fr-FR', { 
+                                     weekday: 'long', 
+                                     day: 'numeric', 
+                                     month: 'long' 
+                                   })}
+                                 </div>
+                               </div>
+                             )}
                              <div className={`flex ${isSender ? 'justify-end' : 'justify-start'} animate-fade-in`}>
                            <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-md transition-all duration-200 hover:shadow-lg ${
                              isSender
                            ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white'
                            : 'bg-white text-gray-900 border border-gray-200'
                            }`}>
+                            {isGeneralMessage && !selectedApplication && (
+                              <div className={`mb-2 p-1.5 rounded text-xs font-medium ${
+                                isSender ? 'bg-white/20 text-white/90' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                💬 Message général
+                              </div>
+                            )}
                             {message.status_update && (
                               <div className={`mb-2 p-2 rounded-lg ${
                                 isSender ? 'bg-white/20' : 'bg-blue-50'
@@ -586,6 +648,7 @@ const ClientChat = () => {
                        </div>
                       )
                     })
+                    })()
               )}
               <div ref={messagesEndRef} />
             </div>
