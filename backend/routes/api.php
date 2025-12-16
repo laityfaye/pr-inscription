@@ -72,10 +72,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Messages
     Route::get('/messages/conversations', [MessageController::class, 'conversations']);
-    Route::get('/messages/{user?}', [MessageController::class, 'messages']);
-    Route::post('/messages', [MessageController::class, 'store']);
-    Route::get('/messages/unread/count', [MessageController::class, 'unreadCount']);
+    // Route pour télécharger un fichier doit être définie avant la route générique
     Route::get('/messages/{message}/download', [MessageController::class, 'downloadFile']);
+    Route::get('/messages/unread/count', [MessageController::class, 'unreadCount']);
+    // Route pour récupérer les messages - userId est optionnel
+    Route::get('/messages/{userId?}', [MessageController::class, 'messages'])->where('userId', '[0-9]*');
+    Route::post('/messages', [MessageController::class, 'store']);
 
     // Actualités (Admin)
     Route::get('/news/{news}', [NewsController::class, 'show'])->middleware('admin');

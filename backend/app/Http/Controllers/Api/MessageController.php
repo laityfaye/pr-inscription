@@ -40,129 +40,148 @@ class MessageController extends Controller
         return response()->json($conversations);
     }
 
-    public function messages(Request $request, ?User $user = null): JsonResponse
+    public function messages(Request $request, $userId = null): JsonResponse
     {
-        $currentUser = $request->user();
+        try {
+            $currentUser = $request->user();
 
-        if (!$user) {
-            if ($currentUser->isAdmin()) {
-                $user = User::where('role', 'client')->first();
-            } else {
-                $user = User::where('role', 'admin')->first();
-            }
-        }
-
-        if (!$user) {
-            return response()->json(['messages' => []]);
-        }
-
-        $applicationType = $request->query('application_type');
-        $applicationId = $request->query('application_id') ? (int) $request->query('application_id') : null;
-        $sinceId = $request->query('since_id') ? (int) $request->query('since_id') : null;
-        $limit = $request->query('limit') ? (int) $request->query('limit') : null;
-
-        // Log pour debug
-        Log::debug('Fetching messages', [
-            'current_user_id' => $currentUser->id,
-            'other_user_id' => $user->id,
-            'application_type' => $applicationType,
-            'application_id' => $applicationId,
-            'since_id' => $sinceId,
-            'limit' => $limit,
-        ]);
-
-        $messages = $this->messageService->getConversation($currentUser, $user, $applicationType, $applicationId, $sinceId, $limit);
-        
-        // Log pour debug
-        Log::debug('Messages found', [
-            'count' => $messages->count(),
-            'message_ids' => $messages->pluck('id')->toArray(),
-            'messages_data' => $messages->map(function($msg) {
-                return [
-                    'id' => $msg->id,
-                    'sender_id' => $msg->sender_id,
-                    'receiver_id' => $msg->receiver_id,
-                    'content' => substr($msg->content ?? '', 0, 50),
-                    'inscription_id' => $msg->inscription_id,
-                    'work_permit_application_id' => $msg->work_permit_application_id,
-                    'residence_application_id' => $msg->residence_application_id,
-                ];
-            })->toArray(),
-        ]);
-
-        // Marquer les messages comme lus
-        // Si une application est sélectionnée, marquer comme lus:
-        // 1. Les messages généraux (sans application)
-        // 2. Les messages de cette application spécifique
-        // Sinon, marquer tous les messages non lus
-        $query = Message::where('sender_id', $user->id)
-            ->where('receiver_id', $currentUser->id)
-            ->where('is_read', 0);
-
-        if ($applicationType && $applicationId) {
-            $query->where(function ($q) use ($applicationType, $applicationId) {
-                // Messages généraux (sans application)
-                $q->where(function ($generalQ) {
-                    $generalQ->whereNull('application_type')
-                             ->whereNull('inscription_id')
-                             ->whereNull('work_permit_application_id')
-                             ->whereNull('residence_application_id');
-                });
-                
-                // OU messages de cette application spécifique
-                if ($applicationType === 'inscription') {
-                    $q->orWhere('inscription_id', $applicationId);
-                } elseif ($applicationType === 'work_permit') {
-                    $q->orWhere('work_permit_application_id', $applicationId);
-                } elseif ($applicationType === 'residence') {
-                    $q->orWhere('residence_application_id', $applicationId);
+            // Résoudre l'utilisateur manuellement pour éviter les problèmes de route model binding
+            $user = null;
+            if ($userId && $userId !== '') {
+                $userId = (int) $userId;
+                $user = User::find($userId);
+                if (!$user) {
+                    Log::warning('User not found', ['user_id' => $userId]);
+                    return response()->json(['messages' => [], 'error' => 'Utilisateur introuvable'], 404);
                 }
-            });
-        }
+            }
 
-        $query->update(['is_read' => true]);
+            if (!$user) {
+                if ($currentUser->isAdmin()) {
+                    $user = User::where('role', 'client')->first();
+                } else {
+                    $user = User::where('role', 'admin')->first();
+                }
+            }
 
-        // S'assurer que les messages sont bien sérialisés
-        $messagesArray = $messages->map(function($message) {
-            return [
-                'id' => $message->id,
-                'sender_id' => $message->sender_id,
-                'receiver_id' => $message->receiver_id,
-                'content' => $message->content,
-                'is_read' => $message->is_read,
-                'application_type' => $message->application_type,
-                'inscription_id' => $message->inscription_id,
-                'work_permit_application_id' => $message->work_permit_application_id,
-                'residence_application_id' => $message->residence_application_id,
-                'status_update' => $message->status_update,
-                'file_path' => $message->file_path,
-                'file_name' => $message->file_name,
-                'file_type' => $message->file_type,
-                'file_size' => $message->file_size,
-                'created_at' => $message->created_at,
-                'updated_at' => $message->updated_at,
-                'sender' => $message->sender ? [
-                    'id' => $message->sender->id,
-                    'name' => $message->sender->name,
-                    'email' => $message->sender->email,
-                ] : null,
-                'receiver' => $message->receiver ? [
-                    'id' => $message->receiver->id,
-                    'name' => $message->receiver->name,
-                    'email' => $message->receiver->email,
-                ] : null,
+            if (!$user) {
+                return response()->json(['messages' => []]);
+            }
+
+            $applicationType = $request->query('application_type');
+            $applicationId = $request->query('application_id') ? (int) $request->query('application_id') : null;
+            $sinceId = $request->query('since_id') ? (int) $request->query('since_id') : null;
+            $limit = $request->query('limit') ? (int) $request->query('limit') : null;
+
+            // Log pour debug
+            Log::debug('Fetching messages', [
+                'current_user_id' => $currentUser->id,
+                'other_user_id' => $user->id,
+                'application_type' => $applicationType,
+                'application_id' => $applicationId,
+                'since_id' => $sinceId,
+                'limit' => $limit,
+            ]);
+
+            $messages = $this->messageService->getConversation($currentUser, $user, $applicationType, $applicationId, $sinceId, $limit);
+            
+            // Log pour debug
+            Log::debug('Messages found', [
+                'count' => $messages->count(),
+                'message_ids' => $messages->pluck('id')->toArray(),
+            ]);
+
+            // Marquer les messages comme lus
+            // Si une application est sélectionnée, marquer comme lus:
+            // 1. Les messages généraux (sans application)
+            // 2. Les messages de cette application spécifique
+            // Sinon, marquer tous les messages non lus
+            $query = Message::where('sender_id', $user->id)
+                ->where('receiver_id', $currentUser->id)
+                ->where('is_read', 0);
+
+            if ($applicationType && $applicationId) {
+                $query->where(function ($q) use ($applicationType, $applicationId) {
+                    // Messages généraux (sans application)
+                    $q->where(function ($generalQ) {
+                        $generalQ->whereNull('application_type')
+                                 ->whereNull('inscription_id')
+                                 ->whereNull('work_permit_application_id')
+                                 ->whereNull('residence_application_id');
+                    });
+                    
+                    // OU messages de cette application spécifique
+                    if ($applicationType === 'inscription') {
+                        $q->orWhere('inscription_id', $applicationId);
+                    } elseif ($applicationType === 'work_permit') {
+                        $q->orWhere('work_permit_application_id', $applicationId);
+                    } elseif ($applicationType === 'residence') {
+                        $q->orWhere('residence_application_id', $applicationId);
+                    }
+                });
+            }
+
+            $query->update(['is_read' => true]);
+
+            // S'assurer que les messages sont bien sérialisés
+            $messagesArray = $messages->map(function($message) {
+                return [
+                    'id' => $message->id,
+                    'sender_id' => $message->sender_id,
+                    'receiver_id' => $message->receiver_id,
+                    'content' => $message->content,
+                    'is_read' => $message->is_read,
+                    'application_type' => $message->application_type,
+                    'inscription_id' => $message->inscription_id,
+                    'work_permit_application_id' => $message->work_permit_application_id,
+                    'residence_application_id' => $message->residence_application_id,
+                    'status_update' => $message->status_update,
+                    'file_path' => $message->file_path,
+                    'file_name' => $message->file_name,
+                    'file_type' => $message->file_type,
+                    'file_size' => $message->file_size,
+                    'created_at' => $message->created_at,
+                    'updated_at' => $message->updated_at,
+                    'sender' => $message->sender ? [
+                        'id' => $message->sender->id,
+                        'name' => $message->sender->name,
+                        'email' => $message->sender->email,
+                    ] : null,
+                    'receiver' => $message->receiver ? [
+                        'id' => $message->receiver->id,
+                        'name' => $message->receiver->name,
+                        'email' => $message->receiver->email,
+                    ] : null,
+                ];
+            })->toArray();
+
+            // Sérialiser l'utilisateur manuellement pour éviter les problèmes
+            $otherUser = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
             ];
-        })->toArray();
 
-        Log::debug('Returning messages', [
-            'count' => count($messagesArray),
-            'first_message' => $messagesArray[0] ?? null,
-        ]);
+            Log::debug('Returning messages', [
+                'count' => count($messagesArray),
+                'first_message' => $messagesArray[0] ?? null,
+            ]);
 
-        return response()->json([
-            'messages' => $messagesArray,
-            'other_user' => $user,
-        ]);
+            return response()->json([
+                'messages' => $messagesArray,
+                'other_user' => $otherUser,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in messages method: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'user_id' => $userId ?? null,
+            ]);
+            return response()->json([
+                'messages' => [],
+                'error' => 'Une erreur est survenue lors de la récupération des messages'
+            ], 500);
+        }
     }
 
     public function store(Request $request): JsonResponse
