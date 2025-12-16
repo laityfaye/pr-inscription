@@ -44,8 +44,12 @@ const ClientChat = () => {
   const fetchAdmin = useCallback(async () => {
     try {
       const response = await api.get('/messages/conversations')
+      console.log('Conversations response:', response.data)
       if (response.data && response.data.length > 0) {
         setAdmin(response.data[0])
+        console.log('Admin set:', response.data[0])
+      } else {
+        console.warn('No admin found in conversations')
       }
     } catch (error) {
       console.error('Error fetching admin:', error)
@@ -90,8 +94,10 @@ const ClientChat = () => {
         params.append('limit', '50') // Limiter à 50 messages initiaux
       }
       const response = await api.get(`/messages/${admin.id}?${params.toString()}`)
+      console.log('API Response:', response.data)
       const newMessages = response.data.messages || []
       console.log('Fetched messages:', newMessages.length, 'for application:', selectedApplication?.id)
+      console.log('Messages data:', newMessages)
       if (sinceId) {
         // Ajouter seulement les nouveaux messages (éviter les doublons)
         setMessages(prev => {
@@ -168,9 +174,17 @@ const ClientChat = () => {
   // Si une application est sélectionnée, charger les messages de cette application
   // Sinon, charger tous les messages (sans filtre d'application)
   useEffect(() => {
+    console.log('useEffect triggered:', { 
+      admin: admin?.id, 
+      selectedApplication: selectedApplication?.id, 
+      applicationType 
+    })
     if (admin) {
+      console.log('Loading messages for admin:', admin.id)
       setLoading(true)
       fetchConversation()
+    } else {
+      console.log('Admin not available, skipping message load')
     }
   }, [admin?.id, selectedApplication?.id, applicationType, fetchConversation])
 

@@ -99,6 +99,8 @@ class MessageService
         }
 
         // Log pour debug (à retirer en production)
+        $result = $query->orderBy('created_at', 'asc')->get();
+        
         Log::debug('Message query', [
             'user1_id' => $user1->id,
             'user2_id' => $user2->id,
@@ -106,10 +108,11 @@ class MessageService
             'application_id' => $applicationId,
             'sql' => $query->toSql(),
             'bindings' => $query->getBindings(),
+            'result_count' => $result->count(),
+            'result_ids' => $result->pluck('id')->toArray(),
         ]);
 
-        return $query->orderBy('created_at', 'asc')
-          ->get();
+        return $result;
     }
 
     public function markAsRead(Message $message): bool

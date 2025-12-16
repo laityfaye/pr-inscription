@@ -77,6 +77,17 @@ class MessageController extends Controller
         Log::debug('Messages found', [
             'count' => $messages->count(),
             'message_ids' => $messages->pluck('id')->toArray(),
+            'messages_data' => $messages->map(function($msg) {
+                return [
+                    'id' => $msg->id,
+                    'sender_id' => $msg->sender_id,
+                    'receiver_id' => $msg->receiver_id,
+                    'content' => substr($msg->content ?? '', 0, 50),
+                    'inscription_id' => $msg->inscription_id,
+                    'work_permit_application_id' => $msg->work_permit_application_id,
+                    'residence_application_id' => $msg->residence_application_id,
+                ];
+            })->toArray(),
         ]);
 
         // Marquer les messages comme lus
@@ -96,8 +107,45 @@ class MessageController extends Controller
 
         $query->update(['is_read' => true]);
 
+        // S'assurer que les messages sont bien sérialisés
+        $messagesArray = $messages->map(function($message) {
+            return [
+                'id' => $message->id,
+                'sender_id' => $message->sender_id,
+                'receiver_id' => $message->receiver_id,
+                'content' => $message->content,
+                'is_read' => $message->is_read,
+                'application_type' => $message->application_type,
+                'inscription_id' => $message->inscription_id,
+                'work_permit_application_id' => $message->work_permit_application_id,
+                'residence_application_id' => $message->residence_application_id,
+                'status_update' => $message->status_update,
+                'file_path' => $message->file_path,
+                'file_name' => $message->file_name,
+                'file_type' => $message->file_type,
+                'file_size' => $message->file_size,
+                'created_at' => $message->created_at,
+                'updated_at' => $message->updated_at,
+                'sender' => $message->sender ? [
+                    'id' => $message->sender->id,
+                    'name' => $message->sender->name,
+                    'email' => $message->sender->email,
+                ] : null,
+                'receiver' => $message->receiver ? [
+                    'id' => $message->receiver->id,
+                    'name' => $message->receiver->name,
+                    'email' => $message->receiver->email,
+                ] : null,
+            ];
+        })->toArray();
+
+        Log::debug('Returning messages', [
+            'count' => count($messagesArray),
+            'first_message' => $messagesArray[0] ?? null,
+        ]);
+
         return response()->json([
-            'messages' => $messages,
+            'messages' => $messagesArray,
             'other_user' => $user,
         ]);
     }

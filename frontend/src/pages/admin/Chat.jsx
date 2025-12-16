@@ -216,7 +216,10 @@ const AdminChat = () => {
         params.append('limit', '50') // Limiter à 50 messages initiaux
       }
       const response = await api.get(`/messages/${clientId}?${params.toString()}`)
+      console.log('API Response (Admin):', response.data)
       const newMessages = response.data.messages || []
+      console.log('Fetched messages (Admin):', newMessages.length, 'for application:', selectedApplication?.id)
+      console.log('Messages data (Admin):', newMessages)
       if (sinceId) {
         // Ajouter seulement les nouveaux messages
         setMessages(prev => [...prev, ...newMessages])
