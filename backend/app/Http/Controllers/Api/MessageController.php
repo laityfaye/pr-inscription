@@ -91,6 +91,36 @@ class MessageController extends Controller
                 // Ignore logging errors
             }
 
+            // Test direct : vérifier tous les messages dans la base de données
+            try {
+                $allMessagesInDb = Message::where(function ($q) use ($currentUser, $user) {
+                    $q->where(function ($subQ) use ($currentUser, $user) {
+                        $subQ->where('sender_id', $currentUser->id)
+                              ->where('receiver_id', $user->id);
+                    })
+                    ->orWhere(function ($subQ) use ($currentUser, $user) {
+                        $subQ->where('sender_id', $user->id)
+                              ->where('receiver_id', $currentUser->id);
+                    });
+                })->get();
+                
+                Log::debug('All messages in database', [
+                    'current_user_id' => $currentUser->id,
+                    'other_user_id' => $user->id,
+                    'total_count' => $allMessagesInDb->count(),
+                    'messages' => $allMessagesInDb->map(function($msg) {
+                        return [
+                            'id' => $msg->id,
+                            'sender_id' => $msg->sender_id,
+                            'receiver_id' => $msg->receiver_id,
+                            'content' => substr($msg->content ?? '', 0, 50),
+                        ];
+                    })->toArray(),
+                ]);
+            } catch (\Exception $e) {
+                // Ignore logging errors
+            }
+            
             $messages = $this->messageService->getConversation($currentUser, $user, $applicationType, $applicationId, $sinceId, $limit);
             
             // Log pour debug (safely handle logging errors)
@@ -108,7 +138,7 @@ class MessageController extends Controller
                     ];
                 })->toArray();
                 
-                Log::debug('Messages found', [
+                Log::debug('Messages found by service', [
                     'current_user_id' => $currentUser->id,
                     'other_user_id' => $user->id,
                     'count' => $messages->count(),
