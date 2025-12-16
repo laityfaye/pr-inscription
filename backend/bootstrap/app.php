@@ -106,20 +106,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
                 
                 // Retourner une réponse JSON avec headers CORS pour toutes les autres erreurs
-                // Filtrer les erreurs de logging pour éviter de les exposer à l'utilisateur
-                $errorMessage = $e->getMessage();
-                if (str_contains($errorMessage, 'could not be opened in append mode') || 
-                    str_contains($errorMessage, 'Permission denied') ||
-                    str_contains($errorMessage, 'Failed to open stream')) {
-                    // Si c'est une erreur de logging, retourner un message générique
-                    $errorMessage = config('app.debug') ? 'Erreur interne du serveur (logging indisponible)' : 'Une erreur interne est survenue';
-                } else {
-                    $errorMessage = config('app.debug') ? $errorMessage : 'Une erreur interne est survenue';
-                }
-                
                 return response()->json([
                     'message' => 'Une erreur est survenue',
-                    'error' => $errorMessage,
+                    'error' => config('app.debug') ? $e->getMessage() : 'Une erreur interne est survenue',
                 ], 500)->withHeaders($corsHeaders);
             }
             
