@@ -113,28 +113,53 @@ class MessageService
         }
 
         // Optimiser : charger seulement les relations nécessaires
-        $query->with(['sender:id,name,email', 'receiver:id,name,email']);
+        // Utiliser with() avec un callback pour gérer les cas où les relations n'existent pas
+        $query->with([
+            'sender' => function ($q) {
+                $q->select('id', 'name', 'email');
+            },
+            'receiver' => function ($q) {
+                $q->select('id', 'name', 'email');
+            }
+        ]);
 
         // Si on charge depuis le début, charger les relations d'application
         if (!$sinceId) {
-            $query->with(['inscription:id,country_id', 'workPermitApplication:id,work_permit_country_id', 'residenceApplication:id']);
+            $query->with([
+                'inscription' => function ($q) {
+                    $q->select('id', 'country_id');
+                },
+                'workPermitApplication' => function ($q) {
+                    $q->select('id', 'work_permit_country_id');
+                },
+                'residenceApplication' => function ($q) {
+                    $q->select('id');
+                }
+            ]);
         }
 
         // Log pour debug (à retirer en production)
-        $result = $query->orderBy('created_at', 'asc')->get();
-        
-        Log::debug('Message query', [
-            'user1_id' => $user1->id,
-            'user2_id' => $user2->id,
-            'application_type' => $applicationType,
-            'application_id' => $applicationId,
-            'sql' => $query->toSql(),
-            'bindings' => $query->getBindings(),
-            'result_count' => $result->count(),
-            'result_ids' => $result->pluck('id')->toArray(),
-        ]);
+        try {
+            $result = $query->orderBy('created_at', 'asc')->get();
+            
+            Log::debug('Message query', [
+                'user1_id' => $user1->id,
+                'user2_id' => $user2->id,
+                'application_type' => $applicationType,
+                'application_id' => $applicationId,
+                'result_count' => $result->count(),
+            ]);
 
-        return $result;
+            return $result;
+        } catch (\Exception $e) {
+            Log::error('Error in getConversation: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'user1_id' => $user1->id,
+                'user2_id' => $user2->id,
+            ]);
+            // Retourner une collection vide en cas d'erreur
+            return new \Illuminate\Database\Eloquent\Collection();
+        }
     }
 
     public function markAsRead(Message $message): bool

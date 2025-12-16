@@ -125,35 +125,43 @@ class MessageController extends Controller
 
             // S'assurer que les messages sont bien sérialisés
             $messagesArray = $messages->map(function($message) {
-                return [
-                    'id' => $message->id,
-                    'sender_id' => $message->sender_id,
-                    'receiver_id' => $message->receiver_id,
-                    'content' => $message->content,
-                    'is_read' => $message->is_read,
-                    'application_type' => $message->application_type,
-                    'inscription_id' => $message->inscription_id,
-                    'work_permit_application_id' => $message->work_permit_application_id,
-                    'residence_application_id' => $message->residence_application_id,
-                    'status_update' => $message->status_update,
-                    'file_path' => $message->file_path,
-                    'file_name' => $message->file_name,
-                    'file_type' => $message->file_type,
-                    'file_size' => $message->file_size,
-                    'created_at' => $message->created_at,
-                    'updated_at' => $message->updated_at,
-                    'sender' => $message->sender ? [
-                        'id' => $message->sender->id,
-                        'name' => $message->sender->name,
-                        'email' => $message->sender->email,
-                    ] : null,
-                    'receiver' => $message->receiver ? [
-                        'id' => $message->receiver->id,
-                        'name' => $message->receiver->name,
-                        'email' => $message->receiver->email,
-                    ] : null,
-                ];
-            })->toArray();
+                try {
+                    return [
+                        'id' => $message->id ?? null,
+                        'sender_id' => $message->sender_id ?? null,
+                        'receiver_id' => $message->receiver_id ?? null,
+                        'content' => $message->content ?? null,
+                        'is_read' => (bool) ($message->is_read ?? false),
+                        'application_type' => $message->application_type ?? null,
+                        'inscription_id' => $message->inscription_id ?? null,
+                        'work_permit_application_id' => $message->work_permit_application_id ?? null,
+                        'residence_application_id' => $message->residence_application_id ?? null,
+                        'status_update' => $message->status_update ?? null,
+                        'file_path' => $message->file_path ?? null,
+                        'file_name' => $message->file_name ?? null,
+                        'file_type' => $message->file_type ?? null,
+                        'file_size' => $message->file_size ?? null,
+                        'created_at' => $message->created_at ? ($message->created_at instanceof \Carbon\Carbon ? $message->created_at->toISOString() : (string) $message->created_at) : null,
+                        'updated_at' => $message->updated_at ? ($message->updated_at instanceof \Carbon\Carbon ? $message->updated_at->toISOString() : (string) $message->updated_at) : null,
+                        'sender' => ($message->sender && isset($message->sender->id)) ? [
+                            'id' => $message->sender->id,
+                            'name' => $message->sender->name ?? null,
+                            'email' => $message->sender->email ?? null,
+                        ] : null,
+                        'receiver' => ($message->receiver && isset($message->receiver->id)) ? [
+                            'id' => $message->receiver->id,
+                            'name' => $message->receiver->name ?? null,
+                            'email' => $message->receiver->email ?? null,
+                        ] : null,
+                    ];
+                } catch (\Exception $e) {
+                    Log::error('Error serializing message', [
+                        'message_id' => $message->id ?? 'unknown',
+                        'error' => $e->getMessage(),
+                    ]);
+                    return null;
+                }
+            })->filter()->values()->toArray();
 
             // Sérialiser l'utilisateur manuellement pour éviter les problèmes
             $otherUser = [
