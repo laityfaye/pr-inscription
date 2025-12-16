@@ -32,8 +32,12 @@ class MessageController extends Controller
                 }])
                 ->get();
         } else {
-            // Client voit seulement l'admin
-            $admin = User::where('role', 'admin')->first();
+            // Client voit seulement l'admin avec l'ID 5 (admin principal)
+            $admin = User::where('role', 'admin')->where('id', 5)->first();
+            if (!$admin) {
+                // Fallback: utiliser le premier admin si l'ID 5 n'existe pas
+                $admin = User::where('role', 'admin')->first();
+            }
             $conversations = $admin ? [$admin] : [];
         }
 
@@ -64,22 +68,13 @@ class MessageController extends Controller
                 if ($currentUser->isAdmin()) {
                     $user = User::where('role', 'client')->first();
                 } else {
-                    // Pour un client, utiliser le premier admin trouvé
-                    // Mais s'assurer que c'est toujours le même admin
-                    $user = User::where('role', 'admin')->first();
+                    // Pour un client, utiliser l'admin avec l'ID 5 (admin principal)
+                    $user = User::where('role', 'admin')->where('id', 5)->first();
+                    if (!$user) {
+                        // Fallback: utiliser le premier admin si l'ID 5 n'existe pas
+                        $user = User::where('role', 'admin')->first();
+                    }
                 }
-            }
-            
-            // Log pour vérifier les IDs utilisés
-            try {
-                Log::debug('User IDs for message retrieval', [
-                    'current_user_id' => $currentUser->id,
-                    'current_user_role' => $currentUser->role,
-                    'other_user_id' => $user->id ?? null,
-                    'other_user_role' => $user->role ?? null,
-                ]);
-            } catch (\Exception $e) {
-                // Ignore logging errors
             }
 
             if (!$user) {
@@ -91,77 +86,8 @@ class MessageController extends Controller
             $sinceId = $request->query('since_id') ? (int) $request->query('since_id') : null;
             $limit = $request->query('limit') ? (int) $request->query('limit') : null;
 
-            // Log pour debug (safely handle logging errors)
-            try {
-                Log::debug('Fetching messages', [
-                    'current_user_id' => $currentUser->id,
-                    'other_user_id' => $user->id,
-                    'application_type' => $applicationType,
-                    'application_id' => $applicationId,
-                    'since_id' => $sinceId,
-                    'limit' => $limit,
-                ]);
-            } catch (\Exception $e) {
-                // Ignore logging errors
-            }
 
-            // Test direct : vérifier tous les messages dans la base de données
-            try {
-                $allMessagesInDb = Message::where(function ($q) use ($currentUser, $user) {
-                    $q->where(function ($subQ) use ($currentUser, $user) {
-                        $subQ->where('sender_id', $currentUser->id)
-                              ->where('receiver_id', $user->id);
-                    })
-                    ->orWhere(function ($subQ) use ($currentUser, $user) {
-                        $subQ->where('sender_id', $user->id)
-                              ->where('receiver_id', $currentUser->id);
-                    });
-                })->get();
-                
-                Log::debug('All messages in database', [
-                    'current_user_id' => $currentUser->id,
-                    'other_user_id' => $user->id,
-                    'total_count' => $allMessagesInDb->count(),
-                    'messages' => $allMessagesInDb->map(function($msg) {
-                        return [
-                            'id' => $msg->id,
-                            'sender_id' => $msg->sender_id,
-                            'receiver_id' => $msg->receiver_id,
-                            'content' => substr($msg->content ?? '', 0, 50),
-                        ];
-                    })->toArray(),
-                ]);
-            } catch (\Exception $e) {
-                // Ignore logging errors
-            }
-            
             $messages = $this->messageService->getConversation($currentUser, $user, $applicationType, $applicationId, $sinceId, $limit);
-            
-            // Log pour debug (safely handle logging errors)
-            try {
-                // Log détaillé pour vérifier que tous les messages sont retournés
-                $messageDetails = $messages->map(function($msg) use ($currentUser) {
-                    return [
-                        'id' => $msg->id,
-                        'sender_id' => $msg->sender_id,
-                        'receiver_id' => $msg->receiver_id,
-                        'is_from_current_user' => $msg->sender_id == $currentUser->id,
-                        'is_to_current_user' => $msg->receiver_id == $currentUser->id,
-                        'created_at' => $msg->created_at,
-                        'application_type' => $msg->application_type,
-                    ];
-                })->toArray();
-                
-                Log::debug('Messages found by service', [
-                    'current_user_id' => $currentUser->id,
-                    'other_user_id' => $user->id,
-                    'count' => $messages->count(),
-                    'message_ids' => $messages->pluck('id')->toArray(),
-                    'messages_detail' => $messageDetails,
-                ]);
-            } catch (\Exception $e) {
-                // Ignore logging errors
-            }
 
             // Marquer les messages comme lus
             // Si une application est sélectionnée, marquer comme lus:
@@ -247,29 +173,6 @@ class MessageController extends Controller
                 'role' => $user->role,
             ];
 
-            try {
-                // Log détaillé des messages retournés
-                $returnedMessageDetails = array_map(function($msg) use ($currentUser) {
-                    return [
-                        'id' => $msg['id'] ?? null,
-                        'sender_id' => $msg['sender_id'] ?? null,
-                        'receiver_id' => $msg['receiver_id'] ?? null,
-                        'is_from_current_user' => ($msg['sender_id'] ?? null) == $currentUser->id,
-                        'is_to_current_user' => ($msg['receiver_id'] ?? null) == $currentUser->id,
-                    ];
-                }, $messagesArray);
-                
-                Log::debug('Returning messages', [
-                    'current_user_id' => $currentUser->id,
-                    'other_user_id' => $user->id,
-                    'count' => count($messagesArray),
-                    'first_message' => $messagesArray[0] ?? null,
-                    'last_message' => $messagesArray[count($messagesArray) - 1] ?? null,
-                    'all_messages_detail' => $returnedMessageDetails,
-                ]);
-            } catch (\Exception $e) {
-                // Ignore logging errors
-            }
 
             return response()->json([
                 'messages' => $messagesArray,

@@ -45,11 +45,8 @@ class MessageService
     public function getConversation(User $user1, User $user2, ?string $applicationType = null, ?int $applicationId = null, ?int $sinceId = null, ?int $limit = null): Collection
     {
         // Construire la requête de base pour les messages entre les deux utilisateurs
-        // Si l'un des utilisateurs est un admin et l'autre un client,
-        // inclure tous les messages entre le client et n'importe quel admin
-        // (pour gérer le cas où il y a plusieurs admins dans la base)
         $query = Message::where(function ($q) use ($user1, $user2) {
-            // Cas standard: Messages envoyés de user1 à user2 OU de user2 à user1
+            // Messages envoyés de user1 à user2 OU de user2 à user1
             $q->where(function ($subQ) use ($user1, $user2) {
                 $subQ->where('sender_id', $user1->id)
                       ->where('receiver_id', $user2->id);
@@ -58,32 +55,6 @@ class MessageService
                 $subQ->where('sender_id', $user2->id)
                       ->where('receiver_id', $user1->id);
             });
-            
-            // Si l'un des utilisateurs est un admin et l'autre un client,
-            // inclure aussi les messages entre le client et n'importe quel admin
-            if (($user1->isAdmin() && $user2->role === 'client') || 
-                ($user2->isAdmin() && $user1->role === 'client')) {
-                $clientId = $user1->isAdmin() ? $user2->id : $user1->id;
-                
-                // Messages envoyés par le client à n'importe quel admin
-                $q->orWhere(function ($subQ) use ($clientId) {
-                    $subQ->where('sender_id', $clientId)
-                          ->whereIn('receiver_id', function ($query) {
-                              $query->select('id')
-                                    ->from('users')
-                                    ->where('role', 'admin');
-                          });
-                })
-                // Messages envoyés par n'importe quel admin au client
-                ->orWhere(function ($subQ) use ($clientId) {
-                    $subQ->where('receiver_id', $clientId)
-                          ->whereIn('sender_id', function ($query) {
-                              $query->select('id')
-                                    ->from('users')
-                                    ->where('role', 'admin');
-                          });
-                });
-            }
         });
         
         // Si un type d'application est spécifié, filtrer pour inclure:
@@ -142,94 +113,25 @@ class MessageService
             ]);
         }
 
-        // Log pour debug (à retirer en production)
-        try {
-            // Test direct : vérifier combien de messages existent dans la base pour cette conversation
-            try {
-                $allMessagesCount = Message::where(function ($q) use ($user1, $user2) {
-                    $q->whereRaw('(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)', [
-                        $user1->id, $user2->id,
-                        $user2->id, $user1->id
-                    ]);
-                })->count();
-                
-                $sentByUser1Count = Message::where('sender_id', $user1->id)
-                    ->where('receiver_id', $user2->id)
-                    ->count();
-                
-                $sentByUser2Count = Message::where('sender_id', $user2->id)
-                    ->where('receiver_id', $user1->id)
-                    ->count();
-                
-                Log::debug('Message counts in database', [
-                    'user1_id' => $user1->id,
-                    'user2_id' => $user2->id,
-                    'total_messages' => $allMessagesCount,
-                    'sent_by_user1' => $sentByUser1Count,
-                    'sent_by_user2' => $sentByUser2Count,
-                ]);
-            } catch (\Exception $logException) {
-                // Ignore logging errors
-            }
-            
-            // Log la requête SQL générée pour déboguer
-            try {
-                $sql = $query->toSql();
-                $bindings = $query->getBindings();
-                Log::debug('Message query SQL', [
-                    'sql' => $sql,
-                    'bindings' => $bindings,
-                    'user1_id' => $user1->id,
-                    'user2_id' => $user2->id,
-                ]);
-            } catch (\Exception $logException) {
-                // Ignore logging errors
-            }
-            
-            // Si un limit est fourni, récupérer les messages les plus récents, puis les trier par date croissante
-            if ($limit && !$sinceId) {
-                // Récupérer les messages les plus récents d'abord
-                $result = $query->orderBy('created_at', 'desc')
-                                ->orderBy('id', 'desc')
-                                ->limit($limit)
-                                ->get()
-                                ->sortBy(function($message) {
-                                    return $message->created_at;
-                                })
-                                ->values();
-            } else {
-                // Sinon, récupérer tous les messages triés par date croissante
-                $result = $query->orderBy('created_at', 'asc')
-                                ->orderBy('id', 'asc')
-                                ->get();
-            }
-            
-            try {
-                // Log détaillé pour vérifier que tous les messages sont retournés
-                $messageDetails = $result->map(function($msg) {
-                    return [
-                        'id' => $msg->id,
-                        'sender_id' => $msg->sender_id,
-                        'receiver_id' => $msg->receiver_id,
-                        'created_at' => $msg->created_at,
-                        'application_type' => $msg->application_type,
-                    ];
-                })->toArray();
-                
-                Log::debug('Message query result', [
-                    'user1_id' => $user1->id,
-                    'user2_id' => $user2->id,
-                    'application_type' => $applicationType,
-                    'application_id' => $applicationId,
-                    'since_id' => $sinceId,
-                    'limit' => $limit,
-                    'result_count' => $result->count(),
-                    'messages' => $messageDetails,
-                ]);
-            } catch (\Exception $logException) {
-                // Ignore logging errors
-            }
+        // Si un limit est fourni, récupérer les messages les plus récents, puis les trier par date croissante
+        if ($limit && !$sinceId) {
+            // Récupérer les messages les plus récents d'abord
+            $result = $query->orderBy('created_at', 'desc')
+                            ->orderBy('id', 'desc')
+                            ->limit($limit)
+                            ->get()
+                            ->sortBy(function($message) {
+                                return $message->created_at;
+                            })
+                            ->values();
+        } else {
+            // Sinon, récupérer tous les messages triés par date croissante
+            $result = $query->orderBy('created_at', 'asc')
+                            ->orderBy('id', 'asc')
+                            ->get();
+        }
 
+        try {
             return $result;
         } catch (\Exception $e) {
             try {
