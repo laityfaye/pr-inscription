@@ -45,14 +45,18 @@ class MessageService
     public function getConversation(User $user1, User $user2, ?string $applicationType = null, ?int $applicationId = null, ?int $sinceId = null, ?int $limit = null): Collection
     {
         // Construire la requête de base pour les messages entre les deux utilisateurs
-        // Utiliser whereRaw pour garantir que la requête fonctionne correctement
+        // Utiliser une structure claire pour garantir que tous les messages sont récupérés
         $query = Message::where(function ($q) use ($user1, $user2) {
-            // Messages envoyés de user1 à user2 OU de user2 à user1
-            // Utiliser whereRaw pour éviter les problèmes de priorité SQL
-            $q->whereRaw('(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)', [
-                $user1->id, $user2->id,
-                $user2->id, $user1->id
-            ]);
+            // Messages envoyés de user1 à user2
+            $q->where(function ($subQ) use ($user1, $user2) {
+                $subQ->where('sender_id', $user1->id)
+                      ->where('receiver_id', $user2->id);
+            })
+            // OU messages envoyés de user2 à user1
+            ->orWhere(function ($subQ) use ($user1, $user2) {
+                $subQ->where('sender_id', $user2->id)
+                      ->where('receiver_id', $user1->id);
+            });
         });
         
         // Si un type d'application est spécifié, filtrer pour inclure:
@@ -113,6 +117,34 @@ class MessageService
 
         // Log pour debug (à retirer en production)
         try {
+            // Test direct : vérifier combien de messages existent dans la base pour cette conversation
+            try {
+                $allMessagesCount = Message::where(function ($q) use ($user1, $user2) {
+                    $q->whereRaw('(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)', [
+                        $user1->id, $user2->id,
+                        $user2->id, $user1->id
+                    ]);
+                })->count();
+                
+                $sentByUser1Count = Message::where('sender_id', $user1->id)
+                    ->where('receiver_id', $user2->id)
+                    ->count();
+                
+                $sentByUser2Count = Message::where('sender_id', $user2->id)
+                    ->where('receiver_id', $user1->id)
+                    ->count();
+                
+                Log::debug('Message counts in database', [
+                    'user1_id' => $user1->id,
+                    'user2_id' => $user2->id,
+                    'total_messages' => $allMessagesCount,
+                    'sent_by_user1' => $sentByUser1Count,
+                    'sent_by_user2' => $sentByUser2Count,
+                ]);
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
+            
             // Log la requête SQL générée pour déboguer
             try {
                 $sql = $query->toSql();
