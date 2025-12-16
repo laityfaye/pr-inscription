@@ -209,9 +209,19 @@ class MessageController extends Controller
             } catch (\Exception $logException) {
                 // Ignore logging errors - this prevents logging failures from hiding the real error
             }
+            
+            // Filtrer les erreurs de logging pour éviter de les exposer
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'could not be opened in append mode') || 
+                str_contains($errorMessage, 'Permission denied') ||
+                str_contains($errorMessage, 'Failed to open stream')) {
+                // Si c'est une erreur de logging, retourner un message générique
+                $errorMessage = 'Une erreur interne est survenue lors de la récupération des messages';
+            }
+            
             return response()->json([
                 'message' => 'Une erreur est survenue',
-                'error' => $e->getMessage()
+                'error' => $errorMessage
             ], 500);
         }
     }
