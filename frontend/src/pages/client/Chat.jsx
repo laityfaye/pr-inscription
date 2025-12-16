@@ -46,13 +46,23 @@ const ClientChat = () => {
       const response = await api.get('/messages/conversations')
       console.log('Conversations response:', response.data)
       if (response.data && response.data.length > 0) {
-        setAdmin(response.data[0])
-        console.log('Admin set:', response.data[0])
+        const adminUser = response.data[0]
+        console.log('Admin found:', adminUser)
+        setAdmin(adminUser)
+        // S'assurer que les messages sont chargés après avoir défini l'admin
+        // Le useEffect se chargera de cela, mais on peut aussi le faire ici pour être sûr
       } else {
         console.warn('No admin found in conversations')
+        setAdmin(null)
       }
     } catch (error) {
       console.error('Error fetching admin:', error)
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      })
+      setAdmin(null)
     }
   }, [])
 
@@ -105,18 +115,27 @@ const ClientChat = () => {
           const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
           if (uniqueNewMessages.length === 0) return prev
           const updated = deduplicateMessages([...prev, ...uniqueNewMessages])
-          messagesRef.current = updated
-          return updated
+          const sorted = updated.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          messagesRef.current = sorted
+          return sorted
         })
       } else {
         // Chargement initial - dédupliquer et trier par date
         const uniqueMessages = deduplicateMessages(newMessages)
         const sortedMessages = uniqueMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        console.log('Setting initial messages:', sortedMessages.length)
         setMessages(sortedMessages)
         messagesRef.current = sortedMessages
       }
     } catch (error) {
       console.error('Error fetching conversation:', error)
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      })
+      // En cas d'erreur, s'assurer que loading est désactivé
+      setLoading(false)
     } finally {
       setLoading(false)
     }
@@ -126,7 +145,12 @@ const ClientChat = () => {
     if (!admin) return
     
     const currentMessages = messagesRef.current
-    if (currentMessages.length === 0) return
+    
+    // Si aucun message n'est chargé, charger tous les messages
+    if (currentMessages.length === 0) {
+      await fetchConversation()
+      return
+    }
     
     const lastMessageId = currentMessages[currentMessages.length - 1]?.id
     if (!lastMessageId) return
@@ -155,7 +179,7 @@ const ClientChat = () => {
     } catch (error) {
       console.error('Error fetching new messages:', error)
     }
-  }, [admin, selectedApplication, applicationType, deduplicateMessages])
+  }, [admin, selectedApplication, applicationType, deduplicateMessages, fetchConversation])
 
   const handleApplicationSelect = useCallback((type, application) => {
     setApplicationType(type)
@@ -184,15 +208,29 @@ const ClientChat = () => {
     if (admin) {
       console.log('Loading messages for admin:', admin.id)
       setLoading(true)
-      fetchConversation()
+      fetchConversation().catch(error => {
+        console.error('Error in fetchConversation:', error)
+        setLoading(false)
+      })
     } else {
       console.log('Admin not available, skipping message load')
+      setLoading(false)
     }
   }, [admin?.id, selectedApplication?.id, applicationType, fetchConversation])
 
   // Polling pour les nouveaux messages (séparé pour éviter les rechargements)
   useEffect(() => {
-    if (!admin) return
+    if (!admin) {
+      // Nettoyer l'intervalle si l'admin n'est pas disponible
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+      return
+    }
+
+    // Charger les messages immédiatement au démarrage du polling
+    fetchNewMessages()
 
     // Polling pour les nouveaux messages toutes les 5 secondes
     pollingIntervalRef.current = setInterval(() => {
@@ -202,6 +240,7 @@ const ClientChat = () => {
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
       }
     }
   }, [admin?.id, selectedApplication?.id, applicationType, fetchNewMessages]) // Utiliser les IDs pour la stabilité
@@ -209,6 +248,24 @@ const ClientChat = () => {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Recharger les messages quand la page redevient visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && admin) {
+        console.log('Page visible, reloading messages')
+        fetchConversation().catch(error => {
+          console.error('Error reloading messages on visibility change:', error)
+        })
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [admin, fetchConversation])
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
@@ -356,7 +413,10 @@ const ClientChat = () => {
       // Recharger la conversation pour s'assurer que tous les messages sont à jour
       // Cela garantit que les messages de l'autre utilisateur sont aussi chargés
       if (admin) {
-        fetchConversation()
+        // Ne pas mettre loading à true car on a déjà ajouté le message
+        fetchConversation().catch(error => {
+          console.error('Error reloading conversation after send:', error)
+        })
       }
     } catch (error) {
       console.error('Error sending message:', error)
