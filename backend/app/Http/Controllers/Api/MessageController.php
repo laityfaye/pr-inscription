@@ -95,9 +95,25 @@ class MessageController extends Controller
             
             // Log pour debug (safely handle logging errors)
             try {
+                // Log détaillé pour vérifier que tous les messages sont retournés
+                $messageDetails = $messages->map(function($msg) use ($currentUser) {
+                    return [
+                        'id' => $msg->id,
+                        'sender_id' => $msg->sender_id,
+                        'receiver_id' => $msg->receiver_id,
+                        'is_from_current_user' => $msg->sender_id == $currentUser->id,
+                        'is_to_current_user' => $msg->receiver_id == $currentUser->id,
+                        'created_at' => $msg->created_at,
+                        'application_type' => $msg->application_type,
+                    ];
+                })->toArray();
+                
                 Log::debug('Messages found', [
+                    'current_user_id' => $currentUser->id,
+                    'other_user_id' => $user->id,
                     'count' => $messages->count(),
                     'message_ids' => $messages->pluck('id')->toArray(),
+                    'messages_detail' => $messageDetails,
                 ]);
             } catch (\Exception $e) {
                 // Ignore logging errors
@@ -188,9 +204,24 @@ class MessageController extends Controller
             ];
 
             try {
+                // Log détaillé des messages retournés
+                $returnedMessageDetails = array_map(function($msg) use ($currentUser) {
+                    return [
+                        'id' => $msg['id'] ?? null,
+                        'sender_id' => $msg['sender_id'] ?? null,
+                        'receiver_id' => $msg['receiver_id'] ?? null,
+                        'is_from_current_user' => ($msg['sender_id'] ?? null) == $currentUser->id,
+                        'is_to_current_user' => ($msg['receiver_id'] ?? null) == $currentUser->id,
+                    ];
+                }, $messagesArray);
+                
                 Log::debug('Returning messages', [
+                    'current_user_id' => $currentUser->id,
+                    'other_user_id' => $user->id,
                     'count' => count($messagesArray),
                     'first_message' => $messagesArray[0] ?? null,
+                    'last_message' => $messagesArray[count($messagesArray) - 1] ?? null,
+                    'all_messages_detail' => $returnedMessageDetails,
                 ]);
             } catch (\Exception $e) {
                 // Ignore logging errors

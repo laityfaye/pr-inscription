@@ -167,6 +167,9 @@ const AdminChat = () => {
   useEffect(() => {
     if (selectedClient) {
       fetchApplications(selectedClient.id)
+      // Réinitialiser les messages pour forcer un rechargement complet
+      setMessages([])
+      messagesRef.current = []
       // Charger les messages quand un client est sélectionné
       if (!selectedApplication) {
         // Si aucune application n'est sélectionnée, charger tous les messages
@@ -178,6 +181,9 @@ const AdminChat = () => {
   // Charger les messages quand l'application change
   useEffect(() => {
     if (selectedClient) {
+      // Réinitialiser les messages pour forcer un rechargement complet
+      setMessages([])
+      messagesRef.current = []
       fetchMessages(selectedClient.id)
     }
   }, [selectedApplication, applicationType, selectedClient, fetchMessages])
@@ -447,6 +453,9 @@ const AdminChat = () => {
       })
       // Recharger tous les messages pour s'assurer d'avoir les derniers messages reçus
       setTimeout(() => {
+        // Réinitialiser les messages pour forcer un rechargement complet
+        setMessages([])
+        messagesRef.current = []
         fetchMessages(selectedClient.id)
       }, 500)
       fetchConversations()

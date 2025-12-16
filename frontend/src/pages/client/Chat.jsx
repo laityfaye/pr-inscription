@@ -123,6 +123,8 @@ const ClientChat = () => {
       console.log('Fetched messages:', newMessages.length, 'for application:', selectedApplication?.id)
       console.log('Messages data:', newMessages)
       console.log('First message sample:', newMessages[0])
+      console.log('All message IDs:', newMessages.map(m => m.id))
+      console.log('Message senders:', newMessages.map(m => ({ id: m.id, sender_id: m.sender_id, receiver_id: m.receiver_id, content: m.content?.substring(0, 50) })))
       if (sinceId) {
         // Ajouter seulement les nouveaux messages (éviter les doublons)
         setMessages(prev => {
@@ -273,6 +275,9 @@ const ClientChat = () => {
     if (admin && admin.id) {
       console.log('Loading messages for admin:', admin.id, admin.name)
       setLoading(true)
+      // Réinitialiser les messages pour forcer un rechargement complet
+      setMessages([])
+      messagesRef.current = []
       // Utiliser un timeout pour s'assurer que l'état est bien mis à jour
       const timeoutId = setTimeout(() => {
         fetchConversation().catch(error => {
@@ -316,16 +321,33 @@ const ClientChat = () => {
     const handleVisibilityChange = () => {
       if (!document.hidden && admin) {
         console.log('Page visible, reloading messages')
+        // Réinitialiser les messages pour forcer un rechargement complet
+        setMessages([])
+        messagesRef.current = []
         fetchConversation().catch(error => {
           console.error('Error reloading messages on visibility change:', error)
         })
       }
     }
 
+    // Recharger aussi au focus de la fenêtre
+    const handleFocus = () => {
+      if (admin) {
+        console.log('Window focused, reloading messages')
+        setMessages([])
+        messagesRef.current = []
+        fetchConversation().catch(error => {
+          console.error('Error reloading messages on focus:', error)
+        })
+      }
+    }
+
     document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
     
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
     }
   }, [admin, fetchConversation])
 
@@ -476,6 +498,9 @@ const ClientChat = () => {
       // Cela garantit que les messages de l'autre utilisateur sont aussi chargés
       if (admin) {
         setTimeout(() => {
+          // Réinitialiser les messages pour forcer un rechargement complet
+          setMessages([])
+          messagesRef.current = []
           fetchConversation().catch(error => {
             console.error('Error reloading conversation after send:', error)
           })
@@ -690,6 +715,9 @@ const ClientChat = () => {
                         onClick={() => {
                           console.log('Manual reload triggered')
                           setLoading(true)
+                          // Réinitialiser les messages pour forcer un rechargement complet
+                          setMessages([])
+                          messagesRef.current = []
                           fetchConversation().catch(err => {
                             console.error('Manual reload error:', err)
                             setLoading(false)

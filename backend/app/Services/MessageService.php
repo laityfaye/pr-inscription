@@ -86,11 +86,6 @@ class MessageService
             $query->where('id', '>', $sinceId);
         }
 
-        // Limiter le nombre de résultats si limit est fourni
-        if ($limit) {
-            $query->limit($limit);
-        }
-
         // Optimiser : charger seulement les relations nécessaires
         // Utiliser with() avec un callback pour gérer les cas où les relations n'existent pas
         $query->with([
@@ -119,15 +114,45 @@ class MessageService
 
         // Log pour debug (à retirer en production)
         try {
-            $result = $query->orderBy('created_at', 'asc')->get();
+            // Si un limit est fourni, récupérer les messages les plus récents, puis les trier par date croissante
+            if ($limit && !$sinceId) {
+                // Récupérer les messages les plus récents d'abord
+                $result = $query->orderBy('created_at', 'desc')
+                                ->orderBy('id', 'desc')
+                                ->limit($limit)
+                                ->get()
+                                ->sortBy(function($message) {
+                                    return $message->created_at;
+                                })
+                                ->values();
+            } else {
+                // Sinon, récupérer tous les messages triés par date croissante
+                $result = $query->orderBy('created_at', 'asc')
+                                ->orderBy('id', 'asc')
+                                ->get();
+            }
             
             try {
+                // Log détaillé pour vérifier que tous les messages sont retournés
+                $messageDetails = $result->map(function($msg) {
+                    return [
+                        'id' => $msg->id,
+                        'sender_id' => $msg->sender_id,
+                        'receiver_id' => $msg->receiver_id,
+                        'created_at' => $msg->created_at,
+                        'application_type' => $msg->application_type,
+                    ];
+                })->toArray();
+                
                 Log::debug('Message query', [
                     'user1_id' => $user1->id,
                     'user2_id' => $user2->id,
                     'application_type' => $applicationType,
                     'application_id' => $applicationId,
+                    'since_id' => $sinceId,
+                    'limit' => $limit,
                     'result_count' => $result->count(),
+                    'messages' => $messageDetails,
                 ]);
             } catch (\Exception $logException) {
                 // Ignore logging errors
