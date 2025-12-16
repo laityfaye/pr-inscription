@@ -45,62 +45,41 @@ class MessageService
     public function getConversation(User $user1, User $user2, ?string $applicationType = null, ?int $applicationId = null, ?int $sinceId = null, ?int $limit = null): Collection
     {
         // Construire la requête de base pour les messages entre les deux utilisateurs
-        $query = Message::where(function ($q) use ($user1, $user2, $applicationType, $applicationId) {
-            // Messages envoyés de user1 à user2
-            $q->where(function ($subQ) use ($user1, $user2, $applicationType, $applicationId) {
+        $query = Message::where(function ($q) use ($user1, $user2) {
+            // Messages envoyés de user1 à user2 OU de user2 à user1
+            $q->where(function ($subQ) use ($user1, $user2) {
                 $subQ->where('sender_id', $user1->id)
                       ->where('receiver_id', $user2->id);
-                
-                // Si un type d'application est spécifié, inclure:
-                // 1. Les messages généraux (sans application)
-                // 2. Les messages de cette application spécifique
-                if ($applicationType && $applicationId) {
-                    $subQ->where(function ($appQ) use ($applicationType, $applicationId) {
-                        // Messages généraux (sans application)
-                        $appQ->whereNull('application_type')
-                             ->whereNull('inscription_id')
-                             ->whereNull('work_permit_application_id')
-                             ->whereNull('residence_application_id');
-                        
-                        // OU messages de cette application spécifique
-                        if ($applicationType === 'inscription') {
-                            $appQ->orWhere('inscription_id', $applicationId);
-                        } elseif ($applicationType === 'work_permit') {
-                            $appQ->orWhere('work_permit_application_id', $applicationId);
-                        } elseif ($applicationType === 'residence') {
-                            $appQ->orWhere('residence_application_id', $applicationId);
-                        }
-                    });
-                }
             })
-            // Messages envoyés de user2 à user1
-            ->orWhere(function ($subQ) use ($user1, $user2, $applicationType, $applicationId) {
+            ->orWhere(function ($subQ) use ($user1, $user2) {
                 $subQ->where('sender_id', $user2->id)
                       ->where('receiver_id', $user1->id);
-                
-                // Si un type d'application est spécifié, inclure:
-                // 1. Les messages généraux (sans application)
-                // 2. Les messages de cette application spécifique
-                if ($applicationType && $applicationId) {
-                    $subQ->where(function ($appQ) use ($applicationType, $applicationId) {
-                        // Messages généraux (sans application)
-                        $appQ->whereNull('application_type')
+            });
+        });
+        
+        // Si un type d'application est spécifié, filtrer pour inclure:
+        // 1. Les messages généraux (sans application)
+        // 2. Les messages de cette application spécifique
+        if ($applicationType && $applicationId) {
+            $query->where(function ($appQ) use ($applicationType, $applicationId) {
+                // Messages généraux (sans application)
+                $appQ->where(function ($generalQ) {
+                    $generalQ->whereNull('application_type')
                              ->whereNull('inscription_id')
                              ->whereNull('work_permit_application_id')
                              ->whereNull('residence_application_id');
-                        
-                        // OU messages de cette application spécifique
-                        if ($applicationType === 'inscription') {
-                            $appQ->orWhere('inscription_id', $applicationId);
-                        } elseif ($applicationType === 'work_permit') {
-                            $appQ->orWhere('work_permit_application_id', $applicationId);
-                        } elseif ($applicationType === 'residence') {
-                            $appQ->orWhere('residence_application_id', $applicationId);
-                        }
-                    });
+                });
+                
+                // OU messages de cette application spécifique
+                if ($applicationType === 'inscription') {
+                    $appQ->orWhere('inscription_id', $applicationId);
+                } elseif ($applicationType === 'work_permit') {
+                    $appQ->orWhere('work_permit_application_id', $applicationId);
+                } elseif ($applicationType === 'residence') {
+                    $appQ->orWhere('residence_application_id', $applicationId);
                 }
             });
-        });
+        }
 
         // Charger seulement les nouveaux messages si sinceId est fourni
         if ($sinceId) {
