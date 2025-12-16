@@ -44,23 +44,40 @@ class MessageService
 
     public function getConversation(User $user1, User $user2, ?string $applicationType = null, ?int $applicationId = null, ?int $sinceId = null, ?int $limit = null): Collection
     {
-        $query = Message::where(function ($q) use ($user1, $user2) {
-            $q->where('sender_id', $user1->id)
-              ->where('receiver_id', $user2->id);
-        })->orWhere(function ($q) use ($user1, $user2) {
-            $q->where('sender_id', $user2->id)
-              ->where('receiver_id', $user1->id);
+        $query = Message::where(function ($q) use ($user1, $user2, $applicationType, $applicationId) {
+            // Messages envoyés de user1 à user2
+            $q->where(function ($subQ) use ($user1, $user2, $applicationType, $applicationId) {
+                $subQ->where('sender_id', $user1->id)
+                      ->where('receiver_id', $user2->id);
+                
+                // Si un type d'application est spécifié, filtrer par cette application
+                if ($applicationType && $applicationId) {
+                    if ($applicationType === 'inscription') {
+                        $subQ->where('inscription_id', $applicationId);
+                    } elseif ($applicationType === 'work_permit') {
+                        $subQ->where('work_permit_application_id', $applicationId);
+                    } elseif ($applicationType === 'residence') {
+                        $subQ->where('residence_application_id', $applicationId);
+                    }
+                }
+            })
+            // Messages envoyés de user2 à user1
+            ->orWhere(function ($subQ) use ($user1, $user2, $applicationType, $applicationId) {
+                $subQ->where('sender_id', $user2->id)
+                      ->where('receiver_id', $user1->id);
+                
+                // Si un type d'application est spécifié, filtrer par cette application
+                if ($applicationType && $applicationId) {
+                    if ($applicationType === 'inscription') {
+                        $subQ->where('inscription_id', $applicationId);
+                    } elseif ($applicationType === 'work_permit') {
+                        $subQ->where('work_permit_application_id', $applicationId);
+                    } elseif ($applicationType === 'residence') {
+                        $subQ->where('residence_application_id', $applicationId);
+                    }
+                }
+            });
         });
-
-        if ($applicationType && $applicationId) {
-            if ($applicationType === 'inscription') {
-                $query->where('inscription_id', $applicationId);
-            } elseif ($applicationType === 'work_permit') {
-                $query->where('work_permit_application_id', $applicationId);
-            } elseif ($applicationType === 'residence') {
-                $query->where('residence_application_id', $applicationId);
-            }
-        }
 
         // Charger seulement les nouveaux messages si sinceId est fourni
         if ($sinceId) {
