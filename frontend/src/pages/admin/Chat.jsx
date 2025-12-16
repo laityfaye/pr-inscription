@@ -58,6 +58,106 @@ const AdminChat = () => {
   const fileInputRef = useRef(null)
   const messagesRef = useRef([]) // Ref pour accéder à la valeur actuelle de messages
 
+  // Déclarer fetchMessages et fetchNewMessages avant les useEffect qui les utilisent
+  const fetchMessages = useCallback(async (clientId, sinceId = null) => {
+    if (!clientId) return
+
+    try {
+      const params = new URLSearchParams()
+      if (applicationType && selectedApplication) {
+        params.append('application_type', applicationType)
+        params.append('application_id', selectedApplication.id)
+      }
+      if (sinceId) {
+        params.append('since_id', sinceId)
+      } else {
+        params.append('limit', '50') // Limiter à 50 messages initiaux
+      }
+      const response = await api.get(`/messages/${clientId}?${params.toString()}`)
+      console.log('API Response (Admin):', response.data)
+      const newMessages = response.data.messages || []
+      console.log('Fetched messages (Admin):', newMessages.length, 'for application:', selectedApplication?.id)
+      console.log('Messages data (Admin):', newMessages)
+      
+      if (sinceId) {
+        // Ajouter seulement les nouveaux messages (éviter les doublons)
+        setMessages(prev => {
+          console.log('Adding new messages with sinceId. Previous count:', prev.length)
+          const existingIds = new Set(prev.map(m => m.id))
+          const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
+          console.log('Unique new messages:', uniqueNewMessages.length)
+          if (uniqueNewMessages.length === 0) return prev
+          // Trier par date après ajout
+          const allMessages = [...prev, ...uniqueNewMessages]
+          const sorted = allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          console.log('Total messages after merge:', sorted.length)
+          messagesRef.current = sorted
+          return sorted
+        })
+      } else {
+        // Chargement initial - trier par date
+        const sortedMessages = newMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        console.log('Setting initial messages. Count:', sortedMessages.length)
+        console.log('Message IDs:', sortedMessages.map(m => m.id))
+        console.log('Messages to set:', sortedMessages)
+        setMessages(sortedMessages)
+        messagesRef.current = sortedMessages
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+    }
+  }, [applicationType, selectedApplication])
+
+  const fetchNewMessages = useCallback(async (clientId) => {
+    if (!clientId) return
+    
+    const currentMessages = messagesRef.current.length > 0 ? messagesRef.current : []
+    if (currentMessages.length === 0) {
+      // Si aucun message n'est chargé, charger tous les messages
+      await fetchMessages(clientId)
+      return
+    }
+    
+    // Trier les messages par ID (plus fiable que par date pour since_id)
+    const sortedMessages = [...currentMessages].sort((a, b) => (a.id || 0) - (b.id || 0))
+    const lastMessageId = sortedMessages[sortedMessages.length - 1]?.id
+    
+    if (lastMessageId) {
+      // Récupérer les nouveaux messages avec since_id
+      try {
+        const params = new URLSearchParams()
+        if (applicationType && selectedApplication) {
+          params.append('application_type', applicationType)
+          params.append('application_id', selectedApplication.id)
+        }
+        params.append('since_id', lastMessageId)
+        
+        const response = await api.get(`/messages/${clientId}?${params.toString()}`)
+        const newMessages = response.data.messages || []
+        
+        if (newMessages.length > 0) {
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id))
+            const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
+            if (uniqueNewMessages.length === 0) return prev
+            // Trier par date après ajout
+            const allMessages = [...prev, ...uniqueNewMessages]
+            const sorted = allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+            messagesRef.current = sorted
+            return sorted
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching new messages:', error)
+        // En cas d'erreur, recharger tous les messages pour être sûr
+        await fetchMessages(clientId)
+      }
+    } else {
+      // Si pas de lastMessageId, recharger tous les messages
+      await fetchMessages(clientId)
+    }
+  }, [applicationType, selectedApplication, fetchMessages])
+
   useEffect(() => {
     fetchConversations()
     pollingCountRef.current = 0
@@ -84,7 +184,7 @@ const AdminChat = () => {
         clearInterval(pollingIntervalRef.current)
       }
     }
-  }, [selectedClient, selectedApplication, applicationType])
+  }, [selectedClient, selectedApplication, applicationType, fetchMessages, fetchNewMessages])
 
   useEffect(() => {
     if (selectedClient) {
@@ -95,7 +195,7 @@ const AdminChat = () => {
         fetchMessages(selectedClient.id)
       }
     }
-  }, [selectedClient])
+  }, [selectedClient, selectedApplication, fetchMessages])
 
   // Charger les messages quand l'application change
   useEffect(() => {
@@ -235,105 +335,6 @@ const AdminChat = () => {
       fetchMessages(selectedClient.id)
     }
   }
-
-  const fetchMessages = useCallback(async (clientId, sinceId = null) => {
-    if (!clientId) return
-
-    try {
-      const params = new URLSearchParams()
-      if (applicationType && selectedApplication) {
-        params.append('application_type', applicationType)
-        params.append('application_id', selectedApplication.id)
-      }
-      if (sinceId) {
-        params.append('since_id', sinceId)
-      } else {
-        params.append('limit', '50') // Limiter à 50 messages initiaux
-      }
-      const response = await api.get(`/messages/${clientId}?${params.toString()}`)
-      console.log('API Response (Admin):', response.data)
-      const newMessages = response.data.messages || []
-      console.log('Fetched messages (Admin):', newMessages.length, 'for application:', selectedApplication?.id)
-      console.log('Messages data (Admin):', newMessages)
-      
-      if (sinceId) {
-        // Ajouter seulement les nouveaux messages (éviter les doublons)
-        setMessages(prev => {
-          console.log('Adding new messages with sinceId. Previous count:', prev.length)
-          const existingIds = new Set(prev.map(m => m.id))
-          const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
-          console.log('Unique new messages:', uniqueNewMessages.length)
-          if (uniqueNewMessages.length === 0) return prev
-          // Trier par date après ajout
-          const allMessages = [...prev, ...uniqueNewMessages]
-          const sorted = allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-          console.log('Total messages after merge:', sorted.length)
-          messagesRef.current = sorted
-          return sorted
-        })
-      } else {
-        // Chargement initial - trier par date
-        const sortedMessages = newMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-        console.log('Setting initial messages. Count:', sortedMessages.length)
-        console.log('Message IDs:', sortedMessages.map(m => m.id))
-        console.log('Messages to set:', sortedMessages)
-        setMessages(sortedMessages)
-        messagesRef.current = sortedMessages
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error)
-    }
-  }, [applicationType, selectedApplication])
-
-  const fetchNewMessages = useCallback(async (clientId) => {
-    if (!clientId) return
-    
-    const currentMessages = messagesRef.current.length > 0 ? messagesRef.current : []
-    if (currentMessages.length === 0) {
-      // Si aucun message n'est chargé, charger tous les messages
-      await fetchMessages(clientId)
-      return
-    }
-    
-    // Trier les messages par ID (plus fiable que par date pour since_id)
-    const sortedMessages = [...currentMessages].sort((a, b) => (a.id || 0) - (b.id || 0))
-    const lastMessageId = sortedMessages[sortedMessages.length - 1]?.id
-    
-    if (lastMessageId) {
-      // Récupérer les nouveaux messages avec since_id
-      try {
-        const params = new URLSearchParams()
-        if (applicationType && selectedApplication) {
-          params.append('application_type', applicationType)
-          params.append('application_id', selectedApplication.id)
-        }
-        params.append('since_id', lastMessageId)
-        
-        const response = await api.get(`/messages/${clientId}?${params.toString()}`)
-        const newMessages = response.data.messages || []
-        
-        if (newMessages.length > 0) {
-          setMessages(prev => {
-            const existingIds = new Set(prev.map(m => m.id))
-            const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
-            if (uniqueNewMessages.length === 0) return prev
-            // Trier par date après ajout
-            const allMessages = [...prev, ...uniqueNewMessages]
-            const sorted = allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-            messagesRef.current = sorted
-            return sorted
-          })
-        }
-      } catch (error) {
-        console.error('Error fetching new messages:', error)
-        // En cas d'erreur, recharger tous les messages pour être sûr
-        await fetchMessages(clientId)
-      }
-    } else {
-      // Si pas de lastMessageId, recharger tous les messages
-      await fetchMessages(clientId)
-    }
-  }, [applicationType, selectedApplication, fetchMessages])
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
