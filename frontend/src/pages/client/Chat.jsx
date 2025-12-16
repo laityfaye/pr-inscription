@@ -22,6 +22,7 @@ const ClientChat = () => {
   const [filePreview, setFilePreview] = useState(null)
   const messagesEndRef = useRef(null)
   const pollingIntervalRef = useRef(null)
+  const pollingCountRef = useRef(0)
   const fileInputRef = useRef(null)
   const messagesRef = useRef([]) // Ref pour accéder à la valeur actuelle de messages
 
@@ -204,8 +205,15 @@ const ClientChat = () => {
       return
     }
     
-    const lastMessageId = currentMessages[currentMessages.length - 1]?.id
-    if (!lastMessageId) return
+    // Trier par ID (plus fiable que par date pour since_id)
+    const sortedMessages = [...currentMessages].sort((a, b) => (a.id || 0) - (b.id || 0))
+    const lastMessageId = sortedMessages[sortedMessages.length - 1]?.id
+    
+    if (!lastMessageId) {
+      // Si pas de lastMessageId, recharger tous les messages
+      await fetchConversation()
+      return
+    }
 
     try {
       const params = new URLSearchParams()
@@ -217,6 +225,7 @@ const ClientChat = () => {
       
       const response = await api.get(`/messages/${admin.id}?${params.toString()}`)
       const newMessages = response.data.messages || []
+      
       if (newMessages.length > 0) {
         setMessages(prev => {
           const existingIds = new Set(prev.map(m => m.id))
@@ -230,6 +239,8 @@ const ClientChat = () => {
       }
     } catch (error) {
       console.error('Error fetching new messages:', error)
+      // En cas d'erreur, recharger tous les messages pour être sûr
+      await fetchConversation()
     }
   }, [admin, selectedApplication, applicationType, deduplicateMessages, fetchConversation])
 
@@ -287,12 +298,20 @@ const ClientChat = () => {
       return
     }
 
+    pollingCountRef.current = 0
+
     // Charger les messages immédiatement au démarrage du polling
     fetchNewMessages()
 
     // Polling pour les nouveaux messages toutes les 5 secondes
     pollingIntervalRef.current = setInterval(() => {
-      fetchNewMessages()
+      pollingCountRef.current++
+      // Recharger tous les messages toutes les 30 secondes (toutes les 6 fois) pour éviter de manquer des messages
+      if (pollingCountRef.current % 6 === 0) {
+        fetchConversation()
+      } else {
+        fetchNewMessages()
+      }
     }, 5000)
 
     return () => {
@@ -301,7 +320,7 @@ const ClientChat = () => {
         pollingIntervalRef.current = null
       }
     }
-  }, [admin?.id, selectedApplication?.id, applicationType, fetchNewMessages]) // Utiliser les IDs pour la stabilité
+  }, [admin?.id, selectedApplication?.id, applicationType, fetchNewMessages, fetchConversation]) // Utiliser les IDs pour la stabilité
 
   useEffect(() => {
     scrollToBottom()
@@ -478,13 +497,14 @@ const ClientChat = () => {
         messagesRef.current = sorted
         return sorted
       })
-      // Recharger la conversation pour s'assurer que tous les messages sont à jour
+      // Recharger la conversation après un court délai pour s'assurer que tous les messages sont à jour
       // Cela garantit que les messages de l'autre utilisateur sont aussi chargés
       if (admin) {
-        // Ne pas mettre loading à true car on a déjà ajouté le message
-        fetchConversation().catch(error => {
-          console.error('Error reloading conversation after send:', error)
-        })
+        setTimeout(() => {
+          fetchConversation().catch(error => {
+            console.error('Error reloading conversation after send:', error)
+          })
+        }, 500)
       }
     } catch (error) {
       console.error('Error sending message:', error)

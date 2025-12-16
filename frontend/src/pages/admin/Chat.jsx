@@ -54,15 +54,23 @@ const AdminChat = () => {
   const messagesEndRef = useRef(null)
   const searchTimeoutRef = useRef(null)
   const pollingIntervalRef = useRef(null)
+  const pollingCountRef = useRef(0)
   const fileInputRef = useRef(null)
 
   useEffect(() => {
     fetchConversations()
+    pollingCountRef.current = 0
     
     // Polling pour les nouveaux messages toutes les 5 secondes
     pollingIntervalRef.current = setInterval(() => {
       if (selectedClient) {
-        fetchNewMessages(selectedClient.id)
+        pollingCountRef.current++
+        // Recharger tous les messages toutes les 30 secondes (toutes les 6 fois) pour éviter de manquer des messages
+        if (pollingCountRef.current % 6 === 0) {
+          fetchMessages(selectedClient.id)
+        } else {
+          fetchNewMessages(selectedClient.id)
+        }
       }
       // Mettre à jour les conversations moins fréquemment (toutes les 15 secondes)
       if (Date.now() % 15000 < 5000) {
@@ -250,11 +258,41 @@ const AdminChat = () => {
       return
     }
     
-    // Trier les messages par date et prendre le dernier
-    const sortedMessages = [...currentMessages].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    // Trier les messages par ID (plus fiable que par date pour since_id)
+    const sortedMessages = [...currentMessages].sort((a, b) => (a.id || 0) - (b.id || 0))
     const lastMessageId = sortedMessages[sortedMessages.length - 1]?.id
+    
     if (lastMessageId) {
-      await fetchMessages(clientId, lastMessageId)
+      // Récupérer les nouveaux messages avec since_id
+      try {
+        const params = new URLSearchParams()
+        if (applicationType && selectedApplication) {
+          params.append('application_type', applicationType)
+          params.append('application_id', selectedApplication.id)
+        }
+        params.append('since_id', lastMessageId)
+        
+        const response = await api.get(`/messages/${clientId}?${params.toString()}`)
+        const newMessages = response.data.messages || []
+        
+        if (newMessages.length > 0) {
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id))
+            const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
+            if (uniqueNewMessages.length === 0) return prev
+            // Trier par date après ajout
+            const allMessages = [...prev, ...uniqueNewMessages]
+            return allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching new messages:', error)
+        // En cas d'erreur, recharger tous les messages pour être sûr
+        await fetchMessages(clientId)
+      }
+    } else {
+      // Si pas de lastMessageId, recharger tous les messages
+      await fetchMessages(clientId)
     }
   }
 
@@ -382,13 +420,17 @@ const AdminChat = () => {
           'Content-Type': 'multipart/form-data',
         },
       })
+      // Ajouter le message envoyé immédiatement
       setMessages((prev) => {
         const exists = prev.some(m => m.id === response.data.id)
         if (exists) return prev
         const updated = [...prev, response.data]
         return updated.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
       })
-      fetchMessages(selectedClient.id)
+      // Recharger tous les messages pour s'assurer d'avoir les derniers messages reçus
+      setTimeout(() => {
+        fetchMessages(selectedClient.id)
+      }, 500)
       fetchConversations()
     } catch (error) {
       console.error('Error sending message:', error)
