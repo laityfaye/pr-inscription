@@ -61,12 +61,12 @@ const AdminChat = () => {
     
     // Polling pour les nouveaux messages toutes les 5 secondes
     pollingIntervalRef.current = setInterval(() => {
-      if (selectedClient && selectedApplication) {
+      if (selectedClient) {
         fetchNewMessages(selectedClient.id)
       }
       // Mettre à jour les conversations moins fréquemment (toutes les 15 secondes)
       if (Date.now() % 15000 < 5000) {
-      fetchConversations()
+        fetchConversations()
       }
     }, 5000)
 
@@ -182,6 +182,10 @@ const AdminChat = () => {
     setSelectedApplication(null)
     setApplicationType(null)
     setMessages([])
+    // Charger les messages du client sélectionné (tous les messages, pas seulement ceux d'une application)
+    if (client) {
+      fetchMessages(client.id)
+    }
     // Ajouter le client à la liste des conversations s'il n'y est pas déjà
     if (!conversations.find(c => c.id === client.id)) {
       setConversations([client, ...conversations])
@@ -192,7 +196,9 @@ const AdminChat = () => {
     setApplicationType(type)
     setSelectedApplication(application)
     setMessages([])
-    fetchMessages(selectedClient.id)
+    if (selectedClient) {
+      fetchMessages(selectedClient.id)
+    }
   }
 
   const fetchMessages = async (clientId, sinceId = null) => {
@@ -224,9 +230,16 @@ const AdminChat = () => {
   }
 
   const fetchNewMessages = async (clientId) => {
-    if (!clientId || messages.length === 0) return
+    if (!clientId) return
     
-    const lastMessageId = messages[messages.length - 1]?.id
+    const currentMessages = messages.length > 0 ? messages : []
+    if (currentMessages.length === 0) {
+      // Si aucun message n'est chargé, charger tous les messages
+      await fetchMessages(clientId)
+      return
+    }
+    
+    const lastMessageId = currentMessages[currentMessages.length - 1]?.id
     if (lastMessageId) {
       await fetchMessages(clientId, lastMessageId)
     }

@@ -75,10 +75,11 @@ const ClientChat = () => {
   }, [])
 
   const fetchConversation = useCallback(async (sinceId = null) => {
-    if (!admin || !selectedApplication) return
+    if (!admin) return
 
     try {
       const params = new URLSearchParams()
+      // Charger les messages avec ou sans application
       if (applicationType && selectedApplication) {
         params.append('application_type', applicationType)
         params.append('application_id', selectedApplication.id)
@@ -90,6 +91,7 @@ const ClientChat = () => {
       }
       const response = await api.get(`/messages/${admin.id}?${params.toString()}`)
       const newMessages = response.data.messages || []
+      console.log('Fetched messages:', newMessages.length, 'for application:', selectedApplication?.id)
       if (sinceId) {
         // Ajouter seulement les nouveaux messages (éviter les doublons)
         setMessages(prev => {
@@ -114,7 +116,7 @@ const ClientChat = () => {
   }, [admin, selectedApplication, applicationType, deduplicateMessages])
 
   const fetchNewMessages = useCallback(async () => {
-    if (!admin || !selectedApplication) return
+    if (!admin) return
     
     const currentMessages = messagesRef.current
     if (currentMessages.length === 0) return
@@ -162,9 +164,11 @@ const ClientChat = () => {
     fetchApplications()
   }, [fetchAdmin, fetchApplications]) // Utiliser les callbacks mémorisés
 
-  // Charger les messages quand une application est sélectionnée
+  // Charger les messages quand l'admin est disponible
+  // Si une application est sélectionnée, charger les messages de cette application
+  // Sinon, charger tous les messages (sans filtre d'application)
   useEffect(() => {
-    if (admin && selectedApplication && applicationType) {
+    if (admin) {
       setLoading(true)
       fetchConversation()
     }
@@ -172,7 +176,7 @@ const ClientChat = () => {
 
   // Polling pour les nouveaux messages (séparé pour éviter les rechargements)
   useEffect(() => {
-    if (!admin || !selectedApplication) return
+    if (!admin) return
 
     // Polling pour les nouveaux messages toutes les 5 secondes
     pollingIntervalRef.current = setInterval(() => {
@@ -334,7 +338,7 @@ const ClientChat = () => {
       })
       // Recharger la conversation pour s'assurer que tous les messages sont à jour
       // Cela garantit que les messages de l'autre utilisateur sont aussi chargés
-      if (admin && selectedApplication) {
+      if (admin) {
         fetchConversation()
       }
     } catch (error) {
@@ -456,34 +460,28 @@ const ClientChat = () => {
 
           {/* Zone de chat */}
           <Card className="flex flex-col overflow-hidden shadow-lg" style={{ height: '600px' }}>
-            {selectedApplication ? (
+            {admin ? (
               <>
              {/* Header */}
              <div className="p-6 bg-gradient-to-r from-primary-600 via-primary-500 to-primary-600 text-white shadow-lg">
                    <div className="flex items-center justify-between">
                <div className="flex items-center space-x-4">
                  <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg ring-2 ring-white/30">
-                   {admin ? (
-                     <span className="text-white font-bold text-xl">
-                       {admin.name?.charAt(0) || 'A'}
-                     </span>
-                   ) : (
-                     <FiUser className="w-7 h-7" />
-                   )}
+                   <span className="text-white font-bold text-xl">
+                     {admin.name?.charAt(0) || 'A'}
+                   </span>
                  </div>
                  <div>
                    <h2 className="text-xl font-bold flex items-center gap-2">
-                     {admin ? admin.name : 'Chargement...'}
-                     {admin && (
-                       <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-normal">
-                         <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></span>
-                         En ligne
-                       </span>
-                     )}
+                     {admin.name}
+                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-normal">
+                       <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></span>
+                       En ligne
+                     </span>
                    </h2>
                    <p className="text-sm text-primary-100 mt-1 flex items-center gap-2">
                      <span className="inline-block w-1.5 h-1.5 bg-primary-200 rounded-full"></span>
-                           {selectedApplication.label}
+                     {selectedApplication ? selectedApplication.label : 'Messages généraux'}
                    </p>
                        </div>
                  </div>
