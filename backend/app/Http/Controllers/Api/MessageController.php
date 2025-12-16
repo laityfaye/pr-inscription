@@ -64,8 +64,22 @@ class MessageController extends Controller
                 if ($currentUser->isAdmin()) {
                     $user = User::where('role', 'client')->first();
                 } else {
+                    // Pour un client, utiliser le premier admin trouvé
+                    // Mais s'assurer que c'est toujours le même admin
                     $user = User::where('role', 'admin')->first();
                 }
+            }
+            
+            // Log pour vérifier les IDs utilisés
+            try {
+                Log::debug('User IDs for message retrieval', [
+                    'current_user_id' => $currentUser->id,
+                    'current_user_role' => $currentUser->role,
+                    'other_user_id' => $user->id ?? null,
+                    'other_user_role' => $user->role ?? null,
+                ]);
+            } catch (\Exception $e) {
+                // Ignore logging errors
             }
 
             if (!$user) {

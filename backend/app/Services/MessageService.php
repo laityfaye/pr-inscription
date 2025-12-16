@@ -45,18 +45,45 @@ class MessageService
     public function getConversation(User $user1, User $user2, ?string $applicationType = null, ?int $applicationId = null, ?int $sinceId = null, ?int $limit = null): Collection
     {
         // Construire la requête de base pour les messages entre les deux utilisateurs
-        // Utiliser une structure claire pour garantir que tous les messages sont récupérés
+        // Si l'un des utilisateurs est un admin et l'autre un client,
+        // inclure tous les messages entre le client et n'importe quel admin
+        // (pour gérer le cas où il y a plusieurs admins dans la base)
         $query = Message::where(function ($q) use ($user1, $user2) {
-            // Messages envoyés de user1 à user2
+            // Cas standard: Messages envoyés de user1 à user2 OU de user2 à user1
             $q->where(function ($subQ) use ($user1, $user2) {
                 $subQ->where('sender_id', $user1->id)
                       ->where('receiver_id', $user2->id);
             })
-            // OU messages envoyés de user2 à user1
             ->orWhere(function ($subQ) use ($user1, $user2) {
                 $subQ->where('sender_id', $user2->id)
                       ->where('receiver_id', $user1->id);
             });
+            
+            // Si l'un des utilisateurs est un admin et l'autre un client,
+            // inclure aussi les messages entre le client et n'importe quel admin
+            if (($user1->isAdmin() && $user2->role === 'client') || 
+                ($user2->isAdmin() && $user1->role === 'client')) {
+                $clientId = $user1->isAdmin() ? $user2->id : $user1->id;
+                
+                // Messages envoyés par le client à n'importe quel admin
+                $q->orWhere(function ($subQ) use ($clientId) {
+                    $subQ->where('sender_id', $clientId)
+                          ->whereIn('receiver_id', function ($query) {
+                              $query->select('id')
+                                    ->from('users')
+                                    ->where('role', 'admin');
+                          });
+                })
+                // Messages envoyés par n'importe quel admin au client
+                ->orWhere(function ($subQ) use ($clientId) {
+                    $subQ->where('receiver_id', $clientId)
+                          ->whereIn('sender_id', function ($query) {
+                              $query->select('id')
+                                    ->from('users')
+                                    ->where('role', 'admin');
+                          });
+                });
+            }
         });
         
         // Si un type d'application est spécifié, filtrer pour inclure:
