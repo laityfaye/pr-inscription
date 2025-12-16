@@ -89,7 +89,11 @@ const ClientChat = () => {
   }, [])
 
   const fetchConversation = useCallback(async (sinceId = null) => {
-    if (!admin) return
+    if (!admin || !admin.id) {
+      console.warn('Cannot fetch conversation: admin not available', { admin })
+      setLoading(false)
+      return
+    }
 
     try {
       const params = new URLSearchParams()
@@ -103,11 +107,21 @@ const ClientChat = () => {
       } else {
         params.append('limit', '50') // Limiter à 50 messages initiaux
       }
-      const response = await api.get(`/messages/${admin.id}?${params.toString()}`)
+      
+      const url = `/messages/${admin.id}?${params.toString()}`
+      console.log('Fetching messages from URL:', url)
+      const response = await api.get(url)
       console.log('API Response:', response.data)
+      console.log('API Response structure:', {
+        hasMessages: !!response.data.messages,
+        messagesType: Array.isArray(response.data.messages) ? 'array' : typeof response.data.messages,
+        messagesLength: response.data.messages?.length || 0,
+        fullResponse: response.data
+      })
       const newMessages = response.data.messages || []
       console.log('Fetched messages:', newMessages.length, 'for application:', selectedApplication?.id)
       console.log('Messages data:', newMessages)
+      console.log('First message sample:', newMessages[0])
       if (sinceId) {
         // Ajouter seulement les nouveaux messages (éviter les doublons)
         setMessages(prev => {
@@ -124,16 +138,54 @@ const ClientChat = () => {
         const uniqueMessages = deduplicateMessages(newMessages)
         const sortedMessages = uniqueMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
         console.log('Setting initial messages:', sortedMessages.length)
+        console.log('Messages to set:', sortedMessages)
+        console.log('Messages IDs:', sortedMessages.map(m => m.id))
         setMessages(sortedMessages)
         messagesRef.current = sortedMessages
+        // Vérifier que les messages sont bien dans l'état après un court délai
+        setTimeout(() => {
+          console.log('State check after setMessages:', {
+            messagesInState: messages.length,
+            messagesInRef: messagesRef.current.length
+          })
+        }, 100)
       }
     } catch (error) {
       console.error('Error fetching conversation:', error)
       console.error('Error details:', {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
+        url: error.config?.url,
+        adminId: admin?.id
       })
+      
+      // Si c'est une erreur 404 ou si l'admin n'est pas trouvé, essayer sans ID
+      if (error.response?.status === 404 || error.response?.status === 422) {
+        console.log('Trying to fetch messages without user ID (using default)')
+        try {
+          const fallbackParams = new URLSearchParams()
+          if (applicationType && selectedApplication) {
+            fallbackParams.append('application_type', applicationType)
+            fallbackParams.append('application_id', selectedApplication.id)
+          }
+          if (!sinceId) {
+            fallbackParams.append('limit', '50')
+          }
+          const fallbackResponse = await api.get(`/messages?${fallbackParams.toString()}`)
+          const fallbackMessages = fallbackResponse.data.messages || []
+          console.log('Fallback fetch successful:', fallbackMessages.length, 'messages')
+          if (fallbackMessages.length > 0) {
+            const uniqueMessages = deduplicateMessages(fallbackMessages)
+            const sortedMessages = uniqueMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+            setMessages(sortedMessages)
+            messagesRef.current = sortedMessages
+          }
+        } catch (fallbackError) {
+          console.error('Fallback fetch also failed:', fallbackError)
+        }
+      }
+      
       // En cas d'erreur, s'assurer que loading est désactivé
       setLoading(false)
     } finally {
@@ -202,16 +254,22 @@ const ClientChat = () => {
   useEffect(() => {
     console.log('useEffect triggered:', { 
       admin: admin?.id, 
+      adminName: admin?.name,
       selectedApplication: selectedApplication?.id, 
-      applicationType 
+      applicationType,
+      messagesCount: messages.length
     })
-    if (admin) {
-      console.log('Loading messages for admin:', admin.id)
+    if (admin && admin.id) {
+      console.log('Loading messages for admin:', admin.id, admin.name)
       setLoading(true)
-      fetchConversation().catch(error => {
-        console.error('Error in fetchConversation:', error)
-        setLoading(false)
-      })
+      // Utiliser un timeout pour s'assurer que l'état est bien mis à jour
+      const timeoutId = setTimeout(() => {
+        fetchConversation().catch(error => {
+          console.error('Error in fetchConversation:', error)
+          setLoading(false)
+        })
+      }, 100)
+      return () => clearTimeout(timeoutId)
     } else {
       console.log('Admin not available, skipping message load')
       setLoading(false)
@@ -247,6 +305,16 @@ const ClientChat = () => {
 
   useEffect(() => {
     scrollToBottom()
+  }, [messages])
+
+  // Debug: Logger les changements de messages
+  useEffect(() => {
+    console.log('Messages state changed:', {
+      count: messages.length,
+      messageIds: messages.map(m => m.id),
+      firstMessage: messages[0],
+      lastMessage: messages[messages.length - 1]
+    })
   }, [messages])
 
   // Recharger les messages quand la page redevient visible
@@ -602,6 +670,13 @@ const ClientChat = () => {
 
              {/* Messages */}
              <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-gray-50 via-white to-gray-50 space-y-4 scroll-smooth">
+              {/* Debug info - à retirer en production */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mb-4 p-2 bg-yellow-100 text-xs rounded">
+                  <p>Debug: loading={loading ? 'true' : 'false'}, messages.length={messages.length}, admin={admin ? 'yes' : 'no'}</p>
+                  <p>Messages IDs: {messages.map(m => m.id).join(', ') || 'none'}</p>
+                </div>
+              )}
               {loading ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
@@ -615,6 +690,21 @@ const ClientChat = () => {
                     <FiMessageSquare className="mx-auto text-6xl text-gray-300 mb-4" />
                     <p className="text-xl text-gray-600 mb-2">Aucun message</p>
                     <p className="text-gray-500">Commencez la conversation !</p>
+                    {admin && (
+                      <button
+                        onClick={() => {
+                          console.log('Manual reload triggered')
+                          setLoading(true)
+                          fetchConversation().catch(err => {
+                            console.error('Manual reload error:', err)
+                            setLoading(false)
+                          })
+                        }}
+                        className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                      >
+                        Recharger les messages
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (
