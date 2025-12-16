@@ -324,7 +324,7 @@ const ClientChat = () => {
           'Content-Type': 'multipart/form-data',
         },
       })
-      // Vérifier que le message n'existe pas déjà avant de l'ajouter
+      // Ajouter le message à la liste immédiatement
       setMessages((prev) => {
         const exists = prev.some(m => m.id === response.data.id)
         if (exists) return prev
@@ -332,7 +332,11 @@ const ClientChat = () => {
         messagesRef.current = updated
         return updated
       })
-      // Ne pas recharger toute la conversation, le message est déjà ajouté
+      // Recharger la conversation pour s'assurer que tous les messages sont à jour
+      // Cela garantit que les messages de l'autre utilisateur sont aussi chargés
+      if (admin && selectedApplication) {
+        fetchConversation()
+      }
     } catch (error) {
       console.error('Error sending message:', error)
       toast.error(error.response?.data?.message || 'Erreur lors de l\'envoi du message')

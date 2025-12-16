@@ -44,6 +44,7 @@ class MessageService
 
     public function getConversation(User $user1, User $user2, ?string $applicationType = null, ?int $applicationId = null, ?int $sinceId = null, ?int $limit = null): Collection
     {
+        // Construire la requête de base pour les messages entre les deux utilisateurs
         $query = Message::where(function ($q) use ($user1, $user2, $applicationType, $applicationId) {
             // Messages envoyés de user1 à user2
             $q->where(function ($subQ) use ($user1, $user2, $applicationType, $applicationId) {
@@ -96,6 +97,16 @@ class MessageService
         if (!$sinceId) {
             $query->with(['inscription:id,country_id', 'workPermitApplication:id,work_permit_country_id', 'residenceApplication:id']);
         }
+
+        // Log pour debug (à retirer en production)
+        Log::debug('Message query', [
+            'user1_id' => $user1->id,
+            'user2_id' => $user2->id,
+            'application_type' => $applicationType,
+            'application_id' => $applicationId,
+            'sql' => $query->toSql(),
+            'bindings' => $query->getBindings(),
+        ]);
 
         return $query->orderBy('created_at', 'asc')
           ->get();

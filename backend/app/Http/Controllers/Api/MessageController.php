@@ -57,11 +57,27 @@ class MessageController extends Controller
         }
 
         $applicationType = $request->query('application_type');
-        $applicationId = $request->query('application_id');
+        $applicationId = $request->query('application_id') ? (int) $request->query('application_id') : null;
         $sinceId = $request->query('since_id') ? (int) $request->query('since_id') : null;
         $limit = $request->query('limit') ? (int) $request->query('limit') : null;
 
+        // Log pour debug
+        Log::debug('Fetching messages', [
+            'current_user_id' => $currentUser->id,
+            'other_user_id' => $user->id,
+            'application_type' => $applicationType,
+            'application_id' => $applicationId,
+            'since_id' => $sinceId,
+            'limit' => $limit,
+        ]);
+
         $messages = $this->messageService->getConversation($currentUser, $user, $applicationType, $applicationId, $sinceId, $limit);
+        
+        // Log pour debug
+        Log::debug('Messages found', [
+            'count' => $messages->count(),
+            'message_ids' => $messages->pluck('id')->toArray(),
+        ]);
 
         // Marquer les messages comme lus
         $query = Message::where('sender_id', $user->id)
