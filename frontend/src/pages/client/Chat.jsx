@@ -287,40 +287,15 @@ const ClientChat = () => {
     }
   }, [admin?.id, selectedApplication?.id, applicationType, fetchConversation])
 
-  // Polling pour les nouveaux messages (séparé pour éviter les rechargements)
+  // Polling désactivé - les messages seront chargés uniquement au démarrage et après l'envoi
+  // Pour rafraîchir manuellement, l'utilisateur peut recharger la page ou envoyer un message
   useEffect(() => {
     if (!admin) {
-      // Nettoyer l'intervalle si l'admin n'est pas disponible
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
-      }
       return
     }
-
-    pollingCountRef.current = 0
-
-    // Charger les messages immédiatement au démarrage du polling
-    fetchNewMessages()
-
-    // Polling pour les nouveaux messages toutes les 5 secondes
-    pollingIntervalRef.current = setInterval(() => {
-      pollingCountRef.current++
-      // Recharger tous les messages toutes les 30 secondes (toutes les 6 fois) pour éviter de manquer des messages
-      if (pollingCountRef.current % 6 === 0) {
-        fetchConversation()
-      } else {
-        fetchNewMessages()
-      }
-    }, 5000)
-
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
-      }
-    }
-  }, [admin?.id, selectedApplication?.id, applicationType, fetchNewMessages, fetchConversation]) // Utiliser les IDs pour la stabilité
+    // Charger les messages uniquement au démarrage
+    // Plus de rafraîchissement automatique
+  }, [admin?.id, selectedApplication?.id, applicationType])
 
   useEffect(() => {
     scrollToBottom()

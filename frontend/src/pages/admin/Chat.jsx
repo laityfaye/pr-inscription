@@ -160,31 +160,9 @@ const AdminChat = () => {
 
   useEffect(() => {
     fetchConversations()
-    pollingCountRef.current = 0
-    
-    // Polling pour les nouveaux messages toutes les 5 secondes
-    pollingIntervalRef.current = setInterval(() => {
-      if (selectedClient) {
-        pollingCountRef.current++
-        // Recharger tous les messages toutes les 30 secondes (toutes les 6 fois) pour éviter de manquer des messages
-        if (pollingCountRef.current % 6 === 0) {
-          fetchMessages(selectedClient.id)
-        } else {
-          fetchNewMessages(selectedClient.id)
-        }
-      }
-      // Mettre à jour les conversations moins fréquemment (toutes les 15 secondes)
-      if (Date.now() % 15000 < 5000) {
-        fetchConversations()
-      }
-    }, 5000)
-
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-      }
-    }
-  }, [selectedClient, selectedApplication, applicationType, fetchMessages, fetchNewMessages])
+    // Polling désactivé - les messages seront chargés uniquement au démarrage et après l'envoi
+    // Pour rafraîchir manuellement, l'utilisateur peut recharger la page ou envoyer un message
+  }, [selectedClient, selectedApplication, applicationType])
 
   useEffect(() => {
     if (selectedClient) {
