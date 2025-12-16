@@ -777,16 +777,41 @@ const AdminChat = () => {
                         totalMessages: messages.length,
                         uniqueMessages: uniqueMessages.length,
                         sortedMessages: sortedMessages.length,
-                        messageIds: sortedMessages.map(m => m.id)
+                        messageIds: sortedMessages.map(m => m.id),
+                        user_id: user?.id,
+                        messages: sortedMessages.map(m => ({
+                          id: m.id,
+                          sender_id: m.sender_id,
+                          receiver_id: m.receiver_id,
+                          content: m.content,
+                          hasFile: !!m.file_path,
+                          hasStatusUpdate: !!m.status_update,
+                          isSender: String(m.sender_id) === String(user?.id)
+                        }))
                       })
                       
                       return sortedMessages.map((message, index) => {
-                        const isSender = message.sender_id === user?.id
+                        // Comparaison robuste des IDs (gère les cas où ils sont strings ou numbers)
+                        const isSender = String(message.sender_id) === String(user?.id)
                         const FileIcon = message.file_path ? getFileIcon(message.file_type) : null
                         const isGeneralMessage = !message.application_type && !message.inscription_id && !message.work_permit_application_id && !message.residence_application_id
                         const messageDate = new Date(message.created_at)
                         const isToday = messageDate.toDateString() === new Date().toDateString()
                         const showDateSeparator = index === 0 || new Date(sortedMessages[index - 1]?.created_at).toDateString() !== messageDate.toDateString()
+                        
+                        // Debug log pour chaque message
+                        if (process.env.NODE_ENV === 'development') {
+                          console.log('Rendering message:', {
+                            id: message.id,
+                            sender_id: message.sender_id,
+                            receiver_id: message.receiver_id,
+                            user_id: user?.id,
+                            isSender,
+                            hasContent: !!message.content,
+                            hasFile: !!message.file_path,
+                            hasStatusUpdate: !!message.status_update
+                          })
+                        }
                         
                         return (
                           <div key={message.id} className="space-y-2">
@@ -853,6 +878,11 @@ const AdminChat = () => {
                                       </button>
                                     </div>
                                   </div>
+                                )}
+                                {!message.content && !message.file_path && !message.status_update && (
+                                  <p className={`text-sm italic ${isSender ? 'text-white/80' : 'text-gray-500'}`}>
+                                    (Message sans contenu)
+                                  </p>
                                 )}
                                 <div className="flex items-center justify-end gap-1 mt-2">
                                   <p className={`text-xs flex items-center gap-1 ${isSender ? 'text-primary-100' : 'text-gray-500'}`}>
