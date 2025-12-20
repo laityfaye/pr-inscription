@@ -4,25 +4,30 @@ import { FiGlobe } from 'react-icons/fi'
 const PartnersCarousel3D = ({ partners = [] }) => {
   const boxRef = useRef(null)
   const [translateZ, setTranslateZ] = useState(280)
+  const [imageSize, setImageSize] = useState(140)
 
   useEffect(() => {
-    // Ajuster la distance 3D selon la taille de l'écran
-    const updateTranslateZ = () => {
+    // Ajuster la distance 3D et la taille des images selon la taille de l'écran
+    const updateSizes = () => {
       const width = window.innerWidth
       if (width >= 1024) {
         setTranslateZ(320) // lg
+        setImageSize(200)
       } else if (width >= 768) {
         setTranslateZ(300) // md
+        setImageSize(180)
       } else if (width >= 640) {
         setTranslateZ(280) // sm
+        setImageSize(160)
       } else {
         setTranslateZ(240) // mobile
+        setImageSize(140)
       }
     }
 
-    updateTranslateZ()
-    window.addEventListener('resize', updateTranslateZ)
-    return () => window.removeEventListener('resize', updateTranslateZ)
+    updateSizes()
+    window.addEventListener('resize', updateSizes)
+    return () => window.removeEventListener('resize', updateSizes)
   }, [])
 
   // Si pas de partenaires, retourner un message ou rien
@@ -83,13 +88,30 @@ const PartnersCarousel3D = ({ partners = [] }) => {
                       transform: `rotateY(${correctionAngle}deg)`
                     }}
                   >
-                    <div className="relative w-full h-24 sm:h-28 md:h-32 flex items-center justify-center mb-3 sm:mb-4 p-4 sm:p-5">
-                      {/* Conteneur d'image */}
-                      <div className="relative z-10 w-full h-full flex items-center justify-center p-2">
-                        <img
-                          src={partner.image}
-                          alt={partner.alt || partner.name}
-                          className="relative z-10 max-w-full max-h-full object-contain filter drop-shadow-md"
+                    <div className="relative w-full h-40 sm:h-48 md:h-56 lg:h-64 flex items-center justify-center mb-1 sm:mb-1.5 p-2 sm:p-3">
+                      {/* Conteneur d'image avec taille fixe absolue */}
+                      <div className="relative z-10 w-full h-full flex items-center justify-center">
+                        <div 
+                          className="flex items-center justify-center flex-shrink-0"
+                          style={{
+                            width: `${imageSize}px`,
+                            height: `${imageSize}px`
+                          }}
+                        >
+                          <img
+                            src={partner.image}
+                            alt={partner.alt || partner.name}
+                            className="relative z-10 object-contain object-center filter drop-shadow-md"
+                            style={{ 
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'contain',
+                              objectPosition: 'center',
+                              minWidth: `${imageSize}px`,
+                              minHeight: `${imageSize}px`,
+                              maxWidth: `${imageSize}px`,
+                              maxHeight: `${imageSize}px`
+                            }}
                           onError={(e) => {
                             e.target.style.display = 'none'
                             const fallback = e.target.nextElementSibling
@@ -98,9 +120,10 @@ const PartnersCarousel3D = ({ partners = [] }) => {
                             }
                           }}
                         />
+                        </div>
                         {/* Fallback si l'image ne charge pas */}
                         <div
-                          className="hidden items-center justify-center w-full h-full"
+                          className="hidden items-center justify-center w-full h-full absolute inset-0"
                           style={{ display: 'none' }}
                         >
                           <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary-100 via-accent-100 to-primary-100 rounded-2xl flex items-center justify-center shadow-lg border border-primary-200/50">
