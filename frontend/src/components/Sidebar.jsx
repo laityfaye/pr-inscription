@@ -12,7 +12,8 @@ import {
   FiBell,
   FiLogOut,
   FiBriefcase,
-  FiCalendar
+  FiCalendar,
+  FiPlus
 } from 'react-icons/fi'
 import { useAuth } from '../contexts/AuthContext'
 import { useAgency } from '../contexts/AgencyContext'
@@ -60,15 +61,17 @@ const Sidebar = ({ unreadCount = 0 }) => {
   const agencyInitials = getAgencyInitials(agency?.name)
 
   // Pages où le sidebar doit être fixe
-  const fixedPages = ['/admin/users', '/admin/chat', '/admin/news', '/client/chat']
+  const fixedPages = ['/admin/users', '/admin/chat', '/admin/news', '/client/chat', '/avocat/appointments']
   const isFixed = fixedPages.includes(location.pathname)
 
   const adminLinks = [
     { to: '/admin/dashboard', label: 'Tableau de bord', icon: FiHome },
+    { to: '/admin/create-application', label: 'Créer une demande', icon: FiPlus },
     { to: '/admin/inscriptions', label: 'Préinscriptions', icon: FiFileText },
-    // { to: '/admin/appointments', label: 'Rendez-vous', icon: FiCalendar },
+    { to: '/admin/appointments', label: 'Rendez-vous', icon: FiCalendar },
     { to: '/admin/work-permit-applications', label: 'Demandes de visa', icon: FiBriefcase },
     { to: '/admin/residence-applications', label: 'Résidence Canada', icon: FiHome },
+    { to: '/admin/study-permit-renewal-applications', label: 'CAQ/Permis d\'études', icon: FiFileText },
     { to: '/admin/users', label: 'Utilisateurs', icon: FiUsers },
     { to: '/admin/documents', label: 'Documents', icon: FiUpload },
     { to: '/admin/chat', label: 'Messages', icon: FiBell, badge: unreadCount },
@@ -83,12 +86,22 @@ const Sidebar = ({ unreadCount = 0 }) => {
     { to: '/client/inscriptions', label: 'Mes préinscriptions', icon: FiFileText },
     { to: '/client/work-permit-applications', label: 'Demandes de visa', icon: FiBriefcase },
     { to: '/client/residence-applications', label: 'Résidence Canada', icon: FiHome },
+    { to: '/client/study-permit-renewal-applications', label: 'Renouvellement CAQ/Permis', icon: FiFileText },
     { to: '/client/documents', label: 'Mes documents', icon: FiUpload },
     { to: '/client/chat', label: 'Messages', icon: FiBell, badge: unreadCount },
     { to: '/client/review/add', label: 'Laisser un avis', icon: FiStar },
   ]
 
-  const links = user?.role === 'admin' ? adminLinks : clientLinks
+  const avocatLinks = [
+    { to: '/avocat/dashboard', label: 'Tableau de bord', icon: FiHome },
+    { to: '/avocat/appointments', label: 'Rendez-vous', icon: FiCalendar },
+  ]
+
+  const links = user?.role === 'admin' 
+    ? adminLinks 
+    : user?.role === 'avocat' 
+    ? avocatLinks 
+    : clientLinks
 
   return (
     <aside className={`hidden lg:flex flex-col w-64 bg-white border-r border-neutral-200 h-screen ${

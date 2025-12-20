@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\UnavailableDay;
 use App\Models\SlotPrice;
+use App\Mail\AppointmentStatusMail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class AppointmentController extends Controller
 {
@@ -102,8 +105,9 @@ class AppointmentController extends Controller
 
     public function show(Request $request, Appointment $appointment): JsonResponse
     {
-        // Seuls les admins peuvent voir tous les rendez-vous
-        if (!$request->user()->isAdmin()) {
+        // Les admins et avocats peuvent voir tous les rendez-vous
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
@@ -114,7 +118,8 @@ class AppointmentController extends Controller
 
     public function validateAppointment(Request $request, Appointment $appointment): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
@@ -130,6 +135,16 @@ class AppointmentController extends Controller
             'validated_at' => now(),
         ]);
 
+        // Envoyer l'e-mail de notification en queue
+        try {
+            Mail::to($appointment->email)->queue(new AppointmentStatusMail($appointment->fresh(), 'validated'));
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'envoi de l\'e-mail de validation de rendez-vous: ' . $e->getMessage(), [
+                'appointment_id' => $appointment->id,
+                'email' => $appointment->email,
+            ]);
+        }
+
         return response()->json([
             'message' => 'Rendez-vous validé avec succès',
             'appointment' => $appointment->fresh('validator'),
@@ -138,7 +153,8 @@ class AppointmentController extends Controller
 
     public function reject(Request $request, Appointment $appointment): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
@@ -157,9 +173,91 @@ class AppointmentController extends Controller
             'rejection_reason' => $request->reason,
         ]);
 
+        // Envoyer l'e-mail de notification en queue
+        try {
+            Mail::to($appointment->email)->queue(new AppointmentStatusMail($appointment->fresh(), 'rejected'));
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'envoi de l\'e-mail de rejet de rendez-vous: ' . $e->getMessage(), [
+                'appointment_id' => $appointment->id,
+                'email' => $appointment->email,
+            ]);
+        }
+
         return response()->json([
             'message' => 'Rendez-vous rejeté',
             'appointment' => $appointment->fresh(),
+        ]);
+    }
+
+    public function reschedule(Request $request, Appointment $appointment): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $request->validate([
+            'date' => ['required', 'date', 'after_or_equal:today'],
+            'time' => ['required', 'string', 'in:08:00,09:00,10:00,11:00,12:00,15:00,16:00,17:00,18:00'],
+        ]);
+
+        // Vérifier que le rendez-vous peut être reporté (pas déjà terminé ou rejeté)
+        if ($appointment->status === 'completed') {
+            return response()->json([
+                'message' => 'Un rendez-vous terminé ne peut pas être reporté'
+            ], 422);
+        }
+
+        // Vérifier que la nouvelle date est ultérieure à la date actuelle du rendez-vous
+        $currentDate = \Carbon\Carbon::parse($appointment->date);
+        $newDate = \Carbon\Carbon::parse($request->date);
+        
+        if ($newDate->isSameDay($currentDate) && $request->time === $appointment->time) {
+            return response()->json([
+                'message' => 'La nouvelle date et heure doivent être différentes de la date et heure actuelles'
+            ], 422);
+        }
+
+        // Vérifier si le jour est indisponible
+        $isUnavailable = UnavailableDay::where('date', $request->date)->exists();
+        if ($isUnavailable) {
+            return response()->json([
+                'message' => 'Ce jour n\'est pas disponible pour les rendez-vous'
+            ], 422);
+        }
+
+        // Vérifier si le créneau est déjà réservé (sauf pour le rendez-vous actuel)
+        $existingAppointment = Appointment::where('date', $request->date)
+                                         ->where('time', $request->time)
+                                         ->where('id', '!=', $appointment->id)
+                                         ->whereIn('status', ['pending', 'validated'])
+                                         ->exists();
+
+        if ($existingAppointment) {
+            return response()->json([
+                'message' => 'Ce créneau est déjà réservé'
+            ], 422);
+        }
+
+        // Mettre à jour le rendez-vous avec la nouvelle date et heure
+        $appointment->update([
+            'date' => $request->date,
+            'time' => $request->time,
+        ]);
+
+        // Envoyer l'e-mail de notification en queue
+        try {
+            Mail::to($appointment->email)->queue(new AppointmentStatusMail($appointment->fresh(), 'rescheduled'));
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de l\'envoi de l\'e-mail de report de rendez-vous: ' . $e->getMessage(), [
+                'appointment_id' => $appointment->id,
+                'email' => $appointment->email,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Rendez-vous reporté avec succès',
+            'appointment' => $appointment->fresh('validator'),
         ]);
     }
 
@@ -210,9 +308,33 @@ class AppointmentController extends Controller
         return response()->json($days);
     }
 
+    public function getByEmail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+
+        // Récupérer le dernier rendez-vous pour cet email (le plus récent)
+        $appointment = Appointment::where('email', $request->email)
+                                 ->orderBy('created_at', 'desc')
+                                 ->first();
+
+        if (!$appointment) {
+            return response()->json([
+                'appointment' => null,
+                'message' => 'Aucun rendez-vous trouvé pour cet email'
+            ]);
+        }
+
+        return response()->json([
+            'appointment' => $appointment,
+        ]);
+    }
+
     public function addUnavailableDay(Request $request): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
@@ -231,7 +353,8 @@ class AppointmentController extends Controller
 
     public function removeUnavailableDay(Request $request, $date): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
@@ -267,7 +390,10 @@ class AppointmentController extends Controller
                 $timeKey = substr($timeStr, 0, 5);
             }
             
-            $prices[$timeKey] = (float) $slotPrice->price;
+            $prices[$timeKey] = [
+                'price' => (float) $slotPrice->price,
+                'currency' => $slotPrice->currency ?? 'FCFA',
+            ];
         }
 
         return response()->json($prices);
@@ -275,18 +401,23 @@ class AppointmentController extends Controller
 
     public function updateSlotPrice(Request $request): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->isAvocat())) {
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
         $request->validate([
             'time' => ['required', 'string', 'in:08:00,09:00,10:00,11:00,12:00,15:00,16:00,17:00,18:00'],
             'price' => ['required', 'numeric', 'min:0'],
+            'currency' => ['nullable', 'string', 'max:10'],
         ]);
 
         $slotPrice = SlotPrice::updateOrCreate(
             ['time' => $request->time],
-            ['price' => $request->price]
+            [
+                'price' => $request->price,
+                'currency' => $request->currency ?? 'FCFA',
+            ]
         );
 
         // Retourner tous les prix mis à jour pour synchronisation
@@ -309,7 +440,10 @@ class AppointmentController extends Controller
                 $timeKey = substr($timeStr, 0, 5);
             }
             
-            $allPrices[$timeKey] = (float) $sp->price;
+            $allPrices[$timeKey] = [
+                'price' => (float) $sp->price,
+                'currency' => $sp->currency ?? 'FCFA',
+            ];
         }
 
         return response()->json([

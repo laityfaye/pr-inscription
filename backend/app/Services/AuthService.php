@@ -23,6 +23,17 @@ class AuthService
 
         $user = $this->userRepository->create($data);
 
+        // Envoyer l'e-mail de bienvenue en queue
+        try {
+            Mail::to($user->email)->queue(new WelcomeMail($user));
+        } catch (\Exception $e) {
+            // Logger l'erreur mais ne pas faire échouer l'inscription
+            Log::error('Erreur lors de l\'envoi de l\'e-mail de bienvenue: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+        }
+
         return $user;
     }
 

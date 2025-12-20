@@ -157,6 +157,8 @@ const AdminDocuments = () => {
         endpoint = `/work-permit-applications/${dossier.id}`
       } else if (dossier.type === 'residence') {
         endpoint = `/residence-applications/${dossier.id}`
+      } else if (dossier.type === 'study_permit_renewal') {
+        endpoint = `/study-permit-renewal-applications/${dossier.id}`
       } else {
         toast.error('Impossible de supprimer ce type de dossier')
         return
@@ -273,6 +275,14 @@ const AdminDocuments = () => {
         label: 'Résidence',
         id: doc.residence_application_id,
         data: doc.residence_application
+      }
+    }
+    if (doc.study_permit_renewal_application_id) {
+      return {
+        type: 'study_permit_renewal',
+        label: 'CAQ/Permis d\'études',
+        id: doc.study_permit_renewal_application_id,
+        data: doc.study_permit_renewal_application
       }
     }
     return {
@@ -446,6 +456,7 @@ const AdminDocuments = () => {
                           preinscription: 'from-blue-500 to-blue-600',
                           permis: 'from-green-500 to-green-600',
                           residence: 'from-purple-500 to-purple-600',
+                          study_permit_renewal: 'from-orange-500 to-orange-600',
                           none: 'from-gray-400 to-gray-500'
                         }
 

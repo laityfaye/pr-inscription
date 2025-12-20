@@ -17,7 +17,7 @@ class DocumentStoreRequest extends FormRequest
         // Convertir les chaînes vides en null pour les IDs optionnels
         $dataToMerge = [];
         
-        foreach (['inscription_id', 'work_permit_application_id', 'residence_application_id'] as $field) {
+        foreach (['inscription_id', 'work_permit_application_id', 'residence_application_id', 'study_permit_renewal_application_id'] as $field) {
             if ($this->has($field)) {
                 $value = $this->input($field);
                 if ($value === '' || $value === null || (is_string($value) && trim($value) === '')) {
@@ -44,6 +44,7 @@ class DocumentStoreRequest extends FormRequest
                 'inscription_id' => $this->input('inscription_id'),
                 'work_permit_application_id' => $this->input('work_permit_application_id'),
                 'residence_application_id' => $this->input('residence_application_id'),
+                'study_permit_renewal_application_id' => $this->input('study_permit_renewal_application_id'),
                 'name' => $this->input('name'),
             ]);
         } catch (\Exception $e) {
@@ -60,7 +61,9 @@ class DocumentStoreRequest extends FormRequest
             'inscription_id' => ['nullable', 'integer'],
             'work_permit_application_id' => ['nullable', 'integer'],
             'residence_application_id' => ['nullable', 'integer'],
+            'study_permit_renewal_application_id' => ['nullable', 'integer'],
             'name' => ['nullable', 'string', 'max:255'],
+            'user_id' => ['nullable', 'integer', 'exists:users,id'], // Permettre à l'admin de spécifier un user_id
         ];
     }
 
@@ -77,6 +80,8 @@ class DocumentStoreRequest extends FormRequest
             'work_permit_application_id.exists' => 'La demande de permis de travail sélectionnée n\'existe pas.',
             'residence_application_id.integer' => 'L\'ID de demande de résidence doit être un nombre.',
             'residence_application_id.exists' => 'La demande de résidence sélectionnée n\'existe pas.',
+            'study_permit_renewal_application_id.integer' => 'L\'ID de demande de renouvellement CAQ/Permis d\'études doit être un nombre.',
+            'study_permit_renewal_application_id.exists' => 'La demande de renouvellement CAQ/Permis d\'études sélectionnée n\'existe pas.',
         ];
     }
 }

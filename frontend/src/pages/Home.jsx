@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
 import TestimonialCarousel from '../components/TestimonialCarousel'
+import PartnersCarousel3D from '../components/PartnersCarousel3D'
 import api from '../services/api'
 import { getImageUrl } from '../utils/imageUrl'
 import { useAgency } from '../contexts/AgencyContext'
@@ -39,6 +40,100 @@ import {
 import ReactPlayer from 'react-player'
 import toast from 'react-hot-toast'
 
+// Composant Counter pour animer les chiffres
+const Counter = ({ target, duration = 2000, visible, resetKey }) => {
+  const [count, setCount] = useState(0)
+  const countRef = useRef(0)
+  const animationRef = useRef(null)
+  const isAnimatingRef = useRef(false)
+
+  useEffect(() => {
+    // Réinitialiser quand resetKey change
+    setCount(0)
+    isAnimatingRef.current = false
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current)
+      animationRef.current = null
+    }
+  }, [resetKey])
+
+  useEffect(() => {
+    if (!visible) {
+      setCount(0)
+      isAnimatingRef.current = false
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+        animationRef.current = null
+      }
+      return
+    }
+
+    // Éviter de lancer plusieurs animations en même temps
+    if (isAnimatingRef.current) {
+      return
+    }
+
+    isAnimatingRef.current = true
+
+    // Extraire le nombre de la chaîne (gérer les formats comme "95%", "15+", etc.)
+    const extractNumber = (str) => {
+      const match = str.match(/(\d+)/)
+      return match ? parseInt(match[1]) : 0
+    }
+
+    const targetNum = extractNumber(target)
+    const startTime = Date.now()
+    const startValue = 0
+
+    const animate = () => {
+      const now = Date.now()
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
+      // Easing function (ease-out)
+      const easeOut = 1 - Math.pow(1 - progress, 3)
+      const currentValue = Math.floor(startValue + (targetNum - startValue) * easeOut)
+
+      countRef.current = currentValue
+      setCount(currentValue)
+
+      if (progress < 1) {
+        animationRef.current = requestAnimationFrame(animate)
+      } else {
+        // Afficher la valeur finale avec le suffixe
+        setCount(targetNum)
+        isAnimatingRef.current = false
+        animationRef.current = null
+      }
+    }
+
+    const timeoutId = setTimeout(() => {
+      animationRef.current = requestAnimationFrame(animate)
+    }, 100)
+
+    return () => {
+      clearTimeout(timeoutId)
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+        animationRef.current = null
+      }
+      isAnimatingRef.current = false
+    }
+  }, [visible, target, duration, resetKey])
+
+  // Formater avec le suffixe
+  const formatValue = () => {
+    if (target.includes('%')) {
+      return `${count}%`
+    } else if (target.includes('+')) {
+      return `${count}+`
+    }
+    return count.toString()
+  }
+
+  return <span>{formatValue()}</span>
+}
+
 const Home = () => {
   // Utiliser directement le contexte Agency qui a déjà un système de cache
   // Le contexte charge immédiatement depuis le cache localStorage, donc pas de délai
@@ -59,6 +154,7 @@ const Home = () => {
   const [selectedWorkPermitCountry, setSelectedWorkPermitCountry] = useState(null)
   const [showWorkPermitDetails, setShowWorkPermitDetails] = useState(false)
   const [loadingWorkPermitDetails, setLoadingWorkPermitDetails] = useState(false)
+<<<<<<< HEAD
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   // Images de groupes d'étudiants pour le carrousel
@@ -84,6 +180,11 @@ const Home = () => {
 
     return () => clearInterval(interval)
   }, [studentImages.length])
+=======
+  const [countersVisible, setCountersVisible] = useState(false)
+  const [counterKey, setCounterKey] = useState(0) // Clé pour forcer la réinitialisation du compteur
+  const statsSectionRef = useRef(null)
+>>>>>>> 3a0395d1eb49ba2910224bbb5ceb189e441e3817
 
   // Fonction helper pour gérer les clics sur les boutons de demande
   // Redirige vers /register si l'utilisateur n'est pas connecté, sinon vers la route normale
@@ -100,6 +201,24 @@ const Home = () => {
     } else {
       // Sinon, naviguer vers la route normale
       navigate(route)
+    }
+  }, [user, navigate])
+
+  // Fonction helper pour gérer les clics sur les boutons de préinscription
+  // Redirige vers /register si l'utilisateur n'est pas connecté, sinon vers l'espace client
+  const handlePreinscriptionClick = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const token = localStorage.getItem('token')
+    const isAuthenticated = user || token
+    
+    if (!isAuthenticated) {
+      // Rediriger vers l'inscription si l'utilisateur n'est pas connecté
+      navigate('/register')
+    } else {
+      // Rediriger vers l'espace client pour les utilisateurs connectés
+      navigate('/client/inscriptions')
     }
   }, [user, navigate])
 
@@ -195,6 +314,42 @@ const Home = () => {
     }
   }, [fetchNonCriticalData]) // Recharger les données quand fetchNonCriticalData change (donc quand user change)
 
+  // Observer pour déclencher l'animation du compteur quand la section est visible
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !countersVisible) {
+            setCountersVisible(true)
+          }
+        })
+      },
+      { threshold: 0.3 }
+    )
+
+    if (statsSectionRef.current) {
+      observer.observe(statsSectionRef.current)
+    }
+
+    return () => {
+      if (statsSectionRef.current) {
+        observer.unobserve(statsSectionRef.current)
+      }
+    }
+  }, [countersVisible])
+
+  // Fonction pour déclencher le décompte au survol
+  const handleStatsHover = () => {
+    // Réinitialiser et relancer le compteur à chaque survol
+    setCountersVisible(false)
+    setCounterKey(prev => prev + 1)
+    // Relancer après un court délai pour permettre la réinitialisation
+    setTimeout(() => {
+      setCountersVisible(true)
+    }, 50)
+  }
+
+
   const handleCountryClick = async (countryId) => {
     setLoadingCountry(true)
     try {
@@ -241,6 +396,7 @@ const Home = () => {
     />
   </div>
 
+<<<<<<< HEAD
   {/* Carrousel d'images avec transitions cinématiques */}
   {studentImages.length > 0 && (
     <div className="absolute inset-0 z-[1]">
@@ -267,6 +423,55 @@ const Home = () => {
                 transition: 'transform 30s cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             />
+=======
+        {/* Lawyer Card - Bottom Left (Desktop) / Below Buttons (Mobile) */}
+        {agency?.lawyer_card_enabled && (agency?.lawyer_first_name || agency?.lawyer_last_name) && (
+          <>
+            {/* Desktop: Absolute position bottom left */}
+            <div className="hidden md:block absolute bottom-8 left-8 z-20 animate-slide-up" style={{ animationDelay: '0.5s' }}>
+              <div className="bg-white/95 backdrop-blur-xl rounded-xl p-4 shadow-2xl border border-white/20 max-w-[220px]">
+                <div className="flex flex-col items-center text-center space-y-2">
+                  {/* Circular Image */}
+                  {agency?.lawyer_image && (
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-xl opacity-50"></div>
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-xl">
+                        <img 
+                          src={getImageUrl(agency.lawyer_image)} 
+                          alt={`${agency.lawyer_first_name || ''} ${agency.lawyer_last_name || ''}`.trim() || 'Avocat'} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {/* Lawyer Info */}
+                  <div className="w-full">
+                    <h3 className="text-base font-bold text-gray-900 mb-0.5">
+                      {agency.lawyer_first_name || ''} {agency.lawyer_last_name || ''}
+                    </h3>
+                    {agency.lawyer_title && (
+                      <p className="text-xs text-gray-600 mb-2 px-1 line-clamp-2">{agency.lawyer_title}</p>
+                    )}
+                    {/* Appointment Button */}
+                    <Link to="/appointment" className="block w-full">
+                      <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-3 rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-1.5 text-xs">
+                        <FiCalendar className="w-3.5 h-3.5" />
+                        <span className="whitespace-nowrap">Prendre rendez-vous</span>
+                      </button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="section-container relative z-10 text-center animate-fade-in w-full px-4 pt-0 sm:pt-0 md:pt-0">
+          {/* Badge */}
+          <div className="inline-flex items-center justify-center px-3 sm:px-5 py-2 sm:py-2.5 bg-white/15 backdrop-blur-xl rounded-full mb-4 sm:mb-6 md:mb-8 text-xs sm:text-sm font-semibold border border-white/20 shadow-lg animate-slide-down">
+            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-success-400 rounded-full mr-2 sm:mr-3 animate-pulse shadow-lg shadow-success-400/50"></span>
+            <span className="text-[11px] sm:text-sm">{rentreeText}</span>
+>>>>>>> 3a0395d1eb49ba2910224bbb5ceb189e441e3817
           </div>
         );
       })}
@@ -336,6 +541,7 @@ const Home = () => {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Titre principal - Optimisé mobile */}
       <div className="text-center mb-6 sm:mb-8 lg:mb-10 animate-slide-up">
         <h1 className="relative px-2">
@@ -370,6 +576,41 @@ const Home = () => {
                 WebkitTextFillColor: 'transparent',
                 filter: 'drop-shadow(0 2px 8px rgba(37, 99, 235, 0.25))',
               }}
+=======
+          {/* CTA Buttons */}
+          {!loading && (
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center animate-slide-up px-2" style={{ animationDelay: '0.3s' }}>
+            <button 
+              onClick={handlePreinscriptionClick}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
+                         px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
+                         bg-white text-primary-700 hover:bg-neutral-50 
+                         shadow-2xl hover:shadow-glow-lg transform hover:scale-105 
+                         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+                         whitespace-nowrap border-0"
+            >
+              Préinscription maintenant
+              <FiArrowRight className="w-4 h-4" />
+            </button>
+            <Link to="/reviews" className="w-full sm:w-auto">
+              <button 
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 
+                           px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base
+                           bg-transparent text-white border-2 border-white/40 
+                           hover:bg-white/20 hover:border-white/60 
+                           backdrop-blur-sm
+                           focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent
+                           whitespace-nowrap"
+              >
+                Voir les témoignages
+              </button>
+            </Link>
+            <a 
+              href="https://assurancevisiteurs.ca/collaborations/sbc-voyage/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto"
+>>>>>>> 3a0395d1eb49ba2910224bbb5ceb189e441e3817
             >
               Voyages d'Étude
               {/* Effet de brillance */}
@@ -482,6 +723,7 @@ const Home = () => {
         })}
       </div>
 
+<<<<<<< HEAD
       {/* Statistiques premium - Responsive */}
       <div className="relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 sm:w-4/5 h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent" />
@@ -506,6 +748,41 @@ const Home = () => {
                   <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500`} />
                   <div className={`relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-500`}>
                     <Icon className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white" strokeWidth={2.5} />
+=======
+          {/* Lawyer Card - Mobile: Below buttons */}
+          {agency?.lawyer_card_enabled && (agency?.lawyer_first_name || agency?.lawyer_last_name) && (
+            <div className="md:hidden mt-4 sm:mt-6 w-full max-w-[280px] mx-auto animate-slide-up px-2" style={{ animationDelay: '0.4s' }}>
+              <div className="bg-white/95 backdrop-blur-xl rounded-xl p-3 shadow-2xl border border-white/20">
+                <div className="flex flex-col items-center text-center space-y-2">
+                  {/* Circular Image */}
+                  {agency?.lawyer_image && (
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-xl opacity-50"></div>
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-xl">
+                        <img 
+                          src={getImageUrl(agency.lawyer_image)} 
+                          alt={`${agency.lawyer_first_name || ''} ${agency.lawyer_last_name || ''}`.trim() || 'Avocat'} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {/* Lawyer Info */}
+                  <div className="w-full">
+                    <h3 className="text-sm font-bold text-gray-900 mb-0.5">
+                      {agency.lawyer_first_name || ''} {agency.lawyer_last_name || ''}
+                    </h3>
+                    {agency.lawyer_title && (
+                      <p className="text-xs text-gray-600 mb-2 px-1 line-clamp-2">{agency.lawyer_title}</p>
+                    )}
+                    {/* Appointment Button */}
+                    <Link to="/appointment" className="block w-full">
+                      <button className="w-full bg-gradient-to-r from-primary-600 to-accent-600 text-white font-semibold py-2 px-3 rounded-lg hover:from-primary-700 hover:to-accent-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-1.5 text-xs">
+                        <FiCalendar className="w-3.5 h-3.5" />
+                        <span className="whitespace-nowrap">Prendre rendez-vous</span>
+                      </button>
+                    </Link>
+>>>>>>> 3a0395d1eb49ba2910224bbb5ceb189e441e3817
                   </div>
                 </div>
                 <div className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br ${stat.gradient} mb-2 sm:mb-3 drop-shadow-sm group-hover:scale-105 transition-transform duration-300`}>
@@ -533,7 +810,7 @@ const Home = () => {
 </section>
 
       {/* Why Choose Us - Enhanced */}
-      <section className="py-24 bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
+      <section className="py-24 bg-white">
         <div className="section-container">
           <div className="text-center mb-20">
             <Badge variant="primary" size="lg" className="mb-6">
@@ -587,7 +864,6 @@ const Home = () => {
                   style={{ animationDelay: feature.delay }}
                 >
                   <div className={`relative inline-block mb-6`}>
-                    <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300`}></div>
                     <div className={`relative w-20 h-20 bg-gradient-to-br ${feature.gradient} rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300`}>
                       <Icon className="text-4xl text-white" />
                     </div>
@@ -640,7 +916,6 @@ const Home = () => {
                     
                     {/* Icon */}
                     <div className="relative inline-block mb-6">
-                      <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} rounded-full blur-xl opacity-50 group-hover:opacity-75 transition-opacity`}></div>
                       <div className={`relative w-24 h-24 bg-gradient-to-br ${item.gradient} rounded-full flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300`}>
                         <Icon className="text-4xl text-white" />
                       </div>
@@ -657,22 +932,31 @@ const Home = () => {
       </section>
 
       {/* Statistics Section - Enhanced */}
-      <section className="py-24 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 text-white relative overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-400 rounded-full blur-3xl"></div>
-        </div>
-
+      <section 
+        ref={statsSectionRef}
+        onMouseEnter={handleStatsHover}
+        className="py-24 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 text-white relative overflow-hidden"
+      >
         <div className="section-container relative z-10">
           <div className="text-center mb-16">
-            <Badge variant="neutral" size="lg" className="mb-6 bg-white/20 text-white border-white/30">
+            <Badge 
+              variant="neutral" 
+              size="lg" 
+              className="mb-6 bg-white/20 text-white border-white/30 cursor-pointer transition-all duration-300 hover:bg-white/30 hover:scale-105"
+              onMouseEnter={handleStatsHover}
+            >
               Nos réalisations
             </Badge>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
+            <h2 
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 cursor-pointer transition-all duration-300 hover:scale-105"
+              onMouseEnter={handleStatsHover}
+            >
               Des chiffres qui parlent
             </h2>
-            <p className="text-xl text-primary-100 max-w-2xl mx-auto">
+            <p 
+              className="text-xl text-primary-100 max-w-2xl mx-auto cursor-pointer"
+              onMouseEnter={handleStatsHover}
+            >
               Une communauté qui grandit chaque jour grâce à votre confiance
             </p>
           </div>
@@ -680,22 +964,23 @@ const Home = () => {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { icon: FiUsers, number: clientsCount > 0 ? `${clientsCount}+` : '0+', label: 'Étudiants accompagnés' },
-              { icon: FiGlobe, number: countries.length || '15+', label: 'Pays disponibles' },
+              { icon: FiGlobe, number: countries.length ? `${countries.length}+` : '15+', label: 'Pays disponibles' },
               { icon: FiTrendingUp, number: '95%', label: 'Taux de réussite' },
               { icon: FiStar, number: reviews.length > 0 ? `${reviews.length}+` : '50+', label: 'Avis clients' },
             ].map((stat, index) => {
               const Icon = stat.icon
+              
               return (
                 <div
                   key={index} 
-                  className="p-8 text-center bg-white/15 backdrop-blur-xl border-2 border-white/40 rounded-2xl shadow-2xl animate-slide-up" 
+                  className="group p-8 text-center bg-white/15 backdrop-blur-xl border-2 border-white/40 rounded-2xl shadow-2xl animate-slide-up hover:bg-white/20 hover:border-white/60 transition-all duration-300" 
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="w-20 h-20 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 border-2 border-white/50 shadow-lg">
-                    <Icon className="text-4xl text-white" />
+                  <div className="w-20 h-20 bg-white/30 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 border-2 border-white/50 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-12 group-hover:bg-white/40">
+                    <Icon className="text-4xl text-white transition-transform duration-500 group-hover:rotate-[-12deg] group-hover:scale-110" />
                   </div>
-                  <div className="text-5xl lg:text-6xl font-bold mb-3 text-white">
-                    {stat.number}
+                  <div className="text-5xl lg:text-6xl font-bold mb-3 text-white min-h-[4rem] flex items-center justify-center">
+                    <Counter key={counterKey} target={stat.number} visible={countersVisible} duration={2000} resetKey={counterKey} />
                   </div>
                   <div className="text-white text-lg font-semibold">{stat.label}</div>
                 </div>
@@ -707,7 +992,7 @@ const Home = () => {
 
       {/* Countries Section - Enhanced */}
       {countries.length > 0 && (
-        <section className="py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
+        <section className="py-24 bg-white">
           <div className="section-container">
             <div className="text-center mb-20">
               <Badge variant="success" size="lg" className="mb-6">
@@ -758,7 +1043,7 @@ const Home = () => {
 
       {/* Work Permit Section */}
       {workPermitCountries.length > 0 && (
-        <section className="py-24 bg-gradient-to-b from-neutral-50 via-white to-neutral-50">
+        <section className="py-24 bg-white">
           <div className="section-container">
             <div className="text-center mb-20">
               <Badge variant="primary" size="lg" className="mb-6">
@@ -848,65 +1133,64 @@ const Home = () => {
         </section>
       )}
 
-      {/* Residence Application Section */}
-      <section className="py-24 bg-gradient-to-b from-white via-neutral-50 to-white">
-        <div className="section-container">
-          <div className="text-center mb-20">
-            <Badge variant="accent" size="lg" className="mb-6">
-              Résidence permanente
+      {/* Study Permit Renewal Section */}
+      <section className="py-12 sm:py-16 md:py-24 bg-white">
+        <div className="section-container px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-12 md:mb-20">
+            <Badge variant="primary" size="lg" className="mb-4 sm:mb-6">
+              Renouvellement
             </Badge>
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
-              Résidence permanente au Canada
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-neutral-900 mb-4 sm:mb-6 px-2">
+              Renouvellement CAQ ou Permis d'études
             </h2>
-            <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-              Réalisez votre rêve d'immigration au Canada avec notre accompagnement expert
+            <p className="text-base sm:text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto px-2">
+              Renouvelez votre CAQ ou votre permis d'études au Canada en toute simplicité
             </p>
           </div>
 
           <div className="max-w-4xl mx-auto">
-            <Card interactive className="p-8 md:p-12 animate-slide-up">
-              <div className="flex flex-col md:flex-row items-center gap-8">
+            <Card interactive className="p-4 sm:p-6 md:p-8 lg:p-12 animate-slide-up">
+              <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 md:gap-8">
                 <div className="relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl blur-xl opacity-50"></div>
-                  <div className="relative w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-primary-500 to-primary-800 rounded-2xl flex items-center justify-center shadow-xl">
-                    <FiHome className="text-4xl md:text-5xl text-white" />
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-gradient-to-br from-accent-500 to-accent-800 rounded-2xl flex items-center justify-center shadow-xl">
+                    <FiFileText className="text-3xl sm:text-4xl md:text-5xl text-white" />
                   </div>
                 </div>
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-4">
-                    Obtenez votre résidence permanente au Canada
+                <div className="flex-1 text-center md:text-left w-full">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-neutral-900 mb-3 sm:mb-4">
+                    Renouvelez votre CAQ ou Permis d'études
                   </h3>
-                  <p className="text-neutral-600 mb-6 leading-relaxed">
-                    Le Canada offre de nombreuses opportunités pour ceux qui souhaitent s'y installer de manière permanente. 
-                    Notre équipe vous accompagne dans toutes les démarches nécessaires pour obtenir votre résidence permanente.
+                  <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-6 leading-relaxed">
+                    Vous êtes déjà au Canada et votre CAQ ou permis d'études arrive à expiration ? 
+                    Notre équipe vous accompagne dans le processus de renouvellement pour continuer vos études en toute sérénité.
                   </p>
-                  <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Accompagnement complet</p>
-                        <p className="text-sm text-neutral-600">De la préparation du dossier à l'obtention</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Processus simplifié</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Renouvellement rapide et efficace</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Expertise reconnue</p>
-                        <p className="text-sm text-neutral-600">Des années d'expérience dans l'immigration</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Accompagnement expert</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Notre équipe connaît les procédures</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Suivi personnalisé</p>
-                        <p className="text-sm text-neutral-600">Un conseiller dédié à votre dossier</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Suivi personnalisé</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Un conseiller dédié à votre dossier</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <FiCheckCircle className="text-primary-600 mt-1 flex-shrink-0" />
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
                       <div>
-                        <p className="font-semibold text-neutral-900">Taux de réussite élevé</p>
-                        <p className="text-sm text-neutral-600">Maximisez vos chances de succès</p>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Délais respectés</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Soumission dans les temps</p>
                       </div>
                     </div>
                   </div>
@@ -916,7 +1200,86 @@ const Home = () => {
                     icon={FiArrowRight} 
                     iconPosition="right" 
                     fullWidth 
-                    className="md:w-auto"
+                    className="md:w-auto text-sm sm:text-base"
+                    onClick={(e) => handleApplicationClick(e, '/client/study-permit-renewal-applications')}
+                  >
+                    Faire une demande de renouvellement
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Residence Application Section */}
+      <section className="py-12 sm:py-16 md:py-24 bg-white">
+        <div className="section-container px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-12 md:mb-20">
+            <Badge variant="accent" size="lg" className="mb-4 sm:mb-6">
+              Résidence permanente
+            </Badge>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-neutral-900 mb-4 sm:mb-6 px-2">
+              Résidence permanente au Canada
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-neutral-600 max-w-2xl mx-auto px-2">
+              Réalisez votre rêve d'immigration au Canada avec notre accompagnement expert
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <Card interactive className="p-4 sm:p-6 md:p-8 lg:p-12 animate-slide-up">
+              <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6 md:gap-8">
+                <div className="relative flex-shrink-0">
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-gradient-to-br from-primary-500 to-primary-800 rounded-2xl flex items-center justify-center shadow-xl">
+                    <FiHome className="text-3xl sm:text-4xl md:text-5xl text-white" />
+                  </div>
+                </div>
+                <div className="flex-1 text-center md:text-left w-full">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-neutral-900 mb-3 sm:mb-4">
+                    Obtenez votre résidence permanente au Canada
+                  </h3>
+                  <p className="text-sm sm:text-base text-neutral-600 mb-4 sm:mb-6 leading-relaxed">
+                    Le Canada offre de nombreuses opportunités pour ceux qui souhaitent s'y installer de manière permanente. 
+                    Notre équipe vous accompagne dans toutes les démarches nécessaires pour obtenir votre résidence permanente.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
+                      <div>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Accompagnement complet</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">De la préparation du dossier à l'obtention</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
+                      <div>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Expertise reconnue</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Des années d'expérience dans l'immigration</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
+                      <div>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Suivi personnalisé</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Un conseiller dédié à votre dossier</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <FiCheckCircle className="text-primary-600 mt-0.5 sm:mt-1 flex-shrink-0 w-4 h-4 sm:w-5 sm:h-5" />
+                      <div>
+                        <p className="font-semibold text-sm sm:text-base text-neutral-900">Taux de réussite élevé</p>
+                        <p className="text-xs sm:text-sm text-neutral-600">Maximisez vos chances de succès</p>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="primary" 
+                    size="lg" 
+                    icon={FiArrowRight} 
+                    iconPosition="right" 
+                    fullWidth 
+                    className="md:w-auto text-sm sm:text-base"
                     onClick={(e) => handleApplicationClick(e, '/client/residence-applications')}
                   >
                     Faire une demande de résidence
@@ -962,7 +1325,6 @@ const Home = () => {
                   >
                     <Card interactive className="p-6 text-center group" style={{ animationDelay: `${index * 0.1}s` }}>
                       <div className={`relative inline-block mb-5`}>
-                        <div className={`absolute inset-0 bg-gradient-to-br ${contact.gradient} rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity`}></div>
                         <div className={`relative w-16 h-16 bg-gradient-to-br ${contact.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                           <Icon className="text-3xl text-white" />
                         </div>
@@ -977,7 +1339,6 @@ const Home = () => {
                   <div key={index}>
                     <Card interactive className="p-6 text-center group" style={{ animationDelay: `${index * 0.1}s` }}>
                       <div className={`relative inline-block mb-5`}>
-                        <div className={`absolute inset-0 bg-gradient-to-br ${contact.gradient} rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity`}></div>
                         <div className={`relative w-16 h-16 bg-gradient-to-br ${contact.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                           <Icon className="text-3xl text-white" />
                         </div>
@@ -1004,7 +1365,7 @@ const Home = () => {
 
       {/* News Section - Enhanced */}
       {news.length > 0 && (
-        <section className="py-24 bg-gradient-to-b from-neutral-50 to-white">
+        <section className="py-24 bg-white">
           <div className="section-container">
             <div className="text-center mb-20">
               <Badge variant="accent" size="lg" className="mb-6">
@@ -1166,10 +1527,6 @@ const Home = () => {
 
       {/* Final CTA Section - Enhanced */}
       <section className="py-24 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 text-white relative overflow-hidden">
-        {/* Animated Background */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] animate-pulse-slow"></div>
-        </div>
 
         <div className="section-container text-center relative z-10">
           <div className="max-w-3xl mx-auto">
@@ -1299,11 +1656,16 @@ const Home = () => {
                 <Button variant="secondary" onClick={closeModal} className="sm:order-2">
                   Fermer
                 </Button>
-                <Link to="/register" className="sm:order-1">
-                  <Button variant="primary" fullWidth className="sm:w-auto" icon={FiArrowRight} iconPosition="right">
-                    Faire une préinscription
-                  </Button>
-                </Link>
+                <Button 
+                  variant="primary" 
+                  fullWidth 
+                  className="sm:order-1 sm:w-auto" 
+                  icon={FiArrowRight} 
+                  iconPosition="right"
+                  onClick={handlePreinscriptionClick}
+                >
+                  Faire une préinscription
+                </Button>
               </div>
             </div>
           </Card>
@@ -1499,6 +1861,61 @@ const Home = () => {
         </div>
       )}
 
+<<<<<<< HEAD
+=======
+      {/* Partners Section */}
+      <section className="py-24 bg-white relative overflow-hidden">
+
+        <div className="section-container relative z-10">
+          <div className="text-center mb-16">
+            <Badge variant="primary" size="lg" className="mb-6">
+              Nos partenaires
+            </Badge>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-neutral-900 mb-6">
+              Institutions partenaires
+            </h2>
+            <p className="text-xl text-neutral-600 max-w-3xl mx-auto leading-relaxed">
+              Nous collaborons avec des établissements d'enseignement de renom au Canada pour vous offrir les meilleures opportunités
+            </p>
+          </div>
+
+          <PartnersCarousel3D 
+            partners={[
+              {
+                name: 'Collège Ellis',
+                image: '/images/partners/college-ellis.png',
+                alt: 'Logo Collège Ellis'
+              },
+              {
+                name: 'COLLÈGE de l\'île',
+                image: '/images/partners/college-de-lile.png',
+                alt: 'Logo COLLÈGE de l\'île'
+              },
+              {
+                name: 'COLLÈGE SUPÉRIEUR DE MONTRÉAL',
+                image: '/images/partners/college-superieur-montreal.png',
+                alt: 'Logo COLLÈGE SUPÉRIEUR DE MONTRÉAL'
+              },
+              {
+                name: 'Collège CDI',
+                image: '/images/partners/college-cdi.png',
+                alt: 'Logo Collège CDI'
+              },
+              {
+                name: 'CESTAR COLLÈGE',
+                image: '/images/partners/cestar-college.png',
+                alt: 'Logo CESTAR COLLÈGE, Campus Longueuil'
+              },
+              {
+                name: 'Collège National',
+                image: '/images/partners/college-national.png',
+                alt: 'Logo Collège National'
+              }
+            ]}
+          />
+        </div>
+      </section>
+>>>>>>> 3a0395d1eb49ba2910224bbb5ceb189e441e3817
     </Layout>
   )
 }

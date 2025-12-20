@@ -51,6 +51,14 @@ class DocumentController extends Controller
 
             // Vérifier que les IDs existent et appartiennent à l'utilisateur (sécurité)
             $user = $request->user();
+            $targetUserId = $user->id; // Par défaut, l'utilisateur connecté
+            
+            // Si admin et user_id fourni, utiliser ce user_id pour le document
+            $requestUserId = $request->input('user_id');
+            if ($user->isAdmin() && $requestUserId) {
+                $targetUserId = (int) $requestUserId;
+            }
+            
             if (!empty($validated['inscription_id'])) {
                 $inscription = \App\Models\Inscription::find($validated['inscription_id']);
                 if (!$inscription) {
@@ -59,10 +67,18 @@ class DocumentController extends Controller
                         'errors' => ['inscription_id' => ['La préinscription sélectionnée n\'existe pas.']]
                     ], 422);
                 }
-                if ($inscription->user_id !== $user->id) {
+                // Admin peut uploader pour n'importe quel client, sinon vérifier la propriété
+                if (!$user->isAdmin() && $inscription->user_id !== $user->id) {
                     return response()->json([
                         'message' => 'La préinscription sélectionnée ne vous appartient pas.',
                         'errors' => ['inscription_id' => ['La préinscription sélectionnée ne vous appartient pas.']]
+                    ], 422);
+                }
+                // Si admin spécifie un user_id, s'assurer que l'inscription appartient à ce user
+                if ($user->isAdmin() && $request->input('user_id') && $inscription->user_id !== $targetUserId) {
+                    return response()->json([
+                        'message' => 'La préinscription sélectionnée n\'appartient pas au client spécifié.',
+                        'errors' => ['inscription_id' => ['La préinscription sélectionnée n\'appartient pas au client spécifié.']]
                     ], 422);
                 }
             }
@@ -75,10 +91,16 @@ class DocumentController extends Controller
                         'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée n\'existe pas.']]
                     ], 422);
                 }
-                if ($workPermit->user_id !== $user->id) {
+                if (!$user->isAdmin() && $workPermit->user_id !== $user->id) {
                     return response()->json([
                         'message' => 'La demande de permis de travail sélectionnée ne vous appartient pas.',
                         'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée ne vous appartient pas.']]
+                    ], 422);
+                }
+                if ($user->isAdmin() && $request->input('user_id') && $workPermit->user_id !== $targetUserId) {
+                    return response()->json([
+                        'message' => 'La demande de permis de travail sélectionnée n\'appartient pas au client spécifié.',
+                        'errors' => ['work_permit_application_id' => ['La demande de permis de travail sélectionnée n\'appartient pas au client spécifié.']]
                     ], 422);
                 }
             }
@@ -91,22 +113,60 @@ class DocumentController extends Controller
                         'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée n\'existe pas.']]
                     ], 422);
                 }
-                if ($residence->user_id !== $user->id) {
+                if (!$user->isAdmin() && $residence->user_id !== $user->id) {
                     return response()->json([
                         'message' => 'La demande de résidence sélectionnée ne vous appartient pas.',
                         'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée ne vous appartient pas.']]
                     ], 422);
                 }
+                if ($user->isAdmin() && $request->input('user_id') && $residence->user_id !== $targetUserId) {
+                    return response()->json([
+                        'message' => 'La demande de résidence sélectionnée n\'appartient pas au client spécifié.',
+                        'errors' => ['residence_application_id' => ['La demande de résidence sélectionnée n\'appartient pas au client spécifié.']]
+                    ], 422);
+                }
+            }
+            
+            if (!empty($validated['study_permit_renewal_application_id'])) {
+                $studyPermitRenewal = \App\Models\StudyPermitRenewalApplication::find($validated['study_permit_renewal_application_id']);
+                if (!$studyPermitRenewal) {
+                    return response()->json([
+                        'message' => 'La demande de renouvellement CAQ/Permis d\'études sélectionnée n\'existe pas.',
+                        'errors' => ['study_permit_renewal_application_id' => ['La demande de renouvellement CAQ/Permis d\'études sélectionnée n\'existe pas.']]
+                    ], 422);
+                }
+                if (!$user->isAdmin() && $studyPermitRenewal->user_id !== $user->id) {
+                    return response()->json([
+                        'message' => 'La demande de renouvellement CAQ/Permis d\'études sélectionnée ne vous appartient pas.',
+                        'errors' => ['study_permit_renewal_application_id' => ['La demande de renouvellement CAQ/Permis d\'études sélectionnée ne vous appartient pas.']]
+                    ], 422);
+                }
+                if ($user->isAdmin() && $request->input('user_id') && $studyPermitRenewal->user_id !== $targetUserId) {
+                    return response()->json([
+                        'message' => 'La demande de renouvellement CAQ/Permis d\'études sélectionnée n\'appartient pas au client spécifié.',
+                        'errors' => ['study_permit_renewal_application_id' => ['La demande de renouvellement CAQ/Permis d\'études sélectionnée n\'appartient pas au client spécifié.']]
+                    ], 422);
+                }
+            }
+
+            // Utiliser le targetUserId pour créer le document
+            $targetUser = \App\Models\User::find($targetUserId);
+            if (!$targetUser) {
+                return response()->json([
+                    'message' => 'Utilisateur non trouvé.',
+                    'errors' => ['user_id' => ['Utilisateur non trouvé.']]
+                ], 422);
             }
 
             $document = $this->documentService->upload(
-                $user,
+                $targetUser,
                 $request->file('file'),
                 $validated['type'],
                 $validated['inscription_id'] ?? null,
                 $validated['name'] ?? null,
                 $validated['work_permit_application_id'] ?? null,
-                $validated['residence_application_id'] ?? null
+                $validated['residence_application_id'] ?? null,
+                $validated['study_permit_renewal_application_id'] ?? null
             );
 
             return response()->json($document, 201);

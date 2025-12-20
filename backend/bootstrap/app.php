@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserIsAvocatOrAdmin;
 use App\Http\Middleware\ForceCorsHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
+            'avocat_or_admin' => EnsureUserIsAvocatOrAdmin::class,
         ]);
         
         // Ajouter CORS en premier pour toutes les requêtes API
@@ -72,9 +74,10 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($isApiRequest) {
                 $corsHeaders = $getCorsHeaders($request);
                 
-                // Logger l'erreur
+                // Logger l'erreur (safely - ignorer si le logging échoue pour éviter les boucles)
+                // Ne jamais laisser les erreurs de logging empêcher l'application de retourner une réponse
                 try {
-                    \Illuminate\Support\Facades\Log::error('API Exception: ' . $e->getMessage(), [
+                    @\Illuminate\Support\Facades\Log::error('API Exception: ' . $e->getMessage(), [
                         'exception' => get_class($e),
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
@@ -82,8 +85,8 @@ return Application::configure(basePath: dirname(__DIR__))
                         'method' => $request->method(),
                         'path' => $request->path(),
                     ]);
-                } catch (\Exception $logError) {
-                    // Si le logging échoue, continuer quand même
+                } catch (\Throwable $logError) {
+                    // Ignorer silencieusement - les erreurs de logging ne doivent jamais empêcher l'application de fonctionner
                 }
                 
                 // Gérer les erreurs de validation

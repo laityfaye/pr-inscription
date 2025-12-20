@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ResidenceApplicationController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StorageController;
+use App\Http\Controllers\Api\StudyPermitRenewalApplicationController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WorkPermitApplicationController;
 use App\Http\Controllers\Api\WorkPermitCountryController;
@@ -37,6 +38,7 @@ Route::get('/storage/{path}', [StorageController::class, 'serve'])->where('path'
 Route::get('/appointments/booked-slots', [AppointmentController::class, 'getBookedSlots']);
 Route::get('/appointments/unavailable-days', [AppointmentController::class, 'getUnavailableDays']);
 Route::get('/appointments/slot-prices', [AppointmentController::class, 'getSlotPrices']);
+Route::get('/appointments/by-email', [AppointmentController::class, 'getByEmail']);
 
 // Routes publiques pour les pays de permis de travail
 // IMPORTANT: /work-permit-countries/all doit être défini AVANT /work-permit-countries/{workPermitCountry} pour éviter les conflits de routage
@@ -70,10 +72,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Messages
     Route::get('/messages/conversations', [MessageController::class, 'conversations']);
-    Route::get('/messages/{user?}', [MessageController::class, 'messages']);
-    Route::post('/messages', [MessageController::class, 'store']);
     Route::get('/messages/unread/count', [MessageController::class, 'unreadCount']);
+    // Route pour télécharger un fichier doit être définie avant la route générique
     Route::get('/messages/{message}/download', [MessageController::class, 'downloadFile']);
+    // Route pour récupérer les messages - userId est optionnel (doit être après les routes spécifiques)
+    Route::get('/messages', [MessageController::class, 'messages']);
+    Route::get('/messages/{userId}', [MessageController::class, 'messages'])->where('userId', '[0-9]+');
+    Route::post('/messages', [MessageController::class, 'store']);
 
     // Actualités (Admin)
     Route::get('/news/{news}', [NewsController::class, 'show'])->middleware('admin');
@@ -124,15 +129,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/residence-applications/{residenceApplication}/status', [ResidenceApplicationController::class, 'updateStatus'])->middleware('admin');
     Route::post('/residence-applications/{residenceApplication}/notify-client', [ResidenceApplicationController::class, 'notifyClient'])->middleware('admin');
 
+    // Demandes de renouvellement CAQ/Permis d'études
+    Route::apiResource('study-permit-renewal-applications', StudyPermitRenewalApplicationController::class);
+    Route::patch('/study-permit-renewal-applications/{studyPermitRenewalApplication}/status', [StudyPermitRenewalApplicationController::class, 'updateStatus'])->middleware('admin');
+    Route::post('/study-permit-renewal-applications/{studyPermitRenewalApplication}/notify-client', [StudyPermitRenewalApplicationController::class, 'notifyClient'])->middleware('admin');
+
     // Rendez-vous
     Route::post('/appointments', [AppointmentController::class, 'store']);
-    Route::get('/appointments', [AppointmentController::class, 'index'])->middleware('admin');
-    Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->middleware('admin');
-    Route::post('/appointments/{appointment}/validate', [AppointmentController::class, 'validateAppointment'])->middleware('admin');
-    Route::post('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->middleware('admin');
-    Route::post('/appointments/unavailable-days', [AppointmentController::class, 'addUnavailableDay'])->middleware('admin');
-    Route::delete('/appointments/unavailable-days/{date}', [AppointmentController::class, 'removeUnavailableDay'])->middleware('admin');
-    Route::post('/appointments/slot-prices', [AppointmentController::class, 'updateSlotPrice'])->middleware('admin');
+    Route::get('/appointments', [AppointmentController::class, 'index'])->middleware('avocat_or_admin');
+    Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->middleware('avocat_or_admin');
+    Route::post('/appointments/{appointment}/validate', [AppointmentController::class, 'validateAppointment'])->middleware('avocat_or_admin');
+    Route::post('/appointments/{appointment}/reject', [AppointmentController::class, 'reject'])->middleware('avocat_or_admin');
+    Route::post('/appointments/{appointment}/reschedule', [AppointmentController::class, 'reschedule'])->middleware('avocat_or_admin');
+    Route::post('/appointments/unavailable-days', [AppointmentController::class, 'addUnavailableDay'])->middleware('avocat_or_admin');
+    Route::delete('/appointments/unavailable-days/{date}', [AppointmentController::class, 'removeUnavailableDay'])->middleware('avocat_or_admin');
+    Route::post('/appointments/slot-prices', [AppointmentController::class, 'updateSlotPrice'])->middleware('avocat_or_admin');
 });
 
 

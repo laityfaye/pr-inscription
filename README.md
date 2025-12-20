@@ -1,6 +1,8 @@
 # Plateforme de Gestion de Préinscriptions - TFKS Touba Fall Khidma Services
 
-Plateforme web complète pour la gestion des préinscriptions de voyages d'étude.
+## 📋 Résumé
+
+Plateforme web complète pour la gestion de tous les services d'immigration et d'études à l'étranger. Elle permet aux clients de soumettre leurs demandes de préinscription pour voyages d'étude, de visa visiteur, de permis de travail, de résidence permanente au Canada, ainsi que de renouvellement CAQ et permis d'études. Les utilisateurs peuvent uploader leurs documents, suivre l'état de leurs démarches et communiquer en temps réel avec l'agence via un système de chat intégré. Les administrateurs peuvent gérer toutes les demandes, publier des actualités, modérer les avis et offrir un accompagnement personnalisé pour chaque type de demande.
 
 ## 🏗️ Architecture
 
@@ -76,6 +78,13 @@ MAIL_PASSWORD=your_app_password
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=laityfaye1709@gmail.com
 MAIL_FROM_NAME="${APP_NAME}"
+
+# URL du frontend pour les liens de redirection dans les e-mails
+FRONTEND_URL=https://sbcgroupe.ca  # Production
+# FRONTEND_URL=http://localhost:3000  # Développement local
+
+# Configuration des queues (déjà configuré sur database)
+QUEUE_CONNECTION=database
 ```
 
 ### Configuration Chat Temps Réel
@@ -116,9 +125,17 @@ Voir `backend/routes/api.php` pour la liste complète des endpoints.
 
 ## 📧 Notifications
 
-Les emails sont automatiquement envoyés à `laityfaye1709@gmail.com` lors de :
-- Nouvelle inscription client
-- Nouveau message dans le chat
+Les emails sont envoyés automatiquement en queue (asynchrone) pour éviter tout ralentissement de la plateforme :
+
+### E-mails envoyés aux clients :
+- **E-mail de bienvenue** : Envoyé automatiquement après l'inscription avec un lien de redirection vers la plateforme
+- **Notification de rendez-vous validé** : Envoyé lorsque l'admin/avocat valide un rendez-vous
+- **Notification de rendez-vous rejeté** : Envoyé lorsque l'admin/avocat rejette un rendez-vous (avec la raison du rejet)
+- **Notification de rendez-vous reporté** : Envoyé lorsque l'admin/avocat reporte un rendez-vous à une nouvelle date/heure
+
+### E-mails envoyés à l'administration :
+- **Notification de nouveau client** : Envoyé à `laityfaye1709@gmail.com` lors d'une nouvelle inscription
+- **Nouveau message dans le chat** : Notifications via le système de chat intégré
 
 ## 🛠️ Commandes Artisan
 
@@ -126,7 +143,12 @@ Les emails sont automatiquement envoyés à `laityfaye1709@gmail.com` lors de :
 php artisan migrate
 php artisan db:seed
 php artisan storage:link
-php artisan queue:work  # Pour les emails en queue
+
+# Important : Démarrer le worker de queue pour traiter les e-mails
+php artisan queue:work
+
+# Pour la production, utiliser supervisor ou un processus similaire pour maintenir le worker actif
+# Voir : https://laravel.com/docs/11.x/queues#supervisor-configuration
 ```
 
 ## 📄 Licence

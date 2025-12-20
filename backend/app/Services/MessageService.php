@@ -44,22 +44,42 @@ class MessageService
 
     public function getConversation(User $user1, User $user2, ?string $applicationType = null, ?int $applicationId = null, ?int $sinceId = null, ?int $limit = null): Collection
     {
+        // Construire la requête de base pour les messages entre les deux utilisateurs
         $query = Message::where(function ($q) use ($user1, $user2) {
-            $q->where('sender_id', $user1->id)
-              ->where('receiver_id', $user2->id);
-        })->orWhere(function ($q) use ($user1, $user2) {
-            $q->where('sender_id', $user2->id)
-              ->where('receiver_id', $user1->id);
+            // Messages envoyés de user1 à user2 OU de user2 à user1
+            $q->where(function ($subQ) use ($user1, $user2) {
+                $subQ->where('sender_id', $user1->id)
+                      ->where('receiver_id', $user2->id);
+            })
+            ->orWhere(function ($subQ) use ($user1, $user2) {
+                $subQ->where('sender_id', $user2->id)
+                      ->where('receiver_id', $user1->id);
+            });
         });
-
+        
+        // Si un type d'application est spécifié, filtrer pour inclure:
+        // 1. Les messages généraux (sans application)
+        // 2. Les messages de cette application spécifique
+        // IMPORTANT: Appliquer ce filtre comme une condition AND supplémentaire
         if ($applicationType && $applicationId) {
-            if ($applicationType === 'inscription') {
-                $query->where('inscription_id', $applicationId);
-            } elseif ($applicationType === 'work_permit') {
-                $query->where('work_permit_application_id', $applicationId);
-            } elseif ($applicationType === 'residence') {
-                $query->where('residence_application_id', $applicationId);
-            }
+            $query->where(function ($appQ) use ($applicationType, $applicationId) {
+                // Messages généraux (sans application)
+                $appQ->where(function ($generalQ) {
+                    $generalQ->whereNull('application_type')
+                             ->whereNull('inscription_id')
+                             ->whereNull('work_permit_application_id')
+                             ->whereNull('residence_application_id');
+                });
+                
+                // OU messages de cette application spécifique
+                if ($applicationType === 'inscription') {
+                    $appQ->orWhere('inscription_id', $applicationId);
+                } elseif ($applicationType === 'work_permit') {
+                    $appQ->orWhere('work_permit_application_id', $applicationId);
+                } elseif ($applicationType === 'residence') {
+                    $appQ->orWhere('residence_application_id', $applicationId);
+                }
+            });
         }
 
         // Charger seulement les nouveaux messages si sinceId est fourni
@@ -67,21 +87,65 @@ class MessageService
             $query->where('id', '>', $sinceId);
         }
 
-        // Limiter le nombre de résultats si limit est fourni
-        if ($limit) {
-            $query->limit($limit);
-        }
-
         // Optimiser : charger seulement les relations nécessaires
-        $query->with(['sender:id,name,email', 'receiver:id,name,email']);
+        // Utiliser with() avec un callback pour gérer les cas où les relations n'existent pas
+        $query->with([
+            'sender' => function ($q) {
+                $q->select('id', 'name', 'email');
+            },
+            'receiver' => function ($q) {
+                $q->select('id', 'name', 'email');
+            }
+        ]);
 
         // Si on charge depuis le début, charger les relations d'application
         if (!$sinceId) {
-            $query->with(['inscription:id,country_id', 'workPermitApplication:id,work_permit_country_id', 'residenceApplication:id']);
+            $query->with([
+                'inscription' => function ($q) {
+                    $q->select('id', 'country_id');
+                },
+                'workPermitApplication' => function ($q) {
+                    $q->select('id', 'work_permit_country_id');
+                },
+                'residenceApplication' => function ($q) {
+                    $q->select('id');
+                }
+            ]);
         }
 
-        return $query->orderBy('created_at', 'asc')
-          ->get();
+        // Si un limit est fourni, récupérer les messages les plus récents, puis les trier par date croissante
+        if ($limit && !$sinceId) {
+            // Récupérer les messages les plus récents d'abord
+            $result = $query->orderBy('created_at', 'desc')
+                            ->orderBy('id', 'desc')
+                            ->limit($limit)
+                            ->get()
+                            ->sortBy(function($message) {
+                                return $message->created_at;
+                            })
+                            ->values();
+        } else {
+            // Sinon, récupérer tous les messages triés par date croissante
+            $result = $query->orderBy('created_at', 'asc')
+                            ->orderBy('id', 'asc')
+                            ->get();
+        }
+
+        try {
+            return $result;
+        } catch (\Exception $e) {
+            try {
+                Log::error('Error in getConversation: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
+                    'user1_id' => $user1->id,
+                    'user2_id' => $user2->id,
+                ]);
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
+            // Retourner une collection vide en cas d'erreur
+            return new \Illuminate\Database\Eloquent\Collection();
+        }
     }
 
     public function markAsRead(Message $message): bool
@@ -96,7 +160,11 @@ class MessageService
                 ->where('is_read', 0)
                 ->count();
         } catch (\Exception $e) {
-            Log::error('Error in getUnreadCount: ' . $e->getMessage());
+            try {
+                Log::error('Error in getUnreadCount: ' . $e->getMessage());
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
             return 0;
         }
     }

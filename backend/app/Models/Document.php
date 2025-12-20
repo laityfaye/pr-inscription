@@ -14,6 +14,7 @@ class Document extends Model
         'inscription_id',
         'work_permit_application_id',
         'residence_application_id',
+        'study_permit_renewal_application_id',
         'type',
         'name',
         'file_path',
@@ -43,6 +44,11 @@ class Document extends Model
     public function residenceApplication()
     {
         return $this->belongsTo(ResidenceApplication::class);
+    }
+
+    public function studyPermitRenewalApplication()
+    {
+        return $this->belongsTo(StudyPermitRenewalApplication::class);
     }
 
     public function validator()

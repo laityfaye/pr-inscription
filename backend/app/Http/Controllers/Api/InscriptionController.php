@@ -60,10 +60,16 @@ class InscriptionController extends Controller
             'current_field' => ['nullable', 'string', 'max:255'],
             'requested_education_level' => ['nullable', 'in:bac,licence_1,licence_2,licence_3,master_1,master_2'],
             'requested_field' => ['nullable', 'string', 'max:255'],
+            'user_id' => ['nullable', 'exists:users,id'], // Permettre à l'admin de spécifier un user_id
         ]);
 
+        // Si admin et user_id fourni, utiliser ce user_id, sinon utiliser l'utilisateur connecté
+        $userId = $request->user()->isAdmin() && $request->has('user_id') 
+            ? $request->user_id 
+            : $request->user()->id;
+
         $inscription = $this->inscriptionService->create([
-            'user_id' => $request->user()->id,
+            'user_id' => $userId,
             'country_id' => $request->country_id,
             'status' => 'pending',
             'current_education_level' => $request->input('current_education_level'),

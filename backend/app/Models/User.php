@@ -44,6 +44,11 @@ class User extends Authenticatable
         return $this->role === 'client';
     }
 
+    public function isAvocat(): bool
+    {
+        return $this->role === 'avocat';
+    }
+
     public function inscriptions()
     {
         return $this->hasMany(Inscription::class);

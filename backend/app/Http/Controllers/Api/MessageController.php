@@ -32,58 +32,166 @@ class MessageController extends Controller
                 }])
                 ->get();
         } else {
-            // Client voit seulement l'admin
-            $admin = User::where('role', 'admin')->first();
+            // Client voit seulement l'admin avec l'ID 5 (admin principal)
+            $admin = User::where('role', 'admin')->where('id', 5)->first();
+            if (!$admin) {
+                // Fallback: utiliser le premier admin si l'ID 5 n'existe pas
+                $admin = User::where('role', 'admin')->first();
+            }
             $conversations = $admin ? [$admin] : [];
         }
 
         return response()->json($conversations);
     }
 
-    public function messages(Request $request, ?User $user = null): JsonResponse
+    public function messages(Request $request, $userId = null): JsonResponse
     {
-        $currentUser = $request->user();
+        try {
+            $currentUser = $request->user();
 
-        if (!$user) {
-            if ($currentUser->isAdmin()) {
-                $user = User::where('role', 'client')->first();
-            } else {
-                $user = User::where('role', 'admin')->first();
+            // Résoudre l'utilisateur manuellement pour éviter les problèmes de route model binding
+            $user = null;
+            if ($userId && $userId !== '') {
+                $userId = (int) $userId;
+                $user = User::find($userId);
+                if (!$user) {
+                    try {
+                        Log::warning('User not found', ['user_id' => $userId]);
+                    } catch (\Exception $e) {
+                        // Ignore logging errors
+                    }
+                    return response()->json(['messages' => [], 'error' => 'Utilisateur introuvable'], 404);
+                }
             }
-        }
 
-        if (!$user) {
-            return response()->json(['messages' => []]);
-        }
-
-        $applicationType = $request->query('application_type');
-        $applicationId = $request->query('application_id');
-        $sinceId = $request->query('since_id') ? (int) $request->query('since_id') : null;
-        $limit = $request->query('limit') ? (int) $request->query('limit') : null;
-
-        $messages = $this->messageService->getConversation($currentUser, $user, $applicationType, $applicationId, $sinceId, $limit);
-
-        // Marquer les messages comme lus
-        $query = Message::where('sender_id', $user->id)
-            ->where('receiver_id', $currentUser->id)
-            ->where('is_read', 0);
-
-        if ($applicationType && $applicationId) {
-            if ($applicationType === 'inscription') {
-                $query->where('inscription_id', $applicationId);
-            } elseif ($applicationType === 'work_permit') {
-                $query->where('work_permit_application_id', $applicationId);
-            } elseif ($applicationType === 'residence') {
-                $query->where('residence_application_id', $applicationId);
+            if (!$user) {
+                if ($currentUser->isAdmin()) {
+                    $user = User::where('role', 'client')->first();
+                } else {
+                    // Pour un client, utiliser l'admin avec l'ID 5 (admin principal)
+                    $user = User::where('role', 'admin')->where('id', 5)->first();
+                    if (!$user) {
+                        // Fallback: utiliser le premier admin si l'ID 5 n'existe pas
+                        $user = User::where('role', 'admin')->first();
+                    }
+                }
             }
+
+            if (!$user) {
+                return response()->json(['messages' => []]);
+            }
+
+            $applicationType = $request->query('application_type');
+            $applicationId = $request->query('application_id') ? (int) $request->query('application_id') : null;
+            $sinceId = $request->query('since_id') ? (int) $request->query('since_id') : null;
+            $limit = $request->query('limit') ? (int) $request->query('limit') : null;
+
+
+            $messages = $this->messageService->getConversation($currentUser, $user, $applicationType, $applicationId, $sinceId, $limit);
+
+            // Marquer les messages comme lus
+            // Si une application est sélectionnée, marquer comme lus:
+            // 1. Les messages généraux (sans application)
+            // 2. Les messages de cette application spécifique
+            // Sinon, marquer tous les messages non lus
+            $query = Message::where('sender_id', $user->id)
+                ->where('receiver_id', $currentUser->id)
+                ->where('is_read', 0);
+
+            if ($applicationType && $applicationId) {
+                $query->where(function ($q) use ($applicationType, $applicationId) {
+                    // Messages généraux (sans application)
+                    $q->where(function ($generalQ) {
+                        $generalQ->whereNull('application_type')
+                                 ->whereNull('inscription_id')
+                                 ->whereNull('work_permit_application_id')
+                                 ->whereNull('residence_application_id');
+                    });
+                    
+                    // OU messages de cette application spécifique
+                    if ($applicationType === 'inscription') {
+                        $q->orWhere('inscription_id', $applicationId);
+                    } elseif ($applicationType === 'work_permit') {
+                        $q->orWhere('work_permit_application_id', $applicationId);
+                    } elseif ($applicationType === 'residence') {
+                        $q->orWhere('residence_application_id', $applicationId);
+                    }
+                });
+            }
+
+            $query->update(['is_read' => true]);
+
+            // S'assurer que les messages sont bien sérialisés
+            $messagesArray = $messages->map(function($message) {
+                try {
+                    return [
+                        'id' => $message->id ?? null,
+                        'sender_id' => $message->sender_id ?? null,
+                        'receiver_id' => $message->receiver_id ?? null,
+                        'content' => $message->content ?? null,
+                        'is_read' => (bool) ($message->is_read ?? false),
+                        'application_type' => $message->application_type ?? null,
+                        'inscription_id' => $message->inscription_id ?? null,
+                        'work_permit_application_id' => $message->work_permit_application_id ?? null,
+                        'residence_application_id' => $message->residence_application_id ?? null,
+                        'status_update' => $message->status_update ?? null,
+                        'file_path' => $message->file_path ?? null,
+                        'file_name' => $message->file_name ?? null,
+                        'file_type' => $message->file_type ?? null,
+                        'file_size' => $message->file_size ?? null,
+                        'created_at' => $message->created_at ? ($message->created_at instanceof \Carbon\Carbon ? $message->created_at->toISOString() : (string) $message->created_at) : null,
+                        'updated_at' => $message->updated_at ? ($message->updated_at instanceof \Carbon\Carbon ? $message->updated_at->toISOString() : (string) $message->updated_at) : null,
+                        'sender' => ($message->sender && isset($message->sender->id)) ? [
+                            'id' => $message->sender->id,
+                            'name' => $message->sender->name ?? null,
+                            'email' => $message->sender->email ?? null,
+                        ] : null,
+                        'receiver' => ($message->receiver && isset($message->receiver->id)) ? [
+                            'id' => $message->receiver->id,
+                            'name' => $message->receiver->name ?? null,
+                            'email' => $message->receiver->email ?? null,
+                        ] : null,
+                    ];
+                } catch (\Exception $e) {
+                    try {
+                        Log::error('Error serializing message', [
+                            'message_id' => $message->id ?? 'unknown',
+                            'error' => $e->getMessage(),
+                        ]);
+                    } catch (\Exception $logException) {
+                        // Ignore logging errors
+                    }
+                    return null;
+                }
+            })->filter()->values()->toArray();
+
+            // Sérialiser l'utilisateur manuellement pour éviter les problèmes
+            $otherUser = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ];
+
+
+            return response()->json([
+                'messages' => $messagesArray,
+                'other_user' => $otherUser,
+            ]);
+        } catch (\Exception $e) {
+            try {
+                Log::error('Error in messages method: ' . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
+                    'user_id' => $userId ?? null,
+                ]);
+            } catch (\Exception $logException) {
+                // Ignore logging errors - this prevents logging failures from hiding the real error
+            }
+            return response()->json([
+                'message' => 'Une erreur est survenue',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $query->update(['is_read' => true]);
-
-        return response()->json([
-            'messages' => $messages,
-            'other_user' => $user,
-        ]);
     }
 
     public function store(Request $request): JsonResponse
@@ -148,8 +256,12 @@ class MessageController extends Controller
 
             // Vérifier que le fichier existe
             if (!Storage::disk('public')->exists($message->file_path)) {
-                Log::error('File not found: ' . $message->file_path);
-                Log::error('Storage path: ' . Storage::disk('public')->path(''));
+                try {
+                    Log::error('File not found: ' . $message->file_path);
+                    Log::error('Storage path: ' . Storage::disk('public')->path(''));
+                } catch (\Exception $e) {
+                    // Ignore logging errors
+                }
                 return response()->json(['message' => 'Fichier introuvable: ' . $message->file_path], 404);
             }
 
@@ -157,7 +269,11 @@ class MessageController extends Controller
             
             // Vérifier que le fichier existe physiquement
             if (!file_exists($filePath)) {
-                Log::error('Physical file not found: ' . $filePath);
+                try {
+                    Log::error('Physical file not found: ' . $filePath);
+                } catch (\Exception $e) {
+                    // Ignore logging errors
+                }
                 return response()->json(['message' => 'Fichier introuvable sur le serveur'], 404);
             }
             $fileName = $message->file_name ?: basename($message->file_path);
@@ -192,8 +308,12 @@ class MessageController extends Controller
                 'Content-Type' => $message->file_type ?: 'application/octet-stream',
             ]);
         } catch (\Exception $e) {
-            Log::error('Error downloading message file: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
+            try {
+                Log::error('Error downloading message file: ' . $e->getMessage());
+                Log::error('Stack trace: ' . $e->getTraceAsString());
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
             return response()->json(['message' => 'Erreur lors du téléchargement du fichier: ' . $e->getMessage()], 500);
         }
     }
@@ -208,7 +328,11 @@ class MessageController extends Controller
             $count = $this->messageService->getUnreadCount($user);
             return response()->json(['count' => $count]);
         } catch (\Exception $e) {
-            Log::error('Error in unreadCount: ' . $e->getMessage());
+            try {
+                Log::error('Error in unreadCount: ' . $e->getMessage());
+            } catch (\Exception $logException) {
+                // Ignore logging errors
+            }
             return response()->json(['count' => 0, 'error' => $e->getMessage()], 500);
         }
     }

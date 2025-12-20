@@ -62,10 +62,16 @@ class WorkPermitApplicationController extends Controller
             'address' => ['nullable', 'string'],
             'education_level' => ['nullable', 'string', 'max:255'],
             'language_skills' => ['nullable', 'string'],
+            'user_id' => ['nullable', 'exists:users,id'], // Permettre à l'admin de spécifier un user_id
         ]);
 
+        // Si admin et user_id fourni, utiliser ce user_id, sinon utiliser l'utilisateur connecté
+        $userId = $request->user()->isAdmin() && $request->has('user_id') 
+            ? $request->user_id 
+            : $request->user()->id;
+
         $application = $this->service->create([
-            'user_id' => $request->user()->id,
+            'user_id' => $userId,
             'work_permit_country_id' => $request->work_permit_country_id,
             'visa_type' => $request->visa_type,
             'age' => $request->age,

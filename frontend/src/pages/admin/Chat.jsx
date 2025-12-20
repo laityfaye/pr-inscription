@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import Layout from '../../components/Layout'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
@@ -54,38 +54,157 @@ const AdminChat = () => {
   const messagesEndRef = useRef(null)
   const searchTimeoutRef = useRef(null)
   const pollingIntervalRef = useRef(null)
+  const pollingCountRef = useRef(0)
   const fileInputRef = useRef(null)
+  const messagesRef = useRef([]) // Ref pour accéder à la valeur actuelle de messages
+
+  // Déclarer fetchMessages et fetchNewMessages avant les useEffect qui les utilisent
+  const fetchMessages = useCallback(async (clientId, sinceId = null) => {
+    if (!clientId) return
+
+    try {
+      const params = new URLSearchParams()
+      if (applicationType && selectedApplication) {
+        params.append('application_type', applicationType)
+        params.append('application_id', selectedApplication.id)
+      }
+      if (sinceId) {
+        params.append('since_id', sinceId)
+      } else {
+        params.append('limit', '50') // Limiter à 50 messages initiaux
+      }
+      const response = await api.get(`/messages/${clientId}?${params.toString()}`)
+      console.log('API Response (Admin):', response.data)
+      const newMessages = response.data.messages || []
+      console.log('Fetched messages (Admin):', newMessages.length, 'for application:', selectedApplication?.id)
+      console.log('Messages data (Admin):', newMessages)
+      
+      if (sinceId) {
+        // Ajouter seulement les nouveaux messages (éviter les doublons)
+        setMessages(prev => {
+          console.log('Adding new messages with sinceId. Previous count:', prev.length)
+          const existingIds = new Set(prev.map(m => m.id))
+          const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
+          console.log('Unique new messages:', uniqueNewMessages.length)
+          if (uniqueNewMessages.length === 0) return prev
+          // Trier par date après ajout
+          const allMessages = [...prev, ...uniqueNewMessages]
+          const sorted = allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+          console.log('Total messages after merge:', sorted.length)
+          messagesRef.current = sorted
+          return sorted
+        })
+      } else {
+        // Chargement initial - trier par date
+        const sortedMessages = newMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+        console.log('Setting initial messages. Count:', sortedMessages.length)
+        console.log('Message IDs:', sortedMessages.map(m => m.id))
+        console.log('Messages to set:', sortedMessages)
+        setMessages(sortedMessages)
+        messagesRef.current = sortedMessages
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+    }
+  }, [applicationType, selectedApplication])
+
+  const fetchNewMessages = useCallback(async (clientId) => {
+    if (!clientId) return
+    
+    const currentMessages = messagesRef.current.length > 0 ? messagesRef.current : []
+    if (currentMessages.length === 0) {
+      // Si aucun message n'est chargé, charger tous les messages
+      await fetchMessages(clientId)
+      return
+    }
+    
+    // Trier les messages par ID (plus fiable que par date pour since_id)
+    const sortedMessages = [...currentMessages].sort((a, b) => (a.id || 0) - (b.id || 0))
+    const lastMessageId = sortedMessages[sortedMessages.length - 1]?.id
+    
+    if (lastMessageId) {
+      // Récupérer les nouveaux messages avec since_id
+      try {
+        const params = new URLSearchParams()
+        if (applicationType && selectedApplication) {
+          params.append('application_type', applicationType)
+          params.append('application_id', selectedApplication.id)
+        }
+        params.append('since_id', lastMessageId)
+        
+        const response = await api.get(`/messages/${clientId}?${params.toString()}`)
+        const newMessages = response.data.messages || []
+        
+        if (newMessages.length > 0) {
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id))
+            const uniqueNewMessages = newMessages.filter(m => m.id && !existingIds.has(m.id))
+            if (uniqueNewMessages.length === 0) return prev
+            // Trier par date après ajout
+            const allMessages = [...prev, ...uniqueNewMessages]
+            const sorted = allMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+            messagesRef.current = sorted
+            return sorted
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching new messages:', error)
+        // En cas d'erreur, recharger tous les messages pour être sûr
+        await fetchMessages(clientId)
+      }
+    } else {
+      // Si pas de lastMessageId, recharger tous les messages
+      await fetchMessages(clientId)
+    }
+  }, [applicationType, selectedApplication, fetchMessages])
 
   useEffect(() => {
     fetchConversations()
-    
-    // Polling pour les nouveaux messages toutes les 5 secondes
-    pollingIntervalRef.current = setInterval(() => {
-      if (selectedClient && selectedApplication) {
-        fetchNewMessages(selectedClient.id)
-      }
-      // Mettre à jour les conversations moins fréquemment (toutes les 15 secondes)
-      if (Date.now() % 15000 < 5000) {
-      fetchConversations()
-      }
-    }, 5000)
-
-    return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-      }
-    }
+    // Polling désactivé - les messages seront chargés uniquement au démarrage et après l'envoi
+    // Pour rafraîchir manuellement, l'utilisateur peut recharger la page ou envoyer un message
   }, [selectedClient, selectedApplication, applicationType])
 
   useEffect(() => {
     if (selectedClient) {
       fetchApplications(selectedClient.id)
+      // Réinitialiser les messages pour forcer un rechargement complet
+      setMessages([])
+      messagesRef.current = []
+      // Charger les messages quand un client est sélectionné
+      if (!selectedApplication) {
+        // Si aucune application n'est sélectionnée, charger tous les messages
+        fetchMessages(selectedClient.id)
+      }
     }
-  }, [selectedClient])
+  }, [selectedClient, selectedApplication, fetchMessages])
+
+  // Charger les messages quand l'application change
+  useEffect(() => {
+    if (selectedClient) {
+      // Réinitialiser les messages pour forcer un rechargement complet
+      setMessages([])
+      messagesRef.current = []
+      fetchMessages(selectedClient.id)
+    }
+  }, [selectedApplication, applicationType, selectedClient, fetchMessages])
 
   useEffect(() => {
     scrollToBottom()
+    // Mettre à jour la ref quand les messages changent
+    messagesRef.current = messages
   }, [messages])
+
+  // Debug: Logger les changements de messages
+  useEffect(() => {
+    console.log('Messages state changed (Admin):', {
+      count: messages.length,
+      messageIds: messages.map(m => m.id),
+      firstMessage: messages[0],
+      lastMessage: messages[messages.length - 1],
+      selectedApplication: selectedApplication?.id,
+      applicationType: applicationType
+    })
+  }, [messages, selectedApplication, applicationType])
 
   // Fermer les résultats de recherche quand on clique en dehors
   useEffect(() => {
@@ -182,6 +301,10 @@ const AdminChat = () => {
     setSelectedApplication(null)
     setApplicationType(null)
     setMessages([])
+    // Charger les messages du client sélectionné (tous les messages, pas seulement ceux d'une application)
+    if (client) {
+      fetchMessages(client.id)
+    }
     // Ajouter le client à la liste des conversations s'il n'y est pas déjà
     if (!conversations.find(c => c.id === client.id)) {
       setConversations([client, ...conversations])
@@ -192,43 +315,8 @@ const AdminChat = () => {
     setApplicationType(type)
     setSelectedApplication(application)
     setMessages([])
-    fetchMessages(selectedClient.id)
-  }
-
-  const fetchMessages = async (clientId, sinceId = null) => {
-    if (!clientId) return
-
-    try {
-      const params = new URLSearchParams()
-      if (applicationType && selectedApplication) {
-        params.append('application_type', applicationType)
-        params.append('application_id', selectedApplication.id)
-      }
-      if (sinceId) {
-        params.append('since_id', sinceId)
-      } else {
-        params.append('limit', '50') // Limiter à 50 messages initiaux
-      }
-      const response = await api.get(`/messages/${clientId}?${params.toString()}`)
-      const newMessages = response.data.messages || []
-      if (sinceId) {
-        // Ajouter seulement les nouveaux messages
-        setMessages(prev => [...prev, ...newMessages])
-      } else {
-        // Chargement initial
-        setMessages(newMessages)
-      }
-    } catch (error) {
-      console.error('Error fetching messages:', error)
-    }
-  }
-
-  const fetchNewMessages = async (clientId) => {
-    if (!clientId || messages.length === 0) return
-    
-    const lastMessageId = messages[messages.length - 1]?.id
-    if (lastMessageId) {
-      await fetchMessages(clientId, lastMessageId)
+    if (selectedClient) {
+      fetchMessages(selectedClient.id)
     }
   }
 
@@ -356,8 +444,20 @@ const AdminChat = () => {
           'Content-Type': 'multipart/form-data',
         },
       })
-      setMessages((prev) => [...prev, response.data])
-      fetchMessages(selectedClient.id)
+      // Ajouter le message envoyé immédiatement
+      setMessages((prev) => {
+        const exists = prev.some(m => m.id === response.data.id)
+        if (exists) return prev
+        const updated = [...prev, response.data]
+        return updated.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+      })
+      // Recharger tous les messages pour s'assurer d'avoir les derniers messages reçus
+      setTimeout(() => {
+        // Réinitialiser les messages pour forcer un rechargement complet
+        setMessages([])
+        messagesRef.current = []
+        fetchMessages(selectedClient.id)
+      }, 500)
       fetchConversations()
     } catch (error) {
       console.error('Error sending message:', error)
@@ -522,6 +622,42 @@ const AdminChat = () => {
                       </div>
                     ) : (
                       <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
+                        {/* Option "Tous les messages" */}
+                        <button
+                          onClick={() => {
+                            setSelectedApplication(null)
+                            setApplicationType(null)
+                            setMessages([])
+                            if (selectedClient) {
+                              fetchMessages(selectedClient.id)
+                            }
+                          }}
+                          className={`flex-shrink-0 p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-lg min-w-[200px] ${
+                            !selectedApplication 
+                              ? 'bg-gradient-to-br from-primary-600 to-primary-800 text-white border-primary-600 shadow-lg scale-105' 
+                              : 'bg-white text-gray-900 border-gray-200 hover:border-primary-300'
+                          }`}
+                        >
+                          <div className="flex flex-col items-center text-center space-y-2">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                              !selectedApplication ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              <FiMessageSquare className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1">
+                              <p className={`font-semibold text-sm ${
+                                !selectedApplication ? 'text-white' : 'text-gray-900'
+                              }`}>
+                                Tous les messages
+                              </p>
+                              <p className={`text-xs mt-1 ${
+                                !selectedApplication ? 'text-white/80' : 'text-gray-500'
+                              }`}>
+                                Messages généraux
+                              </p>
+                            </div>
+                          </div>
+                        </button>
                         {allApplications.map((app) => {
                           const Icon = app.type === 'inscription' ? FiFileTextIcon : app.type === 'work_permit' ? FiBriefcase : FiHome
                           const isSelected = selectedApplication?.id === app.id && applicationType === app.type
@@ -601,6 +737,13 @@ const AdminChat = () => {
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-gray-50 via-white to-gray-50 space-y-4 scroll-smooth">
+                  {/* Debug info - à retirer en production */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <div className="mb-4 p-2 bg-yellow-100 text-xs rounded">
+                      <p>Debug: messages.length={messages.length}, selectedApplication={selectedApplication?.id}, applicationType={applicationType}</p>
+                      <p>Message IDs: {messages.map(m => m.id).join(', ') || 'none'}</p>
+                    </div>
+                  )}
                   {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center">
@@ -612,85 +755,136 @@ const AdminChat = () => {
                       </div>
                     </div>
                   ) : (
-                    messages.map((message, index) => {
-                      const isSender = message.sender_id === user?.id
-                      const FileIcon = message.file_path ? getFileIcon(message.file_type) : null
-                      const messageDate = new Date(message.created_at)
-                      const isToday = messageDate.toDateString() === new Date().toDateString()
-                      const showDateSeparator = index === 0 || new Date(messages[index - 1]?.created_at).toDateString() !== messageDate.toDateString()
+                    (() => {
+                      // Filtrer les doublons et trier par date
+                      const uniqueMessages = messages.filter((msg, idx, arr) => arr.findIndex(m => m.id === msg.id) === idx)
+                      const sortedMessages = uniqueMessages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
                       
-                      return (
-                        <div key={message.id} className="space-y-2">
-                          {showDateSeparator && (
-                            <div className="flex items-center justify-center my-4">
-                              <div className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 font-medium">
-                                {isToday ? "Aujourd'hui" : messageDate.toLocaleDateString('fr-FR', { 
-                                  weekday: 'long', 
-                                  day: 'numeric', 
-                                  month: 'long' 
-                                })}
+                      console.log('Rendering messages (Admin):', {
+                        totalMessages: messages.length,
+                        uniqueMessages: uniqueMessages.length,
+                        sortedMessages: sortedMessages.length,
+                        messageIds: sortedMessages.map(m => m.id),
+                        user_id: user?.id,
+                        messages: sortedMessages.map(m => ({
+                          id: m.id,
+                          sender_id: m.sender_id,
+                          receiver_id: m.receiver_id,
+                          content: m.content,
+                          hasFile: !!m.file_path,
+                          hasStatusUpdate: !!m.status_update,
+                          isSender: String(m.sender_id) === String(user?.id)
+                        }))
+                      })
+                      
+                      return sortedMessages.map((message, index) => {
+                        // Comparaison robuste des IDs (gère les cas où ils sont strings ou numbers)
+                        const isSender = String(message.sender_id) === String(user?.id)
+                        const FileIcon = message.file_path ? getFileIcon(message.file_type) : null
+                        const isGeneralMessage = !message.application_type && !message.inscription_id && !message.work_permit_application_id && !message.residence_application_id
+                        const messageDate = new Date(message.created_at)
+                        const isToday = messageDate.toDateString() === new Date().toDateString()
+                        const showDateSeparator = index === 0 || new Date(sortedMessages[index - 1]?.created_at).toDateString() !== messageDate.toDateString()
+                        
+                        // Debug log pour chaque message
+                        if (process.env.NODE_ENV === 'development') {
+                          console.log('Rendering message:', {
+                            id: message.id,
+                            sender_id: message.sender_id,
+                            receiver_id: message.receiver_id,
+                            user_id: user?.id,
+                            isSender,
+                            hasContent: !!message.content,
+                            hasFile: !!message.file_path,
+                            hasStatusUpdate: !!message.status_update
+                          })
+                        }
+                        
+                        return (
+                          <div key={message.id} className="space-y-2">
+                            {showDateSeparator && (
+                              <div className="flex items-center justify-center my-4">
+                                <div className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 font-medium">
+                                  {isToday ? "Aujourd'hui" : messageDate.toLocaleDateString('fr-FR', { 
+                                    weekday: 'long', 
+                                    day: 'numeric', 
+                                    month: 'long' 
+                                  })}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                          <div className={`flex ${isSender ? 'justify-end' : 'justify-start'} animate-fade-in`}>
-                            <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-md transition-all duration-200 hover:shadow-lg ${
-                              isSender
-                                ? 'bg-gradient-to-r from-primary-600 to-primary-800 text-white'
-                                : 'bg-white text-gray-900 border border-gray-200'
-                            }`}>
-                              {message.status_update && (
-                                <div className={`mb-2 p-3 rounded-lg border ${
-                                  isSender ? 'bg-white/20 border-white/30' : 'bg-blue-50 border-blue-200'
-                                }`}>
-                                  <p className={`text-xs font-semibold flex items-center gap-2 ${
-                                    isSender ? 'text-white' : 'text-blue-800'
+                            )}
+                            <div className={`flex ${isSender ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                              <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-md transition-all duration-200 hover:shadow-lg ${
+                                isSender
+                                  ? 'bg-gradient-to-r from-primary-600 to-primary-800 text-white'
+                                  : 'bg-white text-gray-900 border border-gray-200'
+                              }`}>
+                                {isGeneralMessage && !selectedApplication && (
+                                  <div className={`mb-2 p-1.5 rounded text-xs font-medium ${
+                                    isSender ? 'bg-white/20 text-white/90' : 'bg-gray-100 text-gray-600'
                                   }`}>
-                                    <FiCheckCircle className="w-4 h-4" />
-                                    <span>Mise à jour: {message.status_update}</span>
+                                    💬 Message général
+                                  </div>
+                                )}
+                                {message.status_update && (
+                                  <div className={`mb-2 p-3 rounded-lg border ${
+                                    isSender ? 'bg-white/20 border-white/30' : 'bg-blue-50 border-blue-200'
+                                  }`}>
+                                    <p className={`text-xs font-semibold flex items-center gap-2 ${
+                                      isSender ? 'text-white' : 'text-blue-800'
+                                    }`}>
+                                      <FiCheckCircle className="w-4 h-4" />
+                                      <span>Mise à jour: {message.status_update}</span>
+                                    </p>
+                                  </div>
+                                )}
+                                {message.content && (
+                                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                    {message.content}
+                                  </p>
+                                )}
+                                {message.file_path && (
+                                  <div className={`mt-2 p-3 rounded-lg border transition-all duration-200 hover:scale-[1.02] ${
+                                    isSender ? 'bg-white/20 border-white/30' : 'bg-gray-50 border-gray-200'
+                                  }`}>
+                                    <div className="flex items-center gap-2">
+                                      {FileIcon && <FileIcon className={`w-5 h-5 ${isSender ? 'text-white' : 'text-gray-600'}`} />}
+                                      <span className={`text-xs truncate flex-1 font-medium ${isSender ? 'text-white' : 'text-gray-700'}`}>
+                                        {message.file_name}
+                                      </span>
+                                      <button
+                                        onClick={() => handleDownloadFile(message)}
+                                        className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 ${
+                                          isSender 
+                                            ? 'text-white hover:bg-white/30' 
+                                            : 'text-primary-600 hover:bg-primary-50'
+                                        }`}
+                                        title="Télécharger"
+                                      >
+                                        <FiDownload className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                                {!message.content && !message.file_path && !message.status_update && (
+                                  <p className={`text-sm italic ${isSender ? 'text-white/80' : 'text-gray-500'}`}>
+                                    (Message sans contenu)
+                                  </p>
+                                )}
+                                <div className="flex items-center justify-end gap-1 mt-2">
+                                  <p className={`text-xs flex items-center gap-1 ${isSender ? 'text-primary-100' : 'text-gray-500'}`}>
+                                    {new Date(message.created_at).toLocaleTimeString('fr-FR', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
                                   </p>
                                 </div>
-                              )}
-                              {message.content && (
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                                  {message.content}
-                                </p>
-                              )}
-                              {message.file_path && (
-                                <div className={`mt-2 p-3 rounded-lg border transition-all duration-200 hover:scale-[1.02] ${
-                                  isSender ? 'bg-white/20 border-white/30' : 'bg-gray-50 border-gray-200'
-                                }`}>
-                                  <div className="flex items-center gap-2">
-                                    {FileIcon && <FileIcon className={`w-5 h-5 ${isSender ? 'text-white' : 'text-gray-600'}`} />}
-                                    <span className={`text-xs truncate flex-1 font-medium ${isSender ? 'text-white' : 'text-gray-700'}`}>
-                                      {message.file_name}
-                                    </span>
-                                    <button
-                                      onClick={() => handleDownloadFile(message)}
-                                      className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 ${
-                                        isSender 
-                                          ? 'text-white hover:bg-white/30' 
-                                          : 'text-primary-600 hover:bg-primary-50'
-                                      }`}
-                                      title="Télécharger"
-                                    >
-                                      <FiDownload className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-end gap-1 mt-2">
-                                <p className={`text-xs flex items-center gap-1 ${isSender ? 'text-primary-100' : 'text-gray-500'}`}>
-                                  {new Date(message.created_at).toLocaleTimeString('fr-FR', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
-                                </p>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      )
-                    })
+                        )
+                      })
+                    })()
                   )}
                   <div ref={messagesEndRef} />
                 </div>

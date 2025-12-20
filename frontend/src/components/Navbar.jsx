@@ -127,17 +127,15 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
             >
               <div className="relative flex-shrink-0">
                 {agency?.logo ? (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-accent-600 rounded-full blur opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
-                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full overflow-hidden transform group-hover:scale-105 transition-all duration-300 shadow-lg bg-white">
-                      <img 
-                        src={getLogoUrl(agency.logo)} 
-                        alt={agency.name || 'Logo'} 
-                        className="w-full h-full object-contain p-1"
-                      />
-                    </div>
-                  </>
+                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full overflow-hidden transform group-hover:scale-105 transition-all duration-300 shadow-lg bg-white">
+                    <img 
+                      src={getLogoUrl(agency.logo)} 
+                      alt={agency.name || 'Logo'} 
+                      className="w-full h-full object-contain p-1"
+                    />
+                  </div>
                 ) : (
+<<<<<<< HEAD
                   <>
                     <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-accent-600 rounded-full blur opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
                     <div className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-full flex items-center justify-center transform group-hover:scale-105 transition-all duration-300 shadow-lg">
@@ -146,6 +144,13 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
                       </span>
                     </div>
                   </>
+=======
+                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-primary-600 to-accent-600 rounded-full flex items-center justify-center transform group-hover:scale-105 transition-all duration-300 shadow-lg">
+                    <span className="text-white font-bold text-base sm:text-lg lg:text-xl">
+                      SBC 
+                    </span>
+                  </div>
+>>>>>>> 3a0395d1eb49ba2910224bbb5ceb189e441e3817
                 )}
               </div>
               {/* Nom de l'agence - affiché sur toutes les pages */}
@@ -231,7 +236,7 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
                     }`}
                   >
                     {active && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-primary-50 to-accent-50 rounded-xl opacity-50"></div>
+                      <div className="absolute inset-0 bg-primary-50 rounded-xl"></div>
                     )}
                     <div className="relative flex items-center space-x-2">
                       {Icon && <Icon className="w-4 h-4" />}
@@ -255,7 +260,7 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
                 >
                   <FiBell className="w-5 h-5 text-neutral-700 group-hover:text-primary-600 transition-colors" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 bg-gradient-to-r from-error-500 to-error-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse shadow-lg">
+                    <span className="absolute top-1 right-1 bg-gradient-to-r from-error-500 to-error-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-lg">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
@@ -269,7 +274,6 @@ const Navbar = ({ variant = 'full', unreadCount: externalUnreadCount = null }) =
                       className="flex items-center space-x-3 px-4 py-2 rounded-xl hover:bg-neutral-100 transition-all duration-200 group"
                     >
                       <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary-500 to-primary-800 rounded-full blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
                         <div className="relative w-9 h-9 bg-gradient-to-br from-primary-500 to-primary-800 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md">
                           {user.name?.charAt(0) || 'U'}
                         </div>

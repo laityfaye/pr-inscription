@@ -33,6 +33,7 @@ APP_KEY=
 APP_DEBUG=true
 APP_TIMEZONE=UTC
 APP_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
 APP_LOCALE=fr
 APP_FALLBACK_LOCALE=fr
 APP_FAKER_LOCALE=fr_FR
@@ -118,16 +119,27 @@ PUSHER_APP_CLUSTER=mt1
    - Pour Gmail, vous devez créer un "Mot de passe d'application" dans les paramètres de votre compte Google
    - Remplacez `MAIL_PASSWORD` par ce mot de passe d'application
 
-4. **Créer la base de données** :
+4. **Configurer l'URL du frontend** :
+   - Pour le développement local : `FRONTEND_URL=http://localhost:3000`
+   - Pour la production : `FRONTEND_URL=https://sbcgroupe.ca`
+   - Cette URL est utilisée dans les liens de redirection des e-mails
+
+5. **Créer la base de données** :
    ```sql
    CREATE DATABASE tfks_preinscription;
    ```
 
-5. **Exécuter les migrations** :
+6. **Exécuter les migrations** :
    ```bash
    php artisan migrate
    php artisan db:seed
    ```
+
+7. **Démarrer le worker de queue** :
+   ```bash
+   php artisan queue:work
+   ```
+   > **Important** : Le worker de queue doit être actif pour que les e-mails soient envoyés. Les e-mails sont traités en arrière-plan pour éviter de ralentir la plateforme.
 
 ## Vérification
 

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class DocumentService
 {
-    public function upload(User $user, UploadedFile $file, string $type, ?int $inscriptionId = null, ?string $customName = null, ?int $workPermitApplicationId = null, ?int $residenceApplicationId = null): Document
+    public function upload(User $user, UploadedFile $file, string $type, ?int $inscriptionId = null, ?string $customName = null, ?int $workPermitApplicationId = null, ?int $residenceApplicationId = null, ?int $studyPermitRenewalApplicationId = null): Document
     {
         $path = $file->store('documents/' . $user->id, 'public');
         
@@ -36,6 +36,7 @@ class DocumentService
             'inscription_id' => $inscriptionId,
             'work_permit_application_id' => $workPermitApplicationId,
             'residence_application_id' => $residenceApplicationId,
+            'study_permit_renewal_application_id' => $studyPermitRenewalApplicationId,
             'type' => $type,
             'name' => $documentName,
             'file_path' => $path,
@@ -53,7 +54,16 @@ class DocumentService
 
     public function getUserDocuments(int $userId)
     {
-        return Document::where('user_id', $userId)->get();
+        return Document::where('user_id', $userId)
+            ->with([
+                'validator',
+                'inscription',
+                'workPermitApplication',
+                'residenceApplication',
+                'studyPermitRenewalApplication'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     public function getAllDocuments()
@@ -63,7 +73,8 @@ class DocumentService
             'validator',
             'inscription',
             'workPermitApplication',
-            'residenceApplication'
+            'residenceApplication',
+            'studyPermitRenewalApplication'
         ])->orderBy('created_at', 'desc')->get();
     }
 

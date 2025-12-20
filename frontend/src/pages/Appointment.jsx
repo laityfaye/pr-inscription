@@ -3,13 +3,15 @@ import Layout from '../components/Layout'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
-import { FiCalendar, FiClock, FiPhone, FiMail, FiUser, FiMessageSquare, FiCheck, FiAlertCircle, FiInfo, FiUpload, FiX } from 'react-icons/fi'
+import { FiCalendar, FiClock, FiPhone, FiMail, FiUser, FiMessageSquare, FiCheck, FiAlertCircle, FiInfo, FiUpload, FiX, FiCheckCircle, FiXCircle, FiSearch } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import api from '../services/api'
 import { getImageUrl } from '../utils/imageUrl'
+import { useAuth } from '../contexts/AuthContext'
 
 const Appointment = () => {
+  const { user } = useAuth()
   const [agency, setAgency] = useState(null)
   const [formData, setFormData] = useState({
     name: '',
@@ -31,6 +33,9 @@ const Appointment = () => {
   const [bookedSlots, setBookedSlots] = useState([]) // Créneaux déjà réservés
   const [unavailableDays, setUnavailableDays] = useState([]) // Jours indisponibles
   const [slotPrices, setSlotPrices] = useState({}) // Prix des créneaux horaires
+  const [clientAppointment, setClientAppointment] = useState(null) // Rendez-vous du client
+  const [checkEmail, setCheckEmail] = useState('') // Email pour vérifier le statut
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false) // État de chargement
 
   // Heures disponibles : 8h à 12h et 15h à 18h
   const availableHours = [
@@ -49,7 +54,26 @@ const Appointment = () => {
 
   useEffect(() => {
     fetchAgency()
+    fetchBookedSlots()
+    fetchUnavailableDays()
+    fetchSlotPrices()
   }, [])
+
+  // Auto-remplir les champs si l'utilisateur est connecté
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      }))
+      // Mettre à jour l'email de vérification également
+      if (user.email) {
+        setCheckEmail(user.email)
+      }
+    }
+  }, [user])
 
   // Précharger toutes les images
   useEffect(() => {
@@ -145,15 +169,35 @@ const Appointment = () => {
       const response = await api.get('/appointments/slot-prices')
       const prices = response.data || {}
       
-      // Normaliser les prix - s'assurer qu'ils sont des nombres
+      // Normaliser les prix - gérer le nouveau format (objet avec price et currency) et l'ancien format
       const normalizedPrices = {}
       if (prices && typeof prices === 'object') {
         Object.keys(prices).forEach(time => {
           const value = prices[time]
-          // Convertir en nombre, gérer les cas où c'est déjà un nombre ou une string
-          normalizedPrices[time] = typeof value === 'number' 
-            ? value 
-            : (value !== null && value !== undefined ? parseFloat(value) : 0)
+          
+          // Gérer le nouveau format (objet avec price et currency)
+          if (typeof value === 'object' && value !== null) {
+            const priceVal = value.price
+            const currencyVal = value.currency || 'FCFA'
+            if (priceVal !== null && priceVal !== undefined && priceVal !== '') {
+              const numValue = typeof priceVal === 'number' ? priceVal : parseFloat(priceVal)
+              if (!isNaN(numValue) && numValue > 0) {
+                normalizedPrices[time] = {
+                  price: numValue,
+                  currency: currencyVal
+                }
+              }
+            }
+          } else if (value !== null && value !== undefined && value !== '') {
+            // Ancien format : juste un nombre
+            const numValue = typeof value === 'number' ? value : parseFloat(value)
+            if (!isNaN(numValue) && numValue > 0) {
+              normalizedPrices[time] = {
+                price: numValue,
+                currency: 'FCFA'
+              }
+            }
+          }
         })
       }
       
@@ -442,6 +486,13 @@ const Appointment = () => {
         setPaymentProof(null)
         setErrors({})
         setTouched({})
+        
+        // Rafraîchir le statut du rendez-vous si l'email correspond
+        if (checkEmail === formData.email) {
+          setTimeout(() => {
+            fetchAppointmentByEmail(formData.email)
+          }, 1000)
+        }
       }
       
       // Scroll vers le haut
@@ -456,6 +507,36 @@ const Appointment = () => {
       toast.error('Une erreur est survenue. Veuillez réessayer.')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // Récupérer le statut du rendez-vous par email
+  const fetchAppointmentByEmail = async (email) => {
+    if (!email || !email.includes('@')) {
+      toast.error('Veuillez entrer une adresse email valide')
+      return
+    }
+
+    setIsCheckingStatus(true)
+    try {
+      const response = await api.get('/appointments/by-email', {
+        params: { email }
+      })
+      if (response && response.data && response.data.appointment) {
+        setClientAppointment(response.data.appointment)
+      } else {
+        setClientAppointment(null)
+        toast('Aucun rendez-vous trouvé pour cet email', {
+          icon: 'ℹ️',
+          duration: 4000,
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching appointment:', error)
+      setClientAppointment(null)
+      toast.error('Erreur lors de la vérification du statut')
+    } finally {
+      setIsCheckingStatus(false)
     }
   }
 
@@ -561,6 +642,140 @@ const Appointment = () => {
 
       <div className="section-container py-8 sm:py-12 lg:py-16 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
+          
+          {/* Section de vérification du statut du rendez-vous */}
+          <Card className="mb-6 sm:mb-8 p-6 sm:p-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg animate-slide-up">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 mb-2 flex items-center gap-2">
+                <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                  <FiInfo className="w-5 h-5 text-white" />
+                </div>
+                Vérifier le statut de votre rendez-vous
+              </h2>
+              <p className="text-sm sm:text-base text-neutral-600">
+                Entrez votre adresse email pour voir si votre demande a été validée ou rejetée
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <div className="flex-1">
+                <Input
+                  type="email"
+                  placeholder="Votre adresse email"
+                  value={checkEmail}
+                  onChange={(e) => setCheckEmail(e.target.value)}
+                  icon={FiMail}
+                  className="w-full"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      fetchAppointmentByEmail(checkEmail)
+                    }
+                  }}
+                />
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => fetchAppointmentByEmail(checkEmail)}
+                icon={FiSearch}
+                disabled={isCheckingStatus || !checkEmail}
+                className="w-full sm:w-auto"
+              >
+                {isCheckingStatus ? 'Vérification...' : 'Vérifier'}
+              </Button>
+            </div>
+
+            {/* Affichage du statut du rendez-vous */}
+            {clientAppointment && (
+              <div className="mt-4 p-4 sm:p-6 rounded-xl border-2 animate-fade-in">
+                {clientAppointment.status === 'validated' && (
+                  <div className="bg-gradient-to-br from-green-50 to-green-100/50 border-green-300">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                        <FiCheckCircle className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg sm:text-xl font-bold text-green-900 mb-2">
+                          Rendez-vous validé ✓
+                        </h3>
+                        <p className="text-sm sm:text-base text-green-800 mb-4">
+                          Votre demande de rendez-vous a été validée. Voici les détails de votre rendez-vous :
+                        </p>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
+                            <FiCalendar className="w-5 h-5 text-green-600" />
+                            <div>
+                              <span className="text-xs text-green-700 block">Date</span>
+                              <span className="font-bold text-green-900">
+                                {new Date(clientAppointment.date).toLocaleDateString('fr-FR', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
+                            <FiClock className="w-5 h-5 text-green-600" />
+                            <div>
+                              <span className="text-xs text-green-700 block">Heure</span>
+                              <span className="font-bold text-green-900">{clientAppointment.time}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {clientAppointment.status === 'pending' && (
+                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-300">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-yellow-500 flex items-center justify-center flex-shrink-0">
+                        <FiClock className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg sm:text-xl font-bold text-yellow-900 mb-2">
+                          Demande en attente
+                        </h3>
+                        <p className="text-sm sm:text-base text-yellow-800">
+                          Votre demande de rendez-vous est en cours de validation. Vous serez notifié une fois qu'elle sera traitée.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {clientAppointment.status === 'rejected' && (
+                  <div className="bg-gradient-to-br from-red-50 to-red-100/50 border-red-300">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                        <FiXCircle className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg sm:text-xl font-bold text-red-900 mb-2">
+                          Demande rejetée
+                        </h3>
+                        <p className="text-sm sm:text-base text-red-800 mb-2">
+                          Votre demande de rendez-vous a été rejetée.
+                        </p>
+                        {clientAppointment.rejection_reason && (
+                          <div className="mt-3 p-3 bg-white/60 rounded-lg">
+                            <p className="text-sm font-semibold text-red-900 mb-1">Raison :</p>
+                            <p className="text-sm text-red-800">{clientAppointment.rejection_reason}</p>
+                          </div>
+                        )}
+                        <p className="text-sm text-red-700 mt-3">
+                          Vous pouvez soumettre une nouvelle demande de rendez-vous en remplissant le formulaire ci-dessous.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
 
           <div className={`grid grid-cols-1 ${agency && (agency.lawyer_first_name || agency.lawyer_last_name) ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-6 sm:gap-8`}>
             {/* Lawyer Info Card */}
@@ -569,7 +784,6 @@ const Appointment = () => {
                 <div className="text-center">
                   {agency.lawyer_image && (
                     <div className="relative inline-block mb-4 sm:mb-6">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full blur-2xl opacity-60 animate-pulse-slow"></div>
                       <div className="relative w-28 h-28 sm:w-32 sm:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden border-4 border-white shadow-2xl ring-4 ring-primary-100 hover:ring-primary-200 transition-all duration-300">
                         <img 
                           src={getImageUrl(agency.lawyer_image)} 
@@ -934,13 +1148,13 @@ const Appointment = () => {
                                   selectedTime === hour ? 'text-white' : isAvailable ? 'text-primary-500' : 'text-neutral-400'
                                 }`} />
                                 <span className="font-bold text-base sm:text-lg mb-1">{displayHour}</span>
-                                {slotPrices[hour] && slotPrices[hour] > 0 && (
+                                {slotPrices[hour] && typeof slotPrices[hour] === 'object' && slotPrices[hour].price > 0 && (
                                   <div className={`mt-0.5 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold transition-all ${
                                     selectedTime === hour 
                                       ? 'bg-white/20 text-white backdrop-blur-sm' 
                                       : 'bg-primary-100 text-primary-700 group-hover:bg-primary-200'
                                   }`}>
-                                    {Number(slotPrices[hour]).toLocaleString('fr-FR')} FCFA
+                                    {Number(slotPrices[hour].price).toLocaleString('fr-FR')} {slotPrices[hour].currency || 'FCFA'}
                                   </div>
                                 )}
                               </div>
@@ -994,13 +1208,13 @@ const Appointment = () => {
                                   selectedTime === hour ? 'text-white' : isAvailable ? 'text-accent-500' : 'text-neutral-400'
                                 }`} />
                                 <span className="font-bold text-base sm:text-lg mb-1">{displayHour}</span>
-                                {slotPrices[hour] && slotPrices[hour] > 0 && (
+                                {slotPrices[hour] && typeof slotPrices[hour] === 'object' && slotPrices[hour].price > 0 && (
                                   <div className={`mt-0.5 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold transition-all ${
                                     selectedTime === hour 
                                       ? 'bg-white/20 text-white backdrop-blur-sm' 
                                       : 'bg-accent-100 text-accent-700 group-hover:bg-accent-200'
                                   }`}>
-                                    {Number(slotPrices[hour]).toLocaleString('fr-FR')} FCFA
+                                    {Number(slotPrices[hour].price).toLocaleString('fr-FR')} {slotPrices[hour].currency || 'FCFA'}
                                   </div>
                                 )}
                               </div>

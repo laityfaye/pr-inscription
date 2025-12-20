@@ -14,7 +14,8 @@ const Layout = ({ children, showSidebar = false }) => {
   // Détecter automatiquement si on doit afficher le Sidebar
   const isAdminPage = location.pathname.startsWith('/admin')
   const isClientPage = location.pathname.startsWith('/client')
-  const shouldShowSidebar = showSidebar || (user && (isAdminPage || isClientPage))
+  const isAvocatPage = location.pathname.startsWith('/avocat')
+  const shouldShowSidebar = showSidebar || (user && (isAdminPage || isClientPage || isAvocatPage))
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -39,7 +40,7 @@ const Layout = ({ children, showSidebar = false }) => {
 
   if (shouldShowSidebar) {
     // Pages où le sidebar est fixe
-    const fixedPages = ['/admin/users', '/admin/chat', '/admin/news', '/client/chat']
+    const fixedPages = ['/admin/users', '/admin/chat', '/admin/news', '/client/chat', '/avocat/appointments']
     const isFixed = fixedPages.includes(location.pathname)
     
     return (
