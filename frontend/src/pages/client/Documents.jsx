@@ -263,9 +263,7 @@ const ClientDocuments = () => {
     }
 
     try {
-      await api.post('/documents', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      await api.post('/documents', formData)
       toast.success('Document uploadé avec succès')
       setShowModal(false)
       setFile(null)
@@ -290,7 +288,9 @@ const ClientDocuments = () => {
           toast.error(err)
         })
       } else {
-        toast.error(error.response?.data?.message || 'Erreur lors de l\'upload')
+        // Afficher le message d'erreur du backend (peut être dans 'message' ou 'error')
+        const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Erreur lors de l\'upload'
+        toast.error(errorMessage)
       }
     } finally {
       setLoading(false)
