@@ -6,12 +6,39 @@ use App\Models\Document;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class DocumentService
 {
     public function upload(User $user, UploadedFile $file, string $type, ?int $inscriptionId = null, ?string $customName = null, ?int $workPermitApplicationId = null, ?int $residenceApplicationId = null, ?int $studyPermitRenewalApplicationId = null): Document
     {
-        $path = $file->store('documents/' . $user->id, 'public');
+        // S'assurer que le répertoire de base existe
+        $baseDirectory = 'documents';
+        if (!Storage::disk('public')->exists($baseDirectory)) {
+            Storage::disk('public')->makeDirectory($baseDirectory, 0755, true);
+        }
+        
+        // S'assurer que le répertoire de l'utilisateur existe
+        $directory = $baseDirectory . '/' . $user->id;
+        if (!Storage::disk('public')->exists($directory)) {
+            Storage::disk('public')->makeDirectory($directory, 0755, true);
+        }
+        
+        // Vérifier que le répertoire est accessible en écriture
+        $storagePath = Storage::disk('public')->path($directory);
+        if (!is_writable($storagePath)) {
+            Log::error('Storage directory not writable:', [
+                'path' => $storagePath,
+                'user_id' => $user->id,
+            ]);
+            throw new \RuntimeException('Le répertoire de stockage n\'est pas accessible en écriture. Veuillez contacter l\'administrateur.');
+        }
+        
+        $path = $file->store($directory, 'public');
+        
+        if (!$path) {
+            throw new \RuntimeException('Impossible de sauvegarder le fichier. Vérifiez les permissions du répertoire de stockage.');
+        }
         
         // Récupérer l'extension originale du fichier
         $originalExtension = $file->getClientOriginalExtension();

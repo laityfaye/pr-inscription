@@ -179,9 +179,20 @@ class DocumentController extends Controller
                 'user_id' => $request->user()?->id,
             ]);
             
+            // Pour les erreurs de permissions ou de stockage, toujours retourner le message
+            $isStorageError = str_contains($e->getMessage(), 'stockage') || 
+                             str_contains($e->getMessage(), 'writable') || 
+                             str_contains($e->getMessage(), 'permission') ||
+                             str_contains($e->getMessage(), 'stream') ||
+                             str_contains($e->getMessage(), 'file');
+            
+            $errorMessage = config('app.debug') || $isStorageError 
+                ? $e->getMessage() 
+                : 'Une erreur est survenue lors de l\'upload';
+            
             return response()->json([
-                'message' => 'Erreur lors de l\'upload du document',
-                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur est survenue lors de l\'upload',
+                'message' => 'Une erreur est survenue',
+                'error' => $errorMessage,
             ], 500);
         }
     }
