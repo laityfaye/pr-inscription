@@ -80,7 +80,7 @@ MAIL_FROM_ADDRESS=laityfaye1709@gmail.com
 MAIL_FROM_NAME="${APP_NAME}"
 
 # URL du frontend pour les liens de redirection dans les e-mails
-FRONTEND_URL=https://sbcgroupe.ca  # Production
+FRONTEND_URL=https://tfksservice.innosft.com  # Production
 # FRONTEND_URL=http://localhost:3000  # Développement local
 
 # Configuration des queues (déjà configuré sur database)

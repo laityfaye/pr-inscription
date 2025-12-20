@@ -16,8 +16,8 @@ class NewsRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         $allowedOrigins = [
-            'https://sbcgroupe.ca',
-            'https://www.sbcgroupe.ca',
+            'https://tfksservice.innosft.com',
+            'https://www.tfksservice.innosft.com',
             'http://localhost:3000',
             'http://127.0.0.1:3000',
         ];

@@ -16,7 +16,7 @@ return [
     ],
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'SBC Groupe'),
+        'name' => env('MAIL_FROM_NAME', 'TFKService'),
     ],
     'admin_email' => env('ADMIN_EMAIL', 'laityfaye1709@gmail.com'),
 ];

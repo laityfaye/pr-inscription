@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenue sur SBC Groupe</title>
+    <title>Bienvenue sur TFKService</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,7 +48,7 @@
 <body>
     <div class="container">
         <h1>Bienvenue Mr/Mme {{ $user->name }} !</h1>
-        <p>Nous vous remercions pour votre inscription sur la plateforme de demande de visa et d'orientation lié à vos projets de voyage de SBC Groupe .
+        <p>Nous vous remercions pour votre inscription sur la plateforme de demande de visa et d'orientation lié à vos projets de voyage de TFKService .
         </p>
         <p>Votre compte a été créé avec succès. Vous pouvez dès à présent :</p>
         <ul>
@@ -63,7 +63,7 @@
             <a href="{{ $platformUrl }}" class="button">Accéder à la plateforme</a>
         </div>
         <div class="footer">
-            <p>Cordialement,<br>L'équipe SBC Groupe</p>
+            <p>Cordialement,<br>L'équipe TFKService</p>
         </div>
     </div>
 </body>

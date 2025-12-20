@@ -121,7 +121,7 @@ PUSHER_APP_CLUSTER=mt1
 
 4. **Configurer l'URL du frontend** :
    - Pour le développement local : `FRONTEND_URL=http://localhost:3000`
-   - Pour la production : `FRONTEND_URL=https://sbcgroupe.ca`
+   - Pour la production : `FRONTEND_URL=https://tfksservice.innosft.com`
    - Cette URL est utilisée dans les liens de redirection des e-mails
 
 5. **Créer la base de données** :

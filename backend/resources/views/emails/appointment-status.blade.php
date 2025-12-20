@@ -113,7 +113,7 @@
 
         <div class="footer">
             <p>Pour toute question, n'hésitez pas à nous contacter.</p>
-            <p>Cordialement,<br>L'équipe SBC Groupe</p>
+            <p>Cordialement,<br>L'équipe TFKService</p>
         </div>
     </div>
 </body>

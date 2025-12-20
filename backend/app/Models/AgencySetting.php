@@ -40,7 +40,7 @@ class AgencySetting extends Model
     public static function getSettings()
     {
         return static::first() ?? static::create([
-            'name' => 'SBC Groupe',
+            'name' => 'TFKService',
             'description' => 'Votre destination, notre mission',
             'hero_subtitle' => 'Transformez votre rêve d\'études à l\'étranger en réalité avec notre accompagnement expert',
             'email' => 'toubafallv@gmail.com',

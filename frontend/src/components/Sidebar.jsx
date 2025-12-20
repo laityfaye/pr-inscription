@@ -140,7 +140,7 @@ const Sidebar = ({ unreadCount = 0 }) => {
           </div>
           <div>
             <div className="text-base font-bold gradient-text-static">
-              {'SBC Groupe'}
+              {'TFKService'}
             </div>
             <div className="text-[10px] text-neutral-500 font-medium">Dashboard</div>
           </div>

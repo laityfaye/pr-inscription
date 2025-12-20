@@ -11,7 +11,7 @@ const getBackendBaseUrl = () => {
   }
   
   // Priorité 2: Extraire l'URL de base depuis VITE_API_URL si disponible
-  // (ex: https://backend.sbcgroupe.ca/api -> https://backend.sbcgroupe.ca)
+  // (ex: https://tfksbackend.innosft.com/api -> https://tfksbackend.innosft.com)
   if (import.meta.env.VITE_API_URL) {
     const apiUrl = import.meta.env.VITE_API_URL
     return apiUrl.replace('/api', '').replace(/\/$/, '')
