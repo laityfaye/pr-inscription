@@ -15,23 +15,32 @@ class DocumentService
         // S'assurer que le répertoire de base existe
         $baseDirectory = 'documents';
         if (!Storage::disk('public')->exists($baseDirectory)) {
-            Storage::disk('public')->makeDirectory($baseDirectory, 0755, true);
+            Storage::disk('public')->makeDirectory($baseDirectory, 0775, true);
         }
         
         // S'assurer que le répertoire de l'utilisateur existe
         $directory = $baseDirectory . '/' . $user->id;
         if (!Storage::disk('public')->exists($directory)) {
-            Storage::disk('public')->makeDirectory($directory, 0755, true);
+            Storage::disk('public')->makeDirectory($directory, 0775, true);
         }
         
         // Vérifier que le répertoire est accessible en écriture
         $storagePath = Storage::disk('public')->path($directory);
         if (!is_writable($storagePath)) {
-            Log::error('Storage directory not writable:', [
-                'path' => $storagePath,
-                'user_id' => $user->id,
-            ]);
-            throw new \RuntimeException('Le répertoire de stockage n\'est pas accessible en écriture. Veuillez contacter l\'administrateur.');
+            // Essayer de corriger les permissions si possible
+            @chmod($storagePath, 0775);
+            
+            // Vérifier à nouveau
+            if (!is_writable($storagePath)) {
+                // Logger l'erreur sans utiliser Log::error pour éviter une boucle infinie
+                error_log('Storage directory not writable: ' . $storagePath . ' (user_id: ' . $user->id . ')');
+                
+                throw new \RuntimeException(
+                    'Le répertoire de stockage n\'est pas accessible en écriture. ' .
+                    'Veuillez contacter l\'administrateur pour corriger les permissions. ' .
+                    'Chemin: ' . $storagePath
+                );
+            }
         }
         
         $path = $file->store($directory, 'public');
