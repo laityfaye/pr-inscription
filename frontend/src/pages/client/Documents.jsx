@@ -688,10 +688,10 @@ const ClientDocuments = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <Card className="max-w-md w-full p-8 animate-scale-in max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Uploader un document</h2>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in">
+          <Card className="max-w-md w-full p-4 sm:p-6 md:p-8 animate-scale-in max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 pr-2">Uploader un document</h2>
               <button
                 onClick={() => {
                   setShowModal(false)
@@ -706,18 +706,18 @@ const ClientDocuments = () => {
                   setUploadStep(1)
                   setWantToRename(null)
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
               >
                 <FiX className="w-5 h-5 text-gray-600" />
               </button>
             </div>
 
             {/* Indicateur de progression */}
-            <div className="mb-6">
+            <div className="mb-4 sm:mb-6">
               <div className="flex items-center justify-between mb-2">
                 {[1, 2, 3, 4].map((step) => (
                   <div key={step} className="flex items-center flex-1">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm ${
+                    <div className={`flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full font-semibold text-xs sm:text-sm ${
                       uploadStep >= step 
                         ? 'bg-primary-600 text-white' 
                         : 'bg-gray-200 text-gray-600'
@@ -725,24 +725,24 @@ const ClientDocuments = () => {
                       {uploadStep > step ? '✓' : step}
                     </div>
                     {step < 4 && (
-                      <div className={`flex-1 h-1 mx-2 ${
+                      <div className={`flex-1 h-1 mx-1 sm:mx-2 ${
                         uploadStep > step ? 'bg-primary-600' : 'bg-gray-200'
                       }`} />
                     )}
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-between text-xs text-gray-600">
-                <span className={uploadStep === 1 ? 'font-semibold text-primary-600' : ''}>Catégorie</span>
-                <span className={uploadStep === 2 ? 'font-semibold text-primary-600' : ''}>Type</span>
-                <span className={uploadStep === 3 ? 'font-semibold text-primary-600' : ''}>Fichier</span>
-                <span className={uploadStep === 4 ? 'font-semibold text-primary-600' : ''}>Nom</span>
+              <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-600 px-1">
+                <span className={`truncate ${uploadStep === 1 ? 'font-semibold text-primary-600' : ''}`}>Catégorie</span>
+                <span className={`truncate ${uploadStep === 2 ? 'font-semibold text-primary-600' : ''}`}>Type</span>
+                <span className={`truncate ${uploadStep === 3 ? 'font-semibold text-primary-600' : ''}`}>Fichier</span>
+                <span className={`truncate ${uploadStep === 4 ? 'font-semibold text-primary-600' : ''}`}>Nom</span>
               </div>
             </div>
 
             {/* Phase 1: Catégorie de demande */}
             {uploadStep === 1 && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Catégorie de demande <span className="text-red-500">*</span>
@@ -857,7 +857,7 @@ const ClientDocuments = () => {
                   </div>
                 )}
 
-                <div className="flex justify-end space-x-4 pt-4 border-t">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
                   <Button
                     variant="ghost"
                     onClick={() => {
@@ -872,6 +872,7 @@ const ClientDocuments = () => {
                       setSelectedStudyPermitRenewalId('')
                       setUploadStep(1)
                     }}
+                    className="w-full sm:w-auto"
                   >
                     Annuler
                   </Button>
@@ -898,6 +899,7 @@ const ClientDocuments = () => {
                       setUploadStep(2)
                     }}
                     disabled={!documentCategory || getAvailableCategories().length === 0}
+                    className="w-full sm:w-auto"
                   >
                     Suivant
                   </Button>
@@ -907,7 +909,7 @@ const ClientDocuments = () => {
 
             {/* Phase 2: Type de document */}
             {uploadStep === 2 && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Type de document <span className="text-red-500">*</span>
@@ -927,10 +929,11 @@ const ClientDocuments = () => {
                   </select>
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-4 border-t">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
                   <Button
                     variant="ghost"
                     onClick={() => setUploadStep(1)}
+                    className="w-full sm:w-auto"
                   >
                     Précédent
                   </Button>
@@ -944,6 +947,7 @@ const ClientDocuments = () => {
                       setUploadStep(3)
                     }}
                     disabled={!type}
+                    className="w-full sm:w-auto"
                   >
                     Suivant
                   </Button>
@@ -953,12 +957,12 @@ const ClientDocuments = () => {
 
             {/* Phase 3: Fichier */}
             {uploadStep === 3 && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Fichier <span className="text-red-500">*</span>
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary-400 transition-colors">
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 sm:p-6 text-center hover:border-primary-400 transition-colors">
                     <input
                       type="file"
                       onChange={handleFileChange}
@@ -969,8 +973,8 @@ const ClientDocuments = () => {
                       htmlFor="file-upload"
                       className="cursor-pointer flex flex-col items-center"
                     >
-                      <FiUpload className="text-4xl text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-600 mb-1">
+                      <FiUpload className="text-3xl sm:text-4xl text-gray-400 mb-2" />
+                      <span className="text-xs sm:text-sm text-gray-600 mb-1 break-words text-center px-2">
                         {file ? file.name : 'Cliquez pour sélectionner un fichier'}
                       </span>
                       {file && (
@@ -990,10 +994,11 @@ const ClientDocuments = () => {
                   </p>
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-4 border-t">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
                   <Button
                     variant="ghost"
                     onClick={() => setUploadStep(2)}
+                    className="w-full sm:w-auto"
                   >
                     Précédent
                   </Button>
@@ -1014,6 +1019,7 @@ const ClientDocuments = () => {
                       setUploadStep(4)
                     }}
                     disabled={!file || file.size > MAX_FILE_SIZE}
+                    className="w-full sm:w-auto"
                   >
                     Suivant
                   </Button>
@@ -1023,20 +1029,20 @@ const ClientDocuments = () => {
 
             {/* Phase 4: Renommer le document */}
             {uploadStep === 4 && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {wantToRename === null ? (
                   // Question: Voulez-vous renommer le document ?
                   <>
                     <div className="text-center">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                         Voulez-vous renommer le document ?
                       </h3>
-                      <p className="text-sm text-gray-600 mb-6">
-                        Le fichier sera nommé: <strong>{file?.name || 'N/A'}</strong>
+                      <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6 break-words px-2">
+                        Le fichier sera nommé: <strong className="break-all">{file?.name || 'N/A'}</strong>
                       </p>
                     </div>
 
-                    <div className="flex justify-center gap-4">
+                    <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4">
                       <Button
                         variant="secondary"
                         size="lg"
@@ -1044,7 +1050,7 @@ const ClientDocuments = () => {
                           setWantToRename(false)
                           setCustomName('')
                         }}
-                        className="min-w-[120px]"
+                        className="w-full sm:min-w-[120px]"
                       >
                         Non, garder le nom
                       </Button>
@@ -1057,7 +1063,7 @@ const ClientDocuments = () => {
                           const fileNameWithoutExt = file?.name.replace(/\.[^/.]+$/, '') || ''
                           setCustomName(fileNameWithoutExt)
                         }}
-                        className="min-w-[120px]"
+                        className="w-full sm:min-w-[120px]"
                       >
                         Oui, renommer
                       </Button>
@@ -1087,10 +1093,11 @@ const ClientDocuments = () => {
                       </p>
                     </div>
 
-                    <div className="flex justify-end space-x-4 pt-4 border-t">
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
                       <Button
                         variant="ghost"
                         onClick={() => setWantToRename(null)}
+                        className="w-full sm:w-auto"
                       >
                         Retour
                       </Button>
@@ -1105,6 +1112,7 @@ const ClientDocuments = () => {
                           setWantToRename('confirmed')
                         }}
                         disabled={!customName.trim()}
+                        className="w-full sm:w-auto"
                       >
                         Confirmer
                       </Button>
@@ -1113,20 +1121,21 @@ const ClientDocuments = () => {
                 ) : wantToRename === 'confirmed' ? (
                   // Récapitulatif final si renommage confirmé
                   <>
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <p className="text-sm font-semibold text-gray-700 mb-2">Récapitulatif:</p>
-                      <div className="space-y-1 text-xs text-gray-600">
+                      <div className="space-y-1 text-xs text-gray-600 break-words">
                         <p><strong>Catégorie:</strong> {getAvailableCategories().find(c => c.value === documentCategory)?.label || 'N/A'}</p>
                         <p><strong>Type:</strong> {documentTypes.find(dt => dt.value === type)?.label || 'N/A'}</p>
-                        <p><strong>Fichier:</strong> {file?.name || 'N/A'}</p>
-                        <p><strong>Nom du document:</strong> {customName || file?.name || 'N/A'}</p>
+                        <p><strong>Fichier:</strong> <span className="break-all">{file?.name || 'N/A'}</span></p>
+                        <p><strong>Nom du document:</strong> <span className="break-all">{customName || file?.name || 'N/A'}</span></p>
                       </div>
                     </div>
 
-                    <div className="flex justify-end space-x-4 pt-4 border-t">
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
                       <Button
                         variant="ghost"
                         onClick={() => setWantToRename(true)}
+                        className="w-full sm:w-auto"
                       >
                         Retour
                       </Button>
@@ -1135,6 +1144,7 @@ const ClientDocuments = () => {
                         onClick={handleUpload}
                         disabled={loading || (file && file.size > MAX_FILE_SIZE)}
                         loading={loading}
+                        className="w-full sm:w-auto"
                       >
                         {loading ? 'Upload...' : 'Confirmer'}
                       </Button>
@@ -1144,20 +1154,21 @@ const ClientDocuments = () => {
                   // Afficher le récapitulatif et permettre l'upload (quand on garde le nom)
                   <>
                     {/* Récapitulatif */}
-                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <p className="text-sm font-semibold text-gray-700 mb-2">Récapitulatif:</p>
-                      <div className="space-y-1 text-xs text-gray-600">
+                      <div className="space-y-1 text-xs text-gray-600 break-words">
                         <p><strong>Catégorie:</strong> {getAvailableCategories().find(c => c.value === documentCategory)?.label || 'N/A'}</p>
                         <p><strong>Type:</strong> {documentTypes.find(dt => dt.value === type)?.label || 'N/A'}</p>
-                        <p><strong>Fichier:</strong> {file?.name || 'N/A'}</p>
-                        <p><strong>Nom du document:</strong> {file?.name || 'N/A'}</p>
+                        <p><strong>Fichier:</strong> <span className="break-all">{file?.name || 'N/A'}</span></p>
+                        <p><strong>Nom du document:</strong> <span className="break-all">{file?.name || 'N/A'}</span></p>
                       </div>
                     </div>
 
-                    <div className="flex justify-end space-x-4 pt-4 border-t">
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 border-t">
                       <Button
                         variant="ghost"
                         onClick={() => setWantToRename(null)}
+                        className="w-full sm:w-auto"
                       >
                         Retour
                       </Button>
@@ -1166,6 +1177,7 @@ const ClientDocuments = () => {
                         onClick={handleUpload}
                         disabled={loading || (file && file.size > MAX_FILE_SIZE)}
                         loading={loading}
+                        className="w-full sm:w-auto"
                       >
                         {loading ? 'Upload...' : 'Confirmer'}
                       </Button>
@@ -1180,28 +1192,36 @@ const ClientDocuments = () => {
 
       {/* Modal de prévisualisation */}
       {showPreviewModal && previewDocument && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col animate-scale-in">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col animate-scale-in">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-gray-200 gap-2">
               <div className="flex-1 min-w-0">
-                <h3 className="text-xl font-bold text-gray-900 truncate">{previewDocument.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">{previewDocument.name}</h3>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">
                   {getDocumentTypeLabel(previewDocument.type)} •{' '}
                   {previewDocument.size
                     ? (previewDocument.size / 1024 / 1024).toFixed(2) + ' MB'
                     : 'Taille inconnue'}
                 </p>
               </div>
-              <div className="flex items-center gap-2 ml-4">
+              <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4 flex-shrink-0">
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => handleDownload(previewDocument)}
                   icon={FiDownload}
+                  className="hidden sm:flex"
                 >
                   Télécharger
                 </Button>
+                <button
+                  onClick={() => handleDownload(previewDocument)}
+                  className="sm:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+                  aria-label="Télécharger"
+                >
+                  <FiDownload className="w-5 h-5" />
+                </button>
                 <button
                   onClick={() => {
                     if (previewUrl) {
@@ -1220,33 +1240,33 @@ const ClientDocuments = () => {
             </div>
 
             {/* Contenu de prévisualisation */}
-            <div className="flex-1 overflow-auto p-6 bg-gray-50">
+            <div className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-gray-50">
               {!previewUrl ? (
                 <div className="flex items-center justify-center min-h-[400px]">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
                 </div>
               ) : isImage(previewDocument.mime_type) ? (
-                <div className="flex items-center justify-center min-h-[400px]">
+                <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
                   <img
                     src={previewUrl}
                     alt={previewDocument.name}
-                    className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+                    className="max-w-full max-h-[60vh] sm:max-h-[70vh] object-contain rounded-lg shadow-lg"
                     onError={(e) => {
                       e.target.style.display = 'none'
                       const errorDiv = e.target.nextSibling
                       if (errorDiv) errorDiv.style.display = 'flex'
                     }}
                   />
-                  <div className="hidden flex-col items-center justify-center min-h-[400px] text-gray-500">
-                    <FiFile className="w-16 h-16 mb-4" />
-                    <p>Impossible de charger l'image</p>
+                  <div className="hidden flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] text-gray-500">
+                    <FiFile className="w-12 h-12 sm:w-16 sm:h-16 mb-4" />
+                    <p className="text-sm sm:text-base">Impossible de charger l'image</p>
                   </div>
                 </div>
               ) : isPdf(previewDocument.mime_type) ? (
-                <div className="flex items-center justify-center min-h-[400px]">
+                <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
                   <iframe
                     src={previewUrl}
-                    className="w-full h-[70vh] border-0 rounded-lg shadow-lg"
+                    className="w-full h-[60vh] sm:h-[70vh] border-0 rounded-lg shadow-lg"
                     title={previewDocument.name}
                     onError={() => {
                       toast.error('Impossible de charger le PDF')
@@ -1254,16 +1274,17 @@ const ClientDocuments = () => {
                   />
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center min-h-[400px] text-gray-500">
-                  <FiFile className="w-16 h-16 mb-4" />
-                  <p className="text-lg font-semibold mb-2">Aperçu non disponible</p>
-                  <p className="text-sm mb-4">
+                <div className="flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] text-gray-500 px-4">
+                  <FiFile className="w-12 h-12 sm:w-16 sm:h-16 mb-4" />
+                  <p className="text-base sm:text-lg font-semibold mb-2 text-center">Aperçu non disponible</p>
+                  <p className="text-xs sm:text-sm mb-4 text-center">
                     Ce type de fichier ({previewDocument.mime_type || 'inconnu'}) ne peut pas être prévisualisé
                   </p>
                   <Button
                     variant="primary"
                     onClick={() => handleDownload(previewDocument)}
                     icon={FiDownload}
+                    className="w-full sm:w-auto"
                   >
                     Télécharger pour visualiser
                   </Button>
