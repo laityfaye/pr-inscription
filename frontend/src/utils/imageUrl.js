@@ -19,7 +19,23 @@ const getBackendBaseUrl = () => {
     return apiUrl.replace('/api', '').replace(/\/$/, '')
   }
   
-  // Priorité 3: Utiliser la valeur par défaut de l'API (même que dans api.js)
+  // Priorité 3: Détecter automatiquement depuis l'URL actuelle (en production)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    const protocol = window.location.protocol
+    
+    // Si c'est localhost ou 127.0.0.1, utiliser localhost:8000
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8000'
+    }
+    
+    // En production, si on est sur innosft.com, utiliser le sous-domaine backend
+    if (hostname === 'tfksservice.innosft.com' || hostname === 'tfksbackend.innosft.com' || hostname.includes('innosft.com')) {
+      return 'https://tfksbackend.innosft.com'
+    }
+  }
+  
+  // Priorité 4: Utiliser la valeur par défaut de l'API (même que dans api.js)
   // api.js utilise: import.meta.env.VITE_API_URL || 'https://tfksbackend.innosft.com/api'
   const defaultApiUrl = 'https://tfksbackend.innosft.com/api'
   return defaultApiUrl.replace('/api', '').replace(/\/$/, '')
@@ -49,7 +65,21 @@ export const getImageUrl = (path) => {
   // Cela garantit que les images utilisent le même backend que les requêtes API
   const baseUrl = getBackendBaseUrl()
   const cleanBaseUrl = baseUrl.replace(/\/$/, '')
-  return `${cleanBaseUrl}/api/storage/${path}`
+  const imageUrl = `${cleanBaseUrl}/api/storage/${path}`
+  
+  // Debug en production pour diagnostiquer les problèmes
+  if (import.meta.env.PROD && typeof window !== 'undefined') {
+    console.debug('[ImageUrl] Production', {
+      path,
+      baseUrl,
+      imageUrl,
+      VITE_API_URL: import.meta.env.VITE_API_URL,
+      VITE_BACKEND_URL: import.meta.env.VITE_BACKEND_URL,
+      currentHostname: window.location.hostname,
+    })
+  }
+  
+  return imageUrl
 }
 
 /**
