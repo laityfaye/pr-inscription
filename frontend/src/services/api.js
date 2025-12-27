@@ -39,7 +39,7 @@ api.interceptors.response.use(
       const currentPath = window.location.pathname
       
       // Liste des routes publiques qui ne nécessitent pas d'authentification
-      const publicRoutes = ['/', '/login', '/register', '/reviews', '/news', '/appointment']
+      const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/reviews', '/news', '/appointment']
       const isPublicRoute = publicRoutes.includes(currentPath)
       
       // Liste des endpoints qui peuvent être accessibles publiquement (même si le backend retourne 401)

@@ -49,6 +49,8 @@ Route::get('/work-permit-countries/{workPermitCountry}', [WorkPermitCountryContr
 // Authentification
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // Routes protégées
 Route::middleware('auth:sanctum')->group(function () {

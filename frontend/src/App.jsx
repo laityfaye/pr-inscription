@@ -12,6 +12,8 @@ import Reviews from './pages/Reviews'
 import News from './pages/News'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import Appointment from './pages/Appointment'
 
 // Pages client
@@ -63,6 +65,8 @@ function App() {
             <Route path="/news" element={<News />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/appointment" element={<Appointment />} />
 
             {/* Routes client */}

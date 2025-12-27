@@ -80,6 +80,15 @@ const Login = () => {
                 icon={FiLock}
               />
 
+              <div className="flex items-center justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-primary-600 hover:text-primary-700 transition-colors duration-200 font-medium"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              </div>
+
               <Button
                 type="submit"
                 variant="primary"

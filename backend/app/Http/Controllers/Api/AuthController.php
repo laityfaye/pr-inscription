@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -100,6 +102,59 @@ class AuthController extends Controller
         return response()->json([
             'user' => $request->user()->load(['inscriptions.country', 'documents']),
         ]);
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    {
+        try {
+            $this->authService->forgotPassword($request->validated()['email']);
+
+            return response()->json([
+                'message' => 'Si un compte existe avec cet e-mail, un lien de réinitialisation a été envoyé.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la demande de réinitialisation: ' . $e->getMessage(), [
+                'email' => $request->email,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'message' => 'Erreur lors de l\'envoi de l\'e-mail de réinitialisation',
+                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur est survenue',
+            ], 500);
+        }
+    }
+
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    {
+        try {
+            $validated = $request->validated();
+            $success = $this->authService->resetPassword(
+                $validated['email'],
+                $validated['token'],
+                $validated['password']
+            );
+
+            if (!$success) {
+                return response()->json([
+                    'message' => 'Le lien de réinitialisation est invalide ou a expiré.',
+                ], 400);
+            }
+
+            return response()->json([
+                'message' => 'Votre mot de passe a été réinitialisé avec succès.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la réinitialisation du mot de passe: ' . $e->getMessage(), [
+                'email' => $request->email,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'message' => 'Erreur lors de la réinitialisation du mot de passe',
+                'error' => config('app.debug') ? $e->getMessage() : 'Une erreur est survenue',
+            ], 500);
+        }
     }
 }
 
