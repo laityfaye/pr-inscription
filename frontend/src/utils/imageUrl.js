@@ -1,9 +1,10 @@
 /**
  * Utilitaire pour construire les URLs d'images
  * Utilise l'URL de base de l'API depuis les variables d'environnement
+ * Utilise la même logique que l'API pour garantir la cohérence
  */
 
-// Récupérer l'URL de base du backend
+// Récupérer l'URL de base du backend (même logique que dans api.js)
 const getBackendBaseUrl = () => {
   // Priorité 1: Variable d'environnement explicite pour le backend
   if (import.meta.env.VITE_BACKEND_URL) {
@@ -12,27 +13,16 @@ const getBackendBaseUrl = () => {
   
   // Priorité 2: Extraire l'URL de base depuis VITE_API_URL si disponible
   // (ex: https://tfksbackend.innosft.com/api -> https://tfksbackend.innosft.com)
+  // C'est la même logique que dans api.js qui utilise VITE_API_URL
   if (import.meta.env.VITE_API_URL) {
     const apiUrl = import.meta.env.VITE_API_URL
     return apiUrl.replace('/api', '').replace(/\/$/, '')
   }
   
-  // Priorité 3: Détecter automatiquement depuis l'URL actuelle
-  const hostname = window.location.hostname
-  const protocol = window.location.protocol
-  
-  // Si c'est localhost ou 127.0.0.1, utiliser localhost:8000
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:8000'
-  }
-  
-  // En production, si on est sur innosft.com, utiliser le sous-domaine backend
-  if (hostname === 'tfksservice.innosft.com' || hostname === 'tfksbackend.innosft.com' || hostname === 'innosft.com') {
-    return 'https://tfksbackend.innosft.com'
-  }
-  
-  // Sinon, utiliser l'IP/hostname actuel avec le port 8000 (pour développement réseau local)
-  return `${protocol}//${hostname}:8000`
+  // Priorité 3: Utiliser la valeur par défaut de l'API (même que dans api.js)
+  // api.js utilise: import.meta.env.VITE_API_URL || 'https://tfksbackend.innosft.com/api'
+  const defaultApiUrl = 'https://tfksbackend.innosft.com/api'
+  return defaultApiUrl.replace('/api', '').replace(/\/$/, '')
 }
 
 /**
@@ -55,23 +45,11 @@ export const getImageUrl = (path) => {
     return `/api/storage/${path}`
   }
   
-  // En production, utiliser l'URL via l'API (plus sécurisé et ne nécessite pas de lien symbolique)
+  // En production, utiliser la même base URL que l'API pour garantir la cohérence
+  // Cela garantit que les images utilisent le même backend que les requêtes API
   const baseUrl = getBackendBaseUrl()
   const cleanBaseUrl = baseUrl.replace(/\/$/, '')
-  // Utiliser /api/storage pour passer par le StorageController
-  const imageUrl = `${cleanBaseUrl}/api/storage/${path}`
-  
-  // Debug en mode développement
-  if (import.meta.env.DEV && typeof window !== 'undefined') {
-    console.debug('[ImageUrl]', {
-      path,
-      imageUrl: `/api/storage/${path}`,
-      currentHostname: window.location.hostname,
-      mode: 'dev (via proxy)',
-    })
-  }
-  
-  return imageUrl
+  return `${cleanBaseUrl}/api/storage/${path}`
 }
 
 /**
