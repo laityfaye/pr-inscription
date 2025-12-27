@@ -74,13 +74,22 @@ class StorageController extends Controller
         // Déterminer le type MIME
         $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
         
+        // Obtenir les headers CORS
+        $corsHeaders = $this->getCorsHeaders($request);
+        
         // Retourner le fichier avec les en-têtes appropriés
-        $headers = array_merge([
+        // Utiliser response()->file() et ajouter les headers CORS avec withHeaders()
+        $response = response()->file($filePath, [
             'Content-Type' => $mimeType,
             'Cache-Control' => 'public, max-age=31536000', // Cache 1 an
-        ], $this->getCorsHeaders($request));
+        ]);
         
-        return response()->file($filePath, $headers);
+        // Ajouter les headers CORS explicitement
+        foreach ($corsHeaders as $key => $value) {
+            $response->headers->set($key, $value, true);
+        }
+        
+        return $response;
     }
 }
 
